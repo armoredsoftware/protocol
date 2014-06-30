@@ -18,6 +18,9 @@ import Data.ByteString (ByteString, pack, append)
 import Data.Word
 import System.IO.Unsafe (unsafePerformIO)
 import Data.Binary
+
+--Our Libraries
+import KeyUtil
       
 -- Primitive types
 type PCR = Word8
@@ -83,8 +86,10 @@ gen = unsafePerformIO $ liftM cprgCreate createEntropyPool
 
 pub :: PublicKey
 pri :: PrivateKey
-gen' :: SystemRNG
-((pub, pri), gen') = generate gen 255 3
+--(pub, pri) = fromJust $ generateWith (5,11) 255 0x10001
+(pri, pub) = getKeys
+--gen' :: SystemRNG
+--((pub, pri), gen') = generate gen 255 3
 
 -- Appraisal primitives
 mkRequest :: [Int] -> Request
