@@ -16,11 +16,9 @@ import Control.Monad
 import Data.Bits
 import Data.ByteString (ByteString, pack, append)
 import Data.Word
+import System.IO
 import System.IO.Unsafe (unsafePerformIO)
 import Data.Binary
-
---Our Libraries
-import KeyUtil
       
 -- Primitive types
 type PCR = Word8
@@ -59,7 +57,29 @@ instance Binary Shared where
              2 -> do res <- get
                      return (Result res)
 
-  
+
+getKeys :: (PrivateKey, PublicKey)
+getKeys = unsafePerformIO $ readKeys
+
+getPriKey :: PrivateKey
+getPriKey = fst getKeys
+
+getPubKey :: PublicKey
+getPubKey = snd getKeys
+
+readKeys :: IO (PrivateKey, PublicKey)
+readKeys =
+     do handle <- openFile "keys.txt" ReadMode
+        priString <- hGetLine handle
+        pubString <- hGetLine handle
+        let pri :: PrivateKey
+            pri = read priString
+            pub :: PublicKey
+            pub = read pubString
+        hClose handle
+        return (pri, pub)
+
+
 -- PCR primitives
 pcrs :: [PCR]
 pcrs = correct --wrong
