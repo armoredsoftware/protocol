@@ -7,14 +7,12 @@ import Demo1V1
 import Control.Concurrent
 import Control.Concurrent.STM
 import Control.Monad
---import Demo1Utils
 import Crypto.Random.API (cprgCreate)
 import Crypto.Random (createEntropyPool)
 import Data.Maybe
 
 
 prompt:: IO (Int)
---prompt = return 6
 prompt= loop
       where loop = do putStrLn "Which Domain ID would you like to Appraise?"
                       input <- getLine
@@ -22,10 +20,6 @@ prompt= loop
                         [(id,_)] -> return id
                         _     -> do putStrLn "Error: Please Enter a Number."
                                     loop
-
-
-
-
 
 getRequest :: TMVar Shared -> STM Shared
 getRequest m = 
@@ -40,12 +34,6 @@ putQuote m quo = do void $ swapTMVar m quo
 spawnVChan :: TMVar Shared -> IO ()
 spawnVChan m = 
     do id <-getDomId
-       putStrLn $ "ID: "++(show id)
-       {-e <- createEntropyPool
-       let gen = cprgCreate e
-           req = mkRequest [0..7] gen
-           pubKey = getPubKey
-       id<- getDomId -}
        putStrLn $ "Appraiser Domain id: "++(show id)
        other <- prompt
        chan <- client_init other
@@ -56,7 +44,6 @@ spawnVChan m =
        res :: Shared<- receive chan
        putStrLn $ "Appraiser Received: "++(show res)
        atomically $ putQuote m res
-       --here
 
 -- The fun stuff
 main :: IO ()
@@ -64,7 +51,9 @@ main =
     do  m <- newEmptyTMVarIO
 	forkIO $ spawnVChan m
 	spawnAppraisal m
-	print =<< atomically (getResult m)
+	result <- atomically (getResult m)
+	case result of True -> putStrLn "Appraisal Succeeded"
+	     	       False -> putStrLn "Appraisal Failed"
 
   where getResult :: TMVar Shared -> STM Bool
         getResult m =
@@ -72,21 +61,12 @@ main =
                case v of
                  Result res -> return res
                  otherwise -> retry
- {-
-        putStrLn $ "Appraiser Domain id: "++(show id)
-        other <- prompt
-        chan <- client_init other
-        putStrLn $ "Appraiser Sending: "++(show req)
-        send chan req 
-        ctrlWait chan
-        res :: Shared<- receive chan
-        putStrLn $ "Appraiser Received: "++(show res)
-        print $ evaluate pubKey req res
-      
-        return ()
---        close chan -}
           
-  
+
+
+
+
+
 
 {- Think of an appraisal as the three step process we've talked about:
    1)  Send a request.
