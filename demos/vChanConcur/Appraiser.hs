@@ -12,6 +12,7 @@ import Crypto.Random (createEntropyPool)
 import Data.Maybe
 
 
+
 prompt:: IO (Int)
 prompt= loop
       where loop = do putStrLn "Which Domain ID would you like to Appraise?"
@@ -33,17 +34,18 @@ putQuote m quo = do void $ swapTMVar m quo
 
 spawnVChan :: TMVar Shared -> IO ()
 spawnVChan m = 
-    do id <-getDomId
-       putStrLn $ "Appraiser Domain id: "++(show id)
-       other <- prompt
-       chan <- client_init other
-       req <- atomically $ getRequest m
-       putStrLn $ "Appraiser Sending: "++(show req)
-       send chan req
-       ctrlWait chan
-       res :: Shared<- receive chan
-       putStrLn $ "Appraiser Received: "++(show res)
-       atomically $ putQuote m res
+  
+  do id <-getDomId
+     putStrLn $ "Appraiser Domain id: "++(show id)
+     other <- prompt
+     chan <- client_init other
+     req <- atomically $ getRequest m
+     putStrLn $ "Appraiser Sending: "++(show req)
+     send chan req
+     ctrlWait chan
+     res :: Shared<- receive chan
+     putStrLn $ "Appraiser Received: "++(show res)
+     atomically $ putQuote m res
 
 -- The fun stuff
 main :: IO ()

@@ -32,7 +32,6 @@ data Shared = Appraisal Request
               | Attestation Quote
               | Result Bool
 
-
 instance Show Shared where
     show (Appraisal app) = "Appraisal: " ++ (show app)
     show (Attestation att) = "Attestation: " ++ (show att) 
