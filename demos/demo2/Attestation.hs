@@ -80,7 +80,7 @@ readKeys =
 
 prompt:: IO (Int)
 prompt= loop
-      where loop = do putStrLn "Which Domain ID would you like to Appraise?"
+      where loop = do putStrLn "Which Domain ID is the Appraiser?"
                       input <- getLine
                       case reads input of
                         [(id,_)] -> return id
@@ -94,14 +94,14 @@ receiveRequest chan = do
   res :: Shared <- receive chan
   case res of
     Appraisal req -> do
-      putStrLn $ "Attester Received: " ++ (show req)
+      putStrLn $ "\n" ++ "Attester Received: " ++ (show res) ++ "\n"
       return req
     otherwise -> throw $ ErrorCall requestReceiveError
       
 sendQuote :: LibXenVChan -> Quote -> IO ()   
 sendQuote chan quote = do
-  putStrLn "Attester Sending Quote"
-  send chan quote
+  putStrLn $ "Attester Sending: " ++ (show $ Attestation quote) ++ "\n"
+  send chan $ Attestation quote
   return ()
 
 

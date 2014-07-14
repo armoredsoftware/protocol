@@ -105,7 +105,7 @@ main :: IO ()
 main = let req = mkRequest [0..7] in
   do chan <- sendRequest req
      quote <- receiveQuote chan
-     case evaluate req quote of True -> putStrLn "True"
+     case evaluate req quote of True -> putStrLn "Appraisal Succeeded"
      return ()
 
                       
@@ -126,8 +126,8 @@ sendRequest req =
      putStrLn $ "Appraiser Domain id: "++(show id)
      other <- prompt
      chan <- client_init other
-     putStrLn $ "Appraiser Sending: "++(show req)
-     send chan req
+     putStrLn $ "\n" ++ "Appraiser Sending: "++(show $ Appraisal req) ++ "\n"
+     send chan $ Appraisal req
      return chan
 
 receiveQuote :: LibXenVChan -> IO Quote
@@ -136,7 +136,8 @@ receiveQuote chan =  do
              res :: Shared <- receive chan
              case res of 
                                  Attestation quote ->  do
-                                                                putStrLn $ "Appraiser Received: "++ (show res)
+                                                                putStrLn $ "\n" ++ "Appraiser Received: "
+                                                                                               ++ (show res)++ "\n"
                                                                 return quote
                                  otherwise ->  throw $ ErrorCall quoteReceiveError 
                                                             -- TODO:  error handling here?
