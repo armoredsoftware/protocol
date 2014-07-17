@@ -1,0 +1,73 @@
+message ProtoRequest {
+  optional DesiredEvidence desiredEvidence=1;
+  optional TPMRequest tpmRequest=2;
+  optional Nonce nonce=3;
+}
+message DesiredEvidence {
+ repeated EvidenceDescriptor evidenceDescriptor=1;
+}
+message EvidenceDescriptor{
+ optional int32 desc=1;
+}
+message TPMRequest {
+ optional bytes body=1;
+}
+message Nonce{
+ optional bytes nonce=1;
+}
+
+
+message ProtoResponse {
+  optional EvidencePackage evidencePackage=1;
+  optional QuotePackage quotePackage=2;
+}
+
+message EvidencePackage {
+ optional Evidence evidence=1;
+ optional Nonce nonce =2;
+ optional Signature signature=3;
+}
+message Evidence {
+ repeated EvidencePiece evidencePiece=1;
+}
+message EvidencePiece{
+    enum Constructor{
+        M0=0;
+        M1=1;
+        M2=2;
+        M3=3;
+    }
+ optional Constructor constructor=1;
+    enum DataType{
+        BYTESTRING=0;
+        INT=1;
+        BOOL=3;
+        DOUBLE=4;
+    }
+ optional DataType dataType=2;
+}
+message Signature{
+ optional bytes signature=1;
+}
+
+message QuotePackage{
+ optional Quote quote=1;
+ optional Hash hash=2;
+ optional Signature signature=3;
+}
+
+message Quote{
+ repeated PCR pcr=1;
+ optional Nonce nonce=2;
+ optional Signature signature=3;
+}
+
+message PCR {
+ optional bytes pcr=1;
+}
+
+message Hash{
+ optional bytes hash=1;
+}
+
+
