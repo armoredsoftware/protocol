@@ -13,6 +13,9 @@ import Crypto.PubKey.RSA
 import Crypto.PubKey.RSA.PKCS15
 --import Crypto.Hash.MD5(hash)
 
+
+import ProtoCaster as PC
+
 -- utility libraries
 import Control.Exception hiding (evaluate)
 import Control.Monad
@@ -90,9 +93,11 @@ signEvidence e n =
 getEvidencePiece :: LibXenVChan -> EvidenceDescriptor -> IO EvidencePiece
 getEvidencePiece chan ed = do
   putStrLn $ "\n" ++ "Attestation Agent Sending: " ++ (show ed)
-  send chan $ ed
+  proto_ed <- PC.evidenceDescriptorToProto ed
+  putStrLn $ "\n" ++ "ProtoBuff Version: " ++ (show proto_ed)
+  send chan $ proto_ed --ed
   ctrlWait chan
-  evidence :: EvidencePiece <- receive chan --TODO:  error handling
+  evidence :: EvidencePiece <-(PC.protoToEvidencePiece (receive chan)) --TODO:  error handling
   putStrLn $ "Received: " ++ (show evidence)
   return evidence
   
