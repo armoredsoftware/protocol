@@ -38,13 +38,13 @@ message EvidencePiece{
         M3=3;
     }
  optional Constructor constructor=1;
-    enum DataType{
-        BYTESTRING=0;
-        INT=1;
-        BOOL=3;
-        DOUBLE=4;
-    }
- optional DataType dataType=2;
+
+ optional bytes bytesData=2;
+ optional int32 int32Data=3;
+ optional double doubleData=4;
+ optional bool boolData=5;
+ optional string stringData=6;
+
 }
 message Signature{
  optional bytes signature=1;
@@ -70,4 +70,7 @@ message Hash{
  optional bytes hash=1;
 }
 
+
+
+//talk to Measurer stuff
 
