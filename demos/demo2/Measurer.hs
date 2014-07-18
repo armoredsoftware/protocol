@@ -85,7 +85,7 @@ sendEvidence chan ep = do
 process :: LibXenVChan -> IO ()
 process chan = do
   ctrlWait chan
-  ed :: EvidenceDescriptor <- receive chan
+  ed :: EvidenceDescriptor <- protoToEvidenceDescriptor receive chan
   let ep = measure ed
   send chan ep
   return ()
