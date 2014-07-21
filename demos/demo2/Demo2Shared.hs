@@ -3,7 +3,7 @@ module Demo2Shared where
 -- utility libraries
 import Data.Binary
 import Data.ByteString (ByteString, pack, append, empty)
-import qualified Data.ByteString as B
+import qualified Data.ByteString.Lazy as B
 import System.IO
 import System.IO.Unsafe (unsafePerformIO)
 
