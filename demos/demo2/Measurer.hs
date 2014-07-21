@@ -8,7 +8,7 @@ import Data.Binary
 import Data.ByteString (ByteString, cons, empty)--, pack, append, empty)
 import Data.Bits
 import Control.Monad
-
+import ProtoCaster as PC
 data EvidencePiece = M0 M0Rep 
                    | M1 M1Rep
                    | M2 M2Rep deriving (Eq, Ord, Show)
@@ -79,13 +79,13 @@ receiveDescr chan = do
   
 sendEvidence :: LibXenVChan -> EvidencePiece ->  IO ()
 sendEvidence chan ep = do
-  send chan ep
+  send chan (evidencePieceToProto ep)
   return ()
   
 process :: LibXenVChan -> IO ()
 process chan = do
   ctrlWait chan
-  ed :: EvidenceDescriptor <- protoToEvidenceDescriptor receive chan
+  ed :: EvidenceDescriptor <- PC.protoToEvidenceDescriptor receive chan
   let ep = measure ed
   send chan ep
   return ()
