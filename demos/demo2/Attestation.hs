@@ -19,9 +19,10 @@ import Control.Monad
 import Data.Bits
 import Data.ByteString (ByteString, pack, append, empty)
 import qualified Data.ByteString as B
+import qualified Data.ByteString.Lazy as LB
 import System.IO
 import System.IO.Unsafe (unsafePerformIO)
-
+import Data.Maybe
 import qualified Data.Aeson as DA
 
 prompt:: IO (Int)
@@ -71,11 +72,11 @@ getEvidencePiece :: LibXenVChan -> EvidenceDescriptor -> IO EvidencePiece
 getEvidencePiece chan ed = do
   putStrLn $ "\n" ++ "Attestation Agent Sending: " ++ (show ed)
   logger <- createLogger
-  sendChunkedMessageByteString logger chan (toChunks (DA.encode (evidenceDescriptor ed)))
+  sendChunkedMessageByteString logger chan (LB.toChunks (DA.encode (evidenceDescriptor ed)))
   --send chan $ encode (wrapED ed)
   ctrlWait chan
   logger <- createLogger
-  evidence :: EvidencePiece <- fromJust ((DA.decode (B.fromChunks (readChunkedMessageByteString logger chan)) ) :: Maybe EvidencePiece ) --TODO:  error handling
+  evidence :: EvidencePiece <- fromJust ((DA.decode (LB.fromChunks (readChunkedMessageByteString logger chan)) ) :: Maybe EvidencePiece ) --TODO:  error handling
   putStrLn $ "Received: " ++ (show evidence)
   return evidence
 

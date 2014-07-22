@@ -11,7 +11,8 @@ import Data.Binary
 import Data.ByteString (ByteString, cons, empty)
 import Data.Bits
 import Control.Monad
-
+import Data.Maybe
+import qualified Data.ByteString.Lazy as LB
 data EvidencePiece = M0 M0Rep 
                    | M1 M1Rep
                    | M2 M2Rep deriving (Eq, Ord, Show)
@@ -78,9 +79,9 @@ process chan = do
   
   ctrlWait chan
   logger <- createLogger
-  ed :: EvidenceDescriptor <- stripED $ fromJust (decode (fromChunks (readChunkedMessageString logger chan)) :: Maybe EvidenceDescriptor)
+  ed :: EvidenceDescriptor <- evidenceDescriptor $ fromJust (DA.decode (LB.fromChunks (readChunkedMessageString logger chan)) :: Maybe EvidenceDescriptor)
 --(receive chan) :: Maybe EvidenceDescriptorWrapper)
-  let ep = toChunks (DA.encode (EPW (measure ed)))
+  let ep = LB.toChunks (DA.encode (EPW (measure ed)))
   logger <- createLogger
   sendChunkedMessageString logger chan ep 
   return ()
