@@ -14,13 +14,6 @@ import Data.Bits
 import Control.Monad
 import Data.Maybe
 import qualified Data.ByteString.Lazy as LB
-data EvidencePiece = M0 M0Rep 
-                   | M1 M1Rep
-                   | M2 M2Rep deriving (Eq, Ord, Show)
-
-type M0Rep = ByteString
-type M1Rep = ByteString
-type M2Rep = ByteString
 
 instance Binary EvidencePiece where
          put (M0 req) = do put (0::Word8);
