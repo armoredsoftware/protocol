@@ -78,8 +78,8 @@ getEvidencePiece chan ed = do
   logger <- createLogger
   bytes <- readChunkedMessageByteString logger chan
   let evidence =evidencePiece $ fromJust (DA.decode (LB.fromChunks [bytes]) :: Maybe EvidencePieceWrapper ) in --TODO:  error handling
-   putStrLn $ "Received: " ++ (show evidence)
-   return evidence
+  putStrLn $ "Received: " ++ (show evidence)
+  return evidence
 
 receiveRequest :: LibXenVChan -> IO Request
 receiveRequest chan = do

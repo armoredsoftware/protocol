@@ -42,10 +42,10 @@ process chan = do
   logger <- createLogger
   bytes <- readChunkedMessageString logger chan
   let ed = evidenceDescriptor $ fromJust (DA.decode (head (LB.fromChunks (bytes))) :: Maybe EvidenceDescriptorWrapper)
-      ep = LB.toChunks (DA.encode (EPW (measure ed))) in
-        logger <- createLogger
-        sendChunkedMessageString logger chan ep 
-        return ()
+  let ep = LB.toChunks (DA.encode (EPW (measure ed)))
+  logger <- createLogger
+  sendChunkedMessageString logger chan ep 
+  return ()
 
 
 measure :: EvidenceDescriptor -> EvidencePiece
