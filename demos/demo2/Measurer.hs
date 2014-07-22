@@ -37,9 +37,9 @@ instance Binary EvidencePiece where
 data EvidenceDescriptor = D0 | D1 | D2 deriving(Eq, Ord) --for now
 
 instance Binary EvidenceDescriptor where
-  put D0 = do put (0::Word8)
-  put D1 = do put (1::Word8)
-  put D2 = do put (2::Word8)
+  put D0 = put (0::Word8)
+  put D1 = put (1::Word8)
+  put D2 = put (2::Word8)
            
   get = do t<- get :: Get Word8
            case t of
@@ -52,7 +52,7 @@ instance Show EvidenceDescriptor where
   show D1 = "Measurement #1"
   show D2 = "Measurement #2"
   
-prompt:: IO (Int)
+prompt:: IO Int
 prompt= loop
       where loop = do putStrLn "Which Domain ID is the Attester?"
                       input <- getLine
