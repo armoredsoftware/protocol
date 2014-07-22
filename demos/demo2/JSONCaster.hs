@@ -15,6 +15,8 @@ data EvidencePieceWrapper = EPW {evidencePiece :: EvidencePiece} deriving (Show)
 $(deriveJSON defaultOptions ''EvidenceDescriptor)
 $(deriveJSON defaultOptions ''EvidenceDescriptorWrapper)
 $(deriveJSON defaultOptions ''DesiredEvidenceWrapper)
+$(deriveJSON defaultOptions ''EvidencePieceWrapper)
+
 --test = DEW [D0, D1,D2,D2]
 
 
