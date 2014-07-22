@@ -15,41 +15,8 @@ import Control.Monad
 import Data.Maybe
 import qualified Data.ByteString.Lazy as LB
 
-instance Binary EvidencePiece where
-         put (M0 req) = do put (0::Word8);
-                             put req;
-         put(M1 quote) =  do put (1::Word8);
-                               put quote;
-         put(M2 res)= do put(2::Word8);
-                           put res;
-                                            
-         get = do t<- get :: Get Word8
-                  case t of
-                    0 -> do req <- get
-                            return (M0 req)
-                    1 -> do quote <- get
-                            return (M1 quote)
-                    2 -> do res <- get
-                            return (M2 res)
 
 
-
-instance Binary EvidenceDescriptor where
-  put D0 = do put (0::Word8)
-  put D1 = do put (1::Word8)
-  put D2 = do put (2::Word8)
-           
-  get = do t<- get :: Get Word8
-           case t of
-               0 -> return D0
-               1 -> return D1
-               2 -> return D2
-                    
-instance Show EvidenceDescriptor where
-  show D0 = "Measurement #0"
-  show D1 = "Measurement #1"
-  show D2 = "Measurement #2"
-  
 prompt:: IO (Int)
 prompt= loop
       where loop = do putStrLn "Which Domain ID is the Attester?"
