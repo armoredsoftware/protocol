@@ -2,7 +2,7 @@
 
 
 import JSONCaster
-import Data.Aeson
+import qualified Data.Aeson as DA
 --vchan library
 import VChanUtil
 import System.IO
@@ -80,7 +80,7 @@ process chan = do
   logger <- createLogger
   ed :: EvidenceDescriptor <- stripED $ fromJust (decode (fromChunks (readChunkedMessageString logger chan)) :: Maybe EvidenceDescriptor)
 --(receive chan) :: Maybe EvidenceDescriptorWrapper)
-  let ep = toChunks (encode (EPW (measure ed)))
+  let ep = toChunks (DA.encode (EPW (measure ed)))
   logger <- createLogger
   sendChunkedMessageString logger chan ep 
   return ()
