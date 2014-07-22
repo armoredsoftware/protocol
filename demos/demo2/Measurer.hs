@@ -7,6 +7,7 @@ import qualified Data.Aeson as DA
 import VChanUtil
 import System.IO
 
+import Demo2Shared
 import Data.Binary
 import Data.ByteString (ByteString, cons, empty)
 import Data.Bits
@@ -38,7 +39,7 @@ instance Binary EvidencePiece where
                     2 -> do res <- get
                             return (M2 res)
 
-data EvidenceDescriptor = D0 | D1 | D2 deriving(Eq, Ord) --for now
+
 
 instance Binary EvidenceDescriptor where
   put D0 = do put (0::Word8)

@@ -72,13 +72,14 @@ getEvidencePiece :: LibXenVChan -> EvidenceDescriptor -> IO EvidencePiece
 getEvidencePiece chan ed = do
   putStrLn $ "\n" ++ "Attestation Agent Sending: " ++ (show ed)
   logger <- createLogger
-  sendChunkedMessageByteString logger chan (LB.toChunks (DA.encode (evidenceDescriptor ed)))
+  sendChunkedMessageByteString logger chan (head (LB.toChunks (DA.encode (EDW ed))))
   --send chan $ encode (wrapED ed)
   ctrlWait chan
   logger <- createLogger
-  evidence :: EvidencePiece <- fromJust ((DA.decode (LB.fromChunks (readChunkedMessageByteString logger chan)) ) :: Maybe EvidencePiece ) --TODO:  error handling
-  putStrLn $ "Received: " ++ (show evidence)
-  return evidence
+  bytes <- LB.fromChunks (readChunkedMessageByteString logger chan)
+  let evidence =evidencePiece $ fromJust (DA.decode bytes) :: Maybe EvidencePieceWrapper ) in --TODO:  error handling
+   putStrLn $ "Received: " ++ (show evidence)
+   return evidence
 
 receiveRequest :: LibXenVChan -> IO Request
 receiveRequest chan = do
