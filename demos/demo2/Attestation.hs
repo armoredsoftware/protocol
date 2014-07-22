@@ -22,7 +22,7 @@ import qualified Data.ByteString as B
 import System.IO
 import System.IO.Unsafe (unsafePerformIO)
 
-import Data.Aeson
+import qualified Data.Aeson as DA
 
 prompt:: IO (Int)
 prompt= loop
@@ -71,11 +71,11 @@ getEvidencePiece :: LibXenVChan -> EvidenceDescriptor -> IO EvidencePiece
 getEvidencePiece chan ed = do
   putStrLn $ "\n" ++ "Attestation Agent Sending: " ++ (show ed)
   logger <- createLogger
-  sendChunkedMessageByteString logger chan (toChunks (encode (wrapED ed)))
+  sendChunkedMessageByteString logger chan (toChunks (DA.encode (evidenceDescriptor ed)))
   --send chan $ encode (wrapED ed)
   ctrlWait chan
   logger <- createLogger
-  evidence :: EvidencePiece <- fromJust ((decode (fromChunks (readChunkedMessageByteString logger chan)) ) :: Maybe EvidencePiece ) --TODO:  error handling
+  evidence :: EvidencePiece <- fromJust ((DA.decode (B.fromChunks (readChunkedMessageByteString logger chan)) ) :: Maybe EvidencePiece ) --TODO:  error handling
   putStrLn $ "Received: " ++ (show evidence)
   return evidence
 
