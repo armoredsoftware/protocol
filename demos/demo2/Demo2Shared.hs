@@ -18,8 +18,8 @@ data Shared = Appraisal Request
 
 
 instance Show Shared where
-    show (Appraisal app) = "Appraisal: " ++ (show app)
-    show (Attestation att) = "Attestation: " ++ (show att)
+    show (Appraisal app) = "Appraisal: " ++ show app
+    show (Attestation att) = "Attestation: " ++ show att
     show (Result True) = "Appraisal succeeded."
     show (Result False) = "Appraisal failed."
     
@@ -72,9 +72,9 @@ type DesiredEvidence = [EvidenceDescriptor]
 data EvidenceDescriptor = D0 | D1 | D2 deriving(Eq, Ord) --for now
 
 instance Binary EvidenceDescriptor where
-  put D0 = do put (0::Word8)
-  put D1 = do put (1::Word8)
-  put D2 = do put (2::Word8)
+  put D0 = put (0::Word8)
+  put D1 = put (1::Word8)
+  put D2 = put (2::Word8)
            
   get = do t<- get :: Get Word8
            case t of
@@ -108,19 +108,19 @@ type M2Rep = ByteString
 
 
 ePack :: Evidence -> Nonce -> ByteString
-ePack e n = (ePack' e) `append` n
+ePack e n = ePack' e `append` n
 
 --This is where we will need to convert measurement type to ByteString
 -- if it is something else.  see comment below
 ePack' :: Evidence -> ByteString
-ePack' es = foldr f empty es
+ePack'  = foldr f empty 
   where f (M0 x) y = x `append` y -- (i.e. (toByteString x) `append` y )
         f (M1 x) y = x `append` y
         f (M2 x) y = x `append` y
 
 qPack :: Quote -> Hash -> ByteString
 qPack q@((pcrsIn, nonce), sig) hash = 
-  (tPack (pcrsIn, nonce)) `append` sig `append` hash
+  tPack (pcrsIn, nonce) `append` sig `append` hash
   
 tPack :: ([PCR], Nonce) -> ByteString
 tPack (pcrs, nonce) = pack pcrs `append` nonce

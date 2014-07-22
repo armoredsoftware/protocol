@@ -21,7 +21,7 @@ import qualified Data.ByteString as B
 import System.IO
 import System.IO.Unsafe (unsafePerformIO)
 
-prompt:: IO (Int)
+prompt:: IO Int
 prompt= loop
       where loop = do putStrLn "Which Domain ID is the Appraiser?"
                       input <- getLine
@@ -31,7 +31,7 @@ prompt= loop
                                     loop
                                     
                                     
-measurePrompt :: IO (Int)
+measurePrompt :: IO Int
 measurePrompt = loop
       where loop = do putStrLn "Which Domain ID is the Measurer?"
                       input <- getLine
@@ -56,7 +56,6 @@ mkResponse (desiredE, desiredPCRs, nonce) = do
   measurerID <- measurePrompt
   chan <- client_init measurerID
   eList <- mapM (getEvidencePiece chan) desiredE
-  --close chan
   let evPack = signEvidence eList nonce
       quote = mkSignedTPMQuote desiredPCRs nonce
       hash = doHash $ ePack eList nonce
@@ -66,11 +65,11 @@ mkResponse (desiredE, desiredPCRs, nonce) = do
 
 getEvidencePiece :: LibXenVChan -> EvidenceDescriptor -> IO EvidencePiece
 getEvidencePiece chan ed = do
-  putStrLn $ "\n" ++ "Attestation Agent Sending: " ++ (show ed)
-  send chan $ ed
+  putStrLn $ "\n" ++ "Attestation Agent Sending: " ++ show ed
+  send chan ed
   ctrlWait chan
   evidence :: EvidencePiece <- receive chan --TODO:  error handling
-  putStrLn $ "Received: " ++ (show evidence)
+  putStrLn $ "Received: " ++ show evidence
   return evidence
 
 receiveRequest :: LibXenVChan -> IO Request
@@ -79,27 +78,27 @@ receiveRequest chan = do
   res :: Shared <- receive chan
   case res of
     Appraisal req -> do
-      putStrLn $ "\n" ++ "Attester Received: " ++ (show res) ++ "\n"
+      putStrLn $ "\n" ++ "Attester Received: " ++ show res ++ "\n"
       return req
-    otherwise -> throw $ ErrorCall requestReceiveError
+    otherwise -> error requestReceiveError
       
 sendResponse :: LibXenVChan -> Response-> IO ()   
 sendResponse chan resp = do
-  putStrLn $ "Attester Sending: " ++ (show $ Attestation resp) ++ "\n"
+  putStrLn $ "Attester Sending: " ++ show (Attestation resp) ++ "\n"
   send chan $ Attestation resp
   return () 
 
 signQuote :: Quote -> Hash -> QuotePackage
 signQuote quote hash =
   case sign Nothing md5 pri res of
-         Left err -> throw . ErrorCall $ show err
+         Left err -> error $ show err
          Right signature -> (quote, hash, signature) 
  where res =  qPack quote hash
 
 signEvidence :: Evidence -> Nonce -> EvidencePackage
 signEvidence e n =
   case sign Nothing md5 pri res of
-         Left err -> throw . ErrorCall $ show err
+         Left err -> error $ show err
          Right signature -> (e, n, signature) 
          
    where res = ePack e n
@@ -109,7 +108,7 @@ mkSignedTPMQuote mask nonce =
     let pcrs' = pcrSelect mask
         quote = (pcrs', nonce) in
       case sign Nothing md5 pri $ tPack quote of
-         Left err -> throw . ErrorCall $ show err
+         Left err -> error $ show err
          Right signature -> (quote, signature) 
                  
                             
@@ -120,7 +119,7 @@ pcrsLocal = a --b
         a = map bit [0..7]
 
         b :: [PCR]
-        b = [(bit 3)] ++ (map bit [1..7])
+        b = bit 3 : map bit [1..7]
      
 
 pcrSelect :: TPMRequest -> [PCR]
@@ -140,7 +139,7 @@ attKeyFileName :: String
 attKeyFileName = "attKeys.txt"
 
 getKeys :: (PrivateKey, PublicKey)
-getKeys = unsafePerformIO $ readKeys
+getKeys = unsafePerformIO readKeys
 
 getPriKey :: PrivateKey
 getPriKey = fst getKeys
