@@ -41,8 +41,8 @@ process chan = do
   ctrlWait chan
   logger <- createLogger
   bytes <- readChunkedMessageString logger chan
-  let ed = evidenceDescriptor $ fromJust (DA.decode  (LB.fromChunks (bytes)) :: Maybe EvidenceDescriptorWrapper)
-  let ep = LB.toChunks (DA.encode (EPW (measure ed)))
+  let ed =  fromJust (DA.decode  (LB.fromChunks [bytes])) :: Maybe EvidenceDescriptor)
+  let ep = LB.toChunks (DA.encode (measure ed))
   logger <- createLogger
   sendChunkedMessageString logger chan ep 
   return ()

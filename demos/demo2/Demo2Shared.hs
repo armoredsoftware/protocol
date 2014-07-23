@@ -98,7 +98,7 @@ type Response = (EvidencePackage, QuotePackage)
 type EvidencePackage = (Evidence, Nonce, Signature)
 type Evidence = [EvidencePiece]
  
-data EvidencePiece = M0 M0Rep 
+data EvidencePiece =  M0 M0Rep 
                    | M1 M1Rep
                    | M2 M2Rep deriving (Eq, Ord, Show, Generic)
                          
