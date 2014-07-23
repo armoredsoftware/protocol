@@ -77,7 +77,7 @@ getEvidencePiece chan ed = do
   ctrlWait chan
   logger <- createLogger
   bytes <- readChunkedMessageByteString logger chan
-  let evidence = ep2ToEp $ fromJust (DA.decode (LB.fromChunks [bytes]) :: Maybe EvidencePieceWrapper ) --TODO:  error handling
+  let evidence = ep2ToEp $ fromJust (DA.decode (LB.fromChunks [bytes]) :: Maybe EvidencePiece2 ) --TODO:  error handling
   putStrLn $ "Received: " ++ (show evidence)
   return evidence
 
