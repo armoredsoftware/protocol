@@ -42,9 +42,9 @@ process chan = do
   logger <- createLogger
   bytes <- readChunkedMessageByteString logger chan
   let ed =  fromJust (DA.decode  (LB.fromChunks [bytes]) :: Maybe EvidenceDescriptor)
-  let ep = Prelude.head (LB.toChunks (DA.encode (measure ed)))
+  let ep = Prelude.head (LB.toChunks (DA.encode (createEvidencePiece2 (measure ed))))
   logger <- createLogger
-  sendChunkedMessageByteString logger chan (createEvidencePiece2 ep )
+  sendChunkedMessageByteString logger chan ep
   return ()
 
 
