@@ -10,6 +10,7 @@ import System.IO
 import Demo2Shared
 import Data.Binary
 import Data.ByteString (ByteString, cons, empty)
+import qualified Data.ByteString as B
 import Data.Bits
 import Control.Monad
 import Data.Maybe
@@ -41,9 +42,9 @@ process chan = do
   ctrlWait chan
   logger <- createLogger
   bytes <- readChunkedMessageByteString logger chan
-  let ed =  fromJust (DA.decode  (LB.fromChunks [bytes]) :: Maybe EvidenceDescriptor)
-  putStrLn ed
-  let ep = Prelude.head (LB.toChunks (DA.encode (createEvidencePiece2 (measure ed))))
+  let ed =  evidenceDescriptor (fromJust (DA.decode  (LB.fromChunks [bytes]) :: Maybe EvidenceDescriptorW))
+  putStrLn ("Meaurer received:" ++ (show ed))
+  let ep = B.concat (LB.toChunks (DA.encode (EPW (createEvidencePiece2 (measure ed)))))
   logger <- createLogger
   sendChunkedMessageByteString logger chan ep
   return ()

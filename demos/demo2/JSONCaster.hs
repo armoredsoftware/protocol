@@ -10,9 +10,9 @@ import Data.Word
 import qualified Data.ByteString.Lazy as LB
 import qualified Data.ByteString.Lazy.Char8 as LBC
 import qualified Data.ByteString as B
-data DesiredEvidenceWrapper = DEW {desiredEvidence :: DesiredEvidence} deriving (Show)
-data EvidenceDescriptorWrapper = EDW {evidenceDescriptor :: EvidenceDescriptor} deriving ( Show)
-data EvidencePieceWrapper = EPW {evidencePiece :: EvidencePiece2} deriving (Show)
+data DesiredEvidenceW = DEW {desiredEvidence :: DesiredEvidence} deriving (Show)
+data EvidenceDescriptorW = EDW {evidenceDescriptor :: EvidenceDescriptor} deriving ( Show)
+data EvidencePieceW = EPW {evidencePiece2 :: EvidencePiece2} deriving (Show)
 
 data EvidencePiece2 = M02 [Word8]|
                       M12 [Word8] |
@@ -29,10 +29,14 @@ ep2ToEp (M12 rep) = M1 (B.pack rep)
 ep2ToEp (M22 rep) = M2 (B.pack rep)
 
 $(deriveJSON defaultOptions ''EvidenceDescriptor)
-$(deriveJSON defaultOptions ''EvidenceDescriptorWrapper)
-$(deriveJSON defaultOptions ''DesiredEvidenceWrapper)
-$(deriveJSON defaultOptions ''EvidencePieceWrapper)
+$(deriveJSON defaultOptions ''EvidenceDescriptorW)
+$(deriveJSON defaultOptions ''DesiredEvidenceW)
+$(deriveJSON defaultOptions ''EvidencePieceW)
 $(deriveJSON defaultOptions ''EvidencePiece2)
 
+data Testdata = Dat {field :: String} deriving (Show)
+
+$(deriveJSON defaultOptions ''Testdata)
 --(deriveJSON defaultOptions ''M0Rep)
 testE2 =createEvidencePiece2 (M0 (Prelude.head (LB.toChunks (LBC.pack "This is the content."))))
+testED = D0
