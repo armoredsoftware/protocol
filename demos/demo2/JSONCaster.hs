@@ -57,3 +57,6 @@ $(deriveJSON defaultOptions ''Testdata)
 --(deriveJSON defaultOptions ''M0Rep)
 testE2 =createEvidencePiece2 (M0 (Prelude.head (LB.toChunks (LBC.pack "This is the content."))))
 testED = D0
+
+testEncode = DA.encode
+testDecode= DA.decode
