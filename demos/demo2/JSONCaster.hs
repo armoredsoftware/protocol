@@ -3,6 +3,7 @@ module JSONCaster where
 
 import Demo2Shared as D2
 import Data.Aeson
+import qualified Data.Aeson as DA
 import Data.Aeson.TH
 import Data.Map
 import Data.Text
