@@ -59,8 +59,8 @@ $(deriveJSON defaultOptions ''Testdata)
 testE2 =createEvidencePiece2 (M0 (Prelude.head (LB.toChunks (LBC.pack "This is the content."))))
 testED = D0
 
-testEncode :: (ToJSON a, FromJSON a) => a -> LB.ByteString
-testEncode = DA.encode
+jsonEncode :: (ToJSON a) => a -> LB.ByteString
+jsonEncode = DA.encode
 
-testDecode :: (ToJSON a, FromJSON a) =>  LB.ByteString -> Maybe a
-testDecode= DA.decode
+jsonDecode :: (FromJSON a) =>  LB.ByteString -> Maybe a
+jsonDecode= DA.decode

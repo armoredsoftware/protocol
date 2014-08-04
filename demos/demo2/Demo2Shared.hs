@@ -6,7 +6,7 @@ import Data.Binary
 import qualified Data.ByteString as B (ByteString, pack, append, empty) 
 
 
---import qualified Data.ByteString as B
+import qualified Data.ByteString as B
 import System.IO
 import System.IO.Unsafe (unsafePerformIO)
 import GHC.Generics as G
@@ -65,15 +65,22 @@ instance Binary EvidencePiece where
 
 -- Primitive types
 type PCR = Word8
-type Nonce = B.ByteString
-type Signature = B.ByteString
+type Nonce = [Word8]
+type Signature =[Word8]
 type TPMRequest = Word8 -- Request = (Mask, Nonce)
-type Quote = (([PCR], Nonce), Signature)--simulates TPM 
+data Quote = Quote { pcrList ::[PCR],
+                     nonceQuote ::  Nonce,
+                     signatureQuote :: Signature}--simulates TPM 
 
 --Request
-type Request = (DesiredEvidence, TPMRequest, Nonce)
-type DesiredEvidence = [EvidenceDescriptor]
-data EvidenceDescriptor = D0 | D1 | D2 deriving(Eq, Ord, Generic) --for now
+data Request = Request { desiredEvidence ::DesiredEvidence,
+                         tpmRequest :: TPMRequest,
+                         nonceRequest :: Nonce}
+               
+data DesiredEvidence = DesiredEvidence {evidenceDescriptorList :: [EvidenceDescriptor]}
+data EvidenceDescriptor = D0 |
+                          D1 |
+                          D2 deriving(Eq, Ord, Generic) --for now
 
 instance Binary EvidenceDescriptor where
   put D0 = do put (0::Word8)
@@ -94,21 +101,27 @@ instance Show EvidenceDescriptor where
    
 
 --Response
-type Response = (EvidencePackage, QuotePackage)
-type EvidencePackage = (Evidence, Nonce, Signature)
-type Evidence = [EvidencePiece]
+data Response = Response {evidencePackage :: EvidencePackage,
+                          quotePackage :: QuotePackage}
+                
+data EvidencePackage = EvidencePackage {evidence :: Evidence,
+                                        nonceEvidencePackage :: Nonce,
+                                        signatureEvidencePackage :: Signature}
+data Evidence = Evidence {evidencePieceList :: [EvidencePiece]}
  
-data EvidencePiece =  M0 M0Rep 
-                   | M1 M1Rep
-                   | M2 M2Rep deriving (Eq, Ord, Show, Generic)
+data EvidencePiece =  M0 {m0Rep ::  M0Rep} 
+                   | M1 {m1Rep :: M1Rep}
+                   | M2 {m2Rep :: M2Rep} deriving (Eq, Ord, Show, Generic)
                          
-type Hash = B.ByteString
-type QuotePackage = (Quote, Hash, Signature)
+type Hash = [Word8]
+data QuotePackage = QuotePackage { quoteQuotePackage :: Quote,
+                                   hashQuotePackage :: Hash,
+                                   signatureQuotePackage :: Signature}
 
-
-type M0Rep = B.ByteString
-type M1Rep = B.ByteString
-type M2Rep = B.ByteString
+--changed to work well with JSON from ByteStrings
+type M0Rep = [Word8]
+type M1Rep = [Word8]
+type M2Rep = [Word8]
 
 
 ePack :: Evidence -> Nonce -> B.ByteString
