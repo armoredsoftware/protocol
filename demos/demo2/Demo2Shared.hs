@@ -125,7 +125,7 @@ type M2Rep = [Word8]
 
 
 ePack :: Evidence -> Nonce -> B.ByteString
-ePack e n = (ePack' e) `B.append` (pack n) --pik
+ePack e n = (ePack' e) `B.append` (B.pack n) --pik
 
 --This is where we will need to convert measurement type to ByteString
 -- if it is something else.  see comment below
@@ -140,7 +140,7 @@ qPack (Quote q) hash =
   (tPack ((pcrList q), (nonceQuote q))) `B.append` (signatureQuote q) `B.append` (B.pack hash)
   
 tPack :: ([PCR], Nonce) -> B.ByteString
-tPack (pcrs, nonce) = B.pack pcrs `B.append` (pack nonce)
+tPack (pcrs, nonce) = B.pack pcrs `B.append` (B.pack nonce)
 
 
 doHash :: B.ByteString -> B.ByteString
