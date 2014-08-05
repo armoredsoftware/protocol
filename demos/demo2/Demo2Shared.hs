@@ -76,7 +76,7 @@ data Request = Request { desiredEvidence ::DesiredEvidence,
                          tpmRequest :: TPMRequest,
                          nonceRequest :: Nonce} deriving (Show)
                
-data DesiredEvidence = DesiredEvidence {evidenceDescriptorList :: [EvidenceDescriptor]}
+data DesiredEvidence = DesiredEvidence {evidenceDescriptorList :: [EvidenceDescriptor]} deriving (Show)
 data EvidenceDescriptor = D0 |
                           D1 |
                           D2 deriving(Eq, Ord, Generic,Show) --for now
