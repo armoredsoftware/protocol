@@ -13,6 +13,9 @@ import qualified Data.ByteString.Lazy.Char8 as LBC
 import qualified Data.ByteString as B
 
 
+data EvidenceDescriptorW = EDW {evidenceDescriptor :: EvidenceDescriptor} deriving ( Show)
+
+
 $(deriveJSON defaultOptions ''EvidenceDescriptor)
 $(deriveJSON defaultOptions ''EvidenceDescriptorW)
 $(deriveJSON defaultOptions ''DesiredEvidence)
@@ -30,9 +33,6 @@ $(deriveJSON defaultOptions ''QuotePackage)
 syntax. Therefore, these are simply wrappers of the existing data types with the 
 exception of EvidencePieceW which contains a more 'JSON-friendly' internal data type 
 --}
-
-data EvidenceDescriptorW = EDW {evidenceDescriptor :: EvidenceDescriptor} deriving ( Show)
-
 
 
 --main= putStrLn (show (toJSON D0))
