@@ -131,12 +131,12 @@ ePack e n = (ePack' e) `B.append` (B.pack n) --pik
 -- if it is something else.  see comment below
 ePack' :: Evidence -> B.ByteString
 ePack' es = foldr f B.empty (evidencePieceList es)
-  where f (Demo2Shared.M0 x) y =(B.pack x) `B.append` (B.pack y) -- (i.e. (toByteString x) `append` y )
-        f (Demo2Shared.M1 x) y = (B.pack x) `B.append` (B.pack y)
-        f (Demo2Shared.M2 x) y =(B.pack x) `B.append` (B.pack y)
+  where f (Demo2Shared.M0 x) y =(B.pack $ m0Rep  x) `B.append` (B.pack y) -- (i.e. (toByteString x) `append` y )
+        f (Demo2Shared.M1 x) y = (B.pack $ m1Rep x) `B.append` (B.pack y)
+        f (Demo2Shared.M2 x) y =(B.pack $ m2Rep x) `B.append` (B.pack y)
 
 qPack :: Quote -> Hash -> B.ByteString
-qPack (Quote q) hash = 
+qPack q hash = 
   (tPack ((pcrList q), (nonceQuote q))) `B.append` (signatureQuote q) `B.append` (B.pack hash)
   
 tPack :: ([PCR], Nonce) -> B.ByteString
