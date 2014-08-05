@@ -61,7 +61,7 @@ mkResponse r  = do
   chan <- client_init measurerID
   eList <- mapM (getEvidencePiece chan) (desiredEvidence r)
   --close chan
-  let evPack = signEvidence eList nonce
+  let evPack = signEvidence eList (nonceRequest nonce)
       quote = mkSignedTPMQuote desiredPCRs nonce
       hash = doHash $ ePack eList nonce
       quoPack = signQuote quote hash
@@ -108,17 +108,18 @@ signEvidence :: Evidence -> Nonce -> EvidencePackage
 signEvidence e n =
   case sign Nothing md5 pri res of
          Left err -> throw . ErrorCall $ show err
-         Right signature -> (e, n, signature) 
+         Right signature -> EvidencePackage e n (B.unpack signature)
          
-   where res = ePack e n
+   where res = (DA.encode e) ++ (DA.encode n) --ePack e n
 
 mkSignedTPMQuote :: TPMRequest -> Nonce -> Quote
 mkSignedTPMQuote mask nonce =
     let pcrs' = pcrSelect mask
-        quote = (pcrs', nonce) in
-      case sign Nothing md5 pri $ tPack quote of
+        
+       -- quote = (pcrs', nonce) in
+      case sign Nothing md5 pri $ ((DA.encode pcrs') ++ (DA.encode nonce)) of
          Left err -> throw . ErrorCall $ show err
-         Right signature -> (quote, signature) 
+         Right signature -> Quote pcrs' nonce (B.unpack signature) 
                  
                             
   -- PCR primitives

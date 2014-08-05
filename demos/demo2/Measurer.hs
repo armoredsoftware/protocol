@@ -59,10 +59,10 @@ measure ed = case ed of
 
 
 m0Val :: M0Rep
-m0Val = cons (bit 0) empty
+m0Val = B.unpack (cons (bit 0) empty)
 
 m1Val :: M1Rep
-m1Val = cons (bit 1) empty
+m1Val = B.unpack (cons (bit 1) empty)
 
 m2Val :: M2Rep
-m2Val = cons (bit 2) empty
+m2Val = B.unpack (cons (bit 2) empty)

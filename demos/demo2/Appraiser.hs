@@ -84,12 +84,17 @@ type MeasureEval = (EvidenceDescriptor, Bool)
 type Demo2EvalResult = (Bool, Bool, Bool, Bool, Bool, Bool, Bool,[MeasureEval])
 
 evaluate :: Request -> Response -> Demo2EvalResult
-evaluate (d, tReq, nonce) 
-  ((e, eNonce, eSig), (tpmQuote@((pcrsIn, qNonce), qSig), hashIn, qpSig)) = 
-  let pcrs' = pcrSelect tReq
-      tpmBlob = tPack (pcrsIn, qNonce)
-      eBlob = ePack e eNonce
-      qBlob = qPack tpmQuote hashIn
+evaluate request response --(d, tReq, nonce)
+  --((e, eNonce, eSig), (tpmQuote@((pcrsIn, qNonce), qSig), hashIn, qpSig))
+  let pcrs' = pcrSelect (tpmRequest request)
+      --quotePackage gets the quotepackage out of the response.
+      --quoteQuotePackage gets the quote out of the QuotePackage
+      quote = (quoteQuotePackage (quotePackage response))
+      --pcrList gets the pcr list out of the quote
+      tpmBlob = (DA.encode (pcrList quote)) ++ (DA.encode (nonceQuote quote)) --tPack (pcrsIn, qNonce)
+      evidencePkg = evidencePackage response
+      eBlob = (DA.encode (evidence evidencePkg)) ++ (DA.encode (nonceEvidencePackage evidencePkg))--ePack e eNonce
+      qBlob = (DA.encode quote) ++ (DA.encode (hashQuotePackage (quotePackage response)))--qPack tpmQuote hashIn
       r1 = verify md5 pub qBlob qpSig 
       r2 = verify md5 pub eBlob eSig
       r3 = verify md5 pub tpmBlob qSig 
