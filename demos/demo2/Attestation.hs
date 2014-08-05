@@ -85,16 +85,19 @@ getEvidencePiece chan ed = do
 receiveRequest :: LibXenVChan -> IO Request
 receiveRequest chan = do
   ctrlWait chan
-  res :: Shared <- receive chan
+  logger <- createLogger
+  bytes <- LB.fromStrict $ readChunkedMessageByteString logger chan
+  let res = (jsonDecode bytes) :: Maybe Request
+  --res :: Shared <- receive chan
   case res of
-    Appraisal req -> do
+    Just req -> do
       putStrLn $ "\n" ++ "Attester Received: " ++ (show res) ++ "\n"
       return req
     otherwise -> throw $ ErrorCall requestReceiveError
       
 sendResponse :: LibXenVChan -> Response-> IO ()   
 sendResponse chan resp = do
-  putStrLn $ "Attester Sending: " ++ (show $ Attestation resp) ++ "\n"
+  putStrLn $ "Attester Sending: " ++ (show $ resp) ++ "\n"
   logger <- createLogger
   sendChunkedMessageByteString logger chan (LB.toStrict  (jsonEncode resp))
   --send chan $ Attestation resp
