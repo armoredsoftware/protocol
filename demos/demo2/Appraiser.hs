@@ -100,7 +100,7 @@ evaluate request response = --(d, tReq, nonce) ((e, eNonce, eSig), (tpmQuote@((p
       qpSig = signatureQuotePackage (quotePackage response)
       eSig = signatureEvidencePackage (evidencePackage response)
       qSig = signatureQuote quote
-      r1 = verify md5 pub qBlob (B.pack qpqSig)
+      r1 = verify md5 pub qBlob (B.pack qpSig)
       r2 = verify md5 pub eBlob (B.pack eSig)
       r3 = verify md5 pub tpmBlob (B.pack qSig) 
       r4 = (pcrList quote) == pcrs'
