@@ -15,6 +15,7 @@ import Crypto.PubKey.RSA.PKCS15
 -- utility libraries
 import Control.Exception hiding (evaluate)
 import Control.Monad
+import Data.Word
 import Data.Bits
 import Data.ByteString (ByteString, pack, append, empty, cons)
 import qualified Data.ByteString as B
@@ -168,7 +169,7 @@ e8 = "Measurement #"
 goldenMap = M.fromList $ zip [0..2] expectedEvidence
 
 expectedEvidence :: Evidence
-expectedEvidence = 
+expectedEvidence = Evidence
   [M0 expectedM0Val , M1 expectedM1Val, M2 expectedM2Val]
   
 expectedM0Val :: M0Rep
