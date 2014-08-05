@@ -37,7 +37,7 @@ prompt= loop
 main :: IO ()
 main = let (mask, nonce) = mkTPMRequest [0..7] 
            mReq = mkMeasureReq [0..2]
-           req = (mReq, mask, nonce) in
+           req = Request mReq mask nonce in
   do chan <- sendRequest req
      response <- receiveResponse chan
      let result = evaluate req response in 
@@ -49,10 +49,10 @@ main = let (mask, nonce) = mkTPMRequest [0..7]
 mkTPMRequest :: [Int] -> (TPMRequest, Nonce)
 mkTPMRequest mask =
     let mask' = foldr (\ x word -> word `setBit` x) zeroBits mask in
-      (mask', fst $ cprgGenerate 16 gen)
+      (mask', (B.unpack (fst $ cprgGenerate 16 gen)) )
       
 mkMeasureReq :: [Int] -> DesiredEvidence
-mkMeasureReq xs = map f xs
+mkMeasureReq xs = DesiredEvidence (map f xs)
  where f :: Int -> EvidenceDescriptor
        f 0 = D0
        f 1 = D1
@@ -65,7 +65,9 @@ sendRequest req = do
   other <- prompt
   chan <- client_init other
   putStrLn $ "\n" ++ "Appraiser Sending: "++(show $ Appraisal req) ++ "\n"
-  send chan $ Appraisal req
+  logger <- createLogger
+  sendChunkedMessageByteString logger chan (LB.toStrict  (jsonEncode req))
+  --send chan $ Appraisal req
   return chan
 
 receiveResponse :: LibXenVChan -> IO Response
@@ -91,26 +93,26 @@ evaluate request response = --(d, tReq, nonce) ((e, eNonce, eSig), (tpmQuote@((p
       --quoteQuotePackage gets the quote out of the QuotePackage
       quote = (quoteQuotePackage (quotePackage response))
       --pcrList gets the pcr list out of the quote
-      tpmBlob = (jsonEncode (pcrList quote)) ++ (jsonEncode (nonceQuote quote)) --tPack (pcrsIn, qNonce)
+      tpmBlob = (jsonEncode (pcrList quote)) `B.append` (jsonEncode (nonceQuote quote)) --tPack (pcrsIn, qNonce)
       evidencePkg = evidencePackage response
-      eBlob = (jsonEncode (evidence evidencePkg)) ++ (jsonEncode (nonceEvidencePackage evidencePkg))--ePack e eNonce
-      qBlob = (jsonEncode quote) ++ (jsonEncode (hashQuotePackage (quotePackage response)))--qPack tpmQuote hashIn
+      eBlob = (jsonEncode (evidence evidencePkg)) `B.append` (jsonEncode (nonceEvidencePackage evidencePkg))--ePack e eNonce
+      qBlob = (jsonEncode quote) `B.append` (jsonEncode (hashQuotePackage (quotePackage response)))--qPack tpmQuote hashIn
       qpSig = signatureQuotePackage (quotePackage response)
       eSig = signatureEvidencePackage (evidencePackage response)
       qSig = signatureQuote quote
-      r1 = verify md5 pub qBlob qpSig 
-      r2 = verify md5 pub eBlob eSig
-      r3 = verify md5 pub tpmBlob qSig 
+      r1 = verify md5 pub qBlob (B.pack qpqSig)
+      r2 = verify md5 pub eBlob (B.pack eSig)
+      r3 = verify md5 pub tpmBlob (B.pack qSig) 
       r4 = (pcrList quote) == pcrs'
       r5 = (nonceRequest request) == (nonceQuote quote)
-      r6 = (doHash eBlob) == (hashQuotePackage (quotePackage response))
+      r6 = (doHash eBlob) == B.pack (hashQuotePackage (quotePackage response))
       r7 = (nonceRequest request) == (nonceEvidencePackage evidencePkg)
       ms =  evaluateEvidence (desiredEvidence request) (evidence(evidencePackage response)) in
  (r1, r2, r3, r4, r5, r6, r7, ms)
   
                                             
 evaluateEvidence :: DesiredEvidence -> Evidence -> [MeasureEval]
-evaluateEvidence ds es = zipWith f ds es 
+evaluateEvidence ds es = zipWith f (evidenceDescriptorList ds) (evidencePieceList es) 
  where 
    f :: EvidenceDescriptor -> EvidencePiece -> MeasureEval
    f ed ep = case ed of 
@@ -173,13 +175,13 @@ expectedEvidence = Evidence
   [M0 expectedM0Val , M1 expectedM1Val, M2 expectedM2Val]
   
 expectedM0Val :: M0Rep
-expectedM0Val = cons (bit 0) empty
+expectedM0Val =  [bit 0 :: Word8]
 
 expectedM1Val :: M1Rep
-expectedM1Val = cons (bit 0) empty
+expectedM1Val = [bit 0 :: Word8]
 
 expectedM2Val :: M2Rep
-expectedM2Val = cons (bit 2) empty
+expectedM2Val = [bit 2 :: Word8]
                    
                    
 -- PCR primitives
