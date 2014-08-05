@@ -79,7 +79,7 @@ data Request = Request { desiredEvidence ::DesiredEvidence,
 data DesiredEvidence = DesiredEvidence {evidenceDescriptorList :: [EvidenceDescriptor]} deriving (Show)
 data EvidenceDescriptor = D0 |
                           D1 |
-                          D2 deriving(Eq, Ord, Generic,Show) --for now
+                          D2 deriving(Eq, Ord, Generic) --for now
 
 instance Binary EvidenceDescriptor where
   put D0 = do put (0::Word8)
