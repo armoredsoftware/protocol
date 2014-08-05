@@ -20,6 +20,7 @@ $(deriveJSON defaultOptions ''Quote)
 $(deriveJSON defaultOptions ''Evidence)
 $(deriveJSON defaultOptions ''Request)
 $(deriveJSON defaultOptions ''Response)
+$(deriveJSON defaultOptions ''EvidencePackage)
 
 
 
