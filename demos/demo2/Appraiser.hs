@@ -2,7 +2,7 @@
 
 --our libraries
 import Demo2Shared
-
+import JSONCaster
 --vchan library
 import VChanUtil
 
@@ -90,10 +90,13 @@ evaluate request response = --(d, tReq, nonce) ((e, eNonce, eSig), (tpmQuote@((p
       --quoteQuotePackage gets the quote out of the QuotePackage
       quote = (quoteQuotePackage (quotePackage response))
       --pcrList gets the pcr list out of the quote
-      tpmBlob = (DA.encode (pcrList quote)) ++ (DA.encode (nonceQuote quote)) --tPack (pcrsIn, qNonce)
+      tpmBlob = (jsonEncode (pcrList quote)) ++ (jsonEncode (nonceQuote quote)) --tPack (pcrsIn, qNonce)
       evidencePkg = evidencePackage response
-      eBlob = (DA.encode (evidence evidencePkg)) ++ (DA.encode (nonceEvidencePackage evidencePkg))--ePack e eNonce
-      qBlob = (DA.encode quote) ++ (DA.encode (hashQuotePackage (quotePackage response)))--qPack tpmQuote hashIn
+      eBlob = (jsonEncode (evidence evidencePkg)) ++ (jsonEncode (nonceEvidencePackage evidencePkg))--ePack e eNonce
+      qBlob = (jsonEncode quote) ++ (jsonEncode (hashQuotePackage (quotePackage response)))--qPack tpmQuote hashIn
+      qpSig = signatureQuotePackage (quotePackage response)
+      esig = signatureEvidencePackage (evidencePackage response)
+      qSig = signatureQuote quote
       r1 = verify md5 pub qBlob qpSig 
       r2 = verify md5 pub eBlob eSig
       r3 = verify md5 pub tpmBlob qSig 
