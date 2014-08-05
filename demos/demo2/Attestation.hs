@@ -63,7 +63,7 @@ mkResponse r  = do
   --close chan
   let nonce = nonceRequest r
       evPack = signEvidence eList nonce
-      quote = mkSignedTPMQuote desiredPCRs nonce
+      quote = mkSignedTPMQuote (tpmRequest r) nonce
       hash = doHash $ ((jsonEncode eList) ++ (jsonEncode nonce))--ePack eList (nonceRequest r)
       quoPack = signQuote quote hash
         

@@ -19,6 +19,7 @@ import Data.Word
 import Data.Bits
 import Data.ByteString (ByteString, pack, append, empty, cons)
 import qualified Data.ByteString as B
+import qualified Data.ByteString.Lazy as LB
 import System.IO
 import System.IO.Unsafe (unsafePerformIO)
 import qualified Data.Map.Lazy as M (fromList, lookup, empty)
