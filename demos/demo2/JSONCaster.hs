@@ -14,6 +14,7 @@ import qualified Data.ByteString as B
 
 
 $(deriveJSON defaultOptions ''EvidenceDescriptor)
+$(deriveJSON defaultOptions ''EvidenceDescriptorW)
 $(deriveJSON defaultOptions ''DesiredEvidence)
 $(deriveJSON defaultOptions ''EvidencePiece)
 $(deriveJSON defaultOptions ''Quote)
