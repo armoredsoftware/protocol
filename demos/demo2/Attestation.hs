@@ -73,7 +73,7 @@ getEvidencePiece :: LibXenVChan -> EvidenceDescriptor -> IO EvidencePiece
 getEvidencePiece chan ed = do
   putStrLn $ "\n" ++ "Attestation Agent Sending: " ++ (show ed)
   logger <- createLogger
-  sendChunkedMessageByteString logger chan (LB.toStrict  (DA.encode ed))
+  sendChunkedMessageByteString logger chan (LB.toStrict  (jsonEncode ed))
   --send chan $ encode (wrapED ed)
   ctrlWait chan
   logger <- createLogger
@@ -95,7 +95,9 @@ receiveRequest chan = do
 sendResponse :: LibXenVChan -> Response-> IO ()   
 sendResponse chan resp = do
   putStrLn $ "Attester Sending: " ++ (show $ Attestation resp) ++ "\n"
-  send chan $ Attestation resp
+  logger <- createLogger
+  sendChunkedMessageByteString logger chan (LB.toStrict  (jsonEncode resp))
+  --send chan $ Attestation resp
   return () 
 
 signQuote :: Quote -> Hash -> QuotePackage
@@ -103,7 +105,7 @@ signQuote quote hash =
   case sign Nothing md5 pri res of
          Left err -> throw . ErrorCall $ show err
          Right signature -> QuotePackage quote hash (B.unpack signature)
- where res =  LB.toStrict $ (DA.encode quote) `LB.append` (DA.encode hash)
+ where res =  LB.toStrict $ (jsonEncode quote) `LB.append` (jsonEncode hash)
 
 signEvidence :: Evidence -> Nonce -> EvidencePackage
 signEvidence e n =

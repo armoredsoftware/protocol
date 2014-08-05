@@ -74,9 +74,12 @@ sendRequest req = do
 receiveResponse :: LibXenVChan -> IO Response
 receiveResponse chan =  do
   ctrlWait chan
-  res :: Shared <- receive chan
+  logger <- createLogger
+  bytes <- readChunkedMessageByteString logger chan
+  let res =  ((jsonDecode bytes) :: Maybe Response)
+  --res :: Shared <- receive chan
   case res of 
-    Attestation response ->  do
+    Just response ->  do
       putStrLn $ "\n" ++ "Appraiser Received: " ++ (show res)++ "\n"
       return response
     otherwise ->  throw $ ErrorCall quoteReceiveError --TODO: error handling?
