@@ -56,10 +56,10 @@ main = do
 -- Attestation primitives  
   
 mkResponse :: Request -> IO Response
-mkResponse (desiredE, desiredPCRs, nonce) = do
+mkResponse r  = do
   measurerID <- measurePrompt
   chan <- client_init measurerID
-  eList <- mapM (getEvidencePiece chan) desiredE
+  eList <- mapM (getEvidencePiece chan) (desiredEvidence r)
   --close chan
   let evPack = signEvidence eList nonce
       quote = mkSignedTPMQuote desiredPCRs nonce
@@ -72,12 +72,12 @@ getEvidencePiece :: LibXenVChan -> EvidenceDescriptor -> IO EvidencePiece
 getEvidencePiece chan ed = do
   putStrLn $ "\n" ++ "Attestation Agent Sending: " ++ (show ed)
   logger <- createLogger
-  sendChunkedMessageByteString logger chan (LB.toStrict  (DA.encode (EDW ed)))
+  sendChunkedMessageByteString logger chan (LB.toStrict  (DA.encode ed))
   --send chan $ encode (wrapED ed)
   ctrlWait chan
   logger <- createLogger
   bytes <- readChunkedMessageByteString logger chan
-  let evidence = ep2ToEp $ evidencePiece2 $ fromJust (DA.decode (LB.fromStrict bytes) :: Maybe EvidencePieceW ) --TODO:  error handling
+  let evidence =  fromJust (DA.decode (LB.fromStrict bytes) :: Maybe EvidencePiece) --TODO:  error handling
   putStrLn $ "Received: " ++ (show evidence)
   return evidence
 
@@ -101,8 +101,8 @@ signQuote :: Quote -> Hash -> QuotePackage
 signQuote quote hash =
   case sign Nothing md5 pri res of
          Left err -> throw . ErrorCall $ show err
-         Right signature -> (quote, hash, signature) 
- where res =  qPack quote hash
+         Right signature -> QuotePackage quote hash signature
+ where res =  (DA.encode quote) ++ (DA.encode hash)
 
 signEvidence :: Evidence -> Nonce -> EvidencePackage
 signEvidence e n =
