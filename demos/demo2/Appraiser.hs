@@ -94,10 +94,10 @@ evaluate request response = --(d, tReq, nonce) ((e, eNonce, eSig), (tpmQuote@((p
       --quoteQuotePackage gets the quote out of the QuotePackage
       quote = (quoteQuotePackage (quotePackage response))
       --pcrList gets the pcr list out of the quote
-      tpmBlob = (jsonEncode (pcrList quote)) `B.append` (jsonEncode (nonceQuote quote)) --tPack (pcrsIn, qNonce)
+      tpmBlob = LB.toStrict ((jsonEncode (pcrList quote)) `LB.append` (jsonEncode (nonceQuote quote))) --tPack (pcrsIn, qNonce)
       evidencePkg = evidencePackage response
-      eBlob = (jsonEncode (evidence evidencePkg)) `B.append` (jsonEncode (nonceEvidencePackage evidencePkg))--ePack e eNonce
-      qBlob = (jsonEncode quote) `B.append` (jsonEncode (hashQuotePackage (quotePackage response)))--qPack tpmQuote hashIn
+      eBlob = LB.toStrict $ (jsonEncode (evidence evidencePkg)) `LB.append` (jsonEncode (nonceEvidencePackage evidencePkg))--ePack e eNonce
+      qBlob = LB.toStrict $(jsonEncode quote) `LB.append` (jsonEncode (hashQuotePackage (quotePackage response)))--qPack tpmQuote hashIn
       qpSig = signatureQuotePackage (quotePackage response)
       eSig = signatureEvidencePackage (evidencePackage response)
       qSig = signatureQuote quote
@@ -169,7 +169,7 @@ e8 = "Measurement #"
 
 --Golden Values
 
-goldenMap = M.fromList $ zip [0..2] expectedEvidence
+goldenMap = M.fromList $ zip [0..2] (evidence expectedEvidence)
 
 expectedEvidence :: Evidence
 expectedEvidence = Evidence

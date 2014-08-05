@@ -59,13 +59,13 @@ mkResponse :: Request -> IO Response
 mkResponse r  = do
   measurerID <- measurePrompt
   chan <- client_init measurerID
-  eList <- mapM (getEvidencePiece chan) (desiredEvidence r)
+  eList <- mapM (getEvidencePiece chan) (evidenceDescriptorList (desiredEvidence r))
   --close chan
   let nonce = nonceRequest r
-      evPack = signEvidence eList nonce
+      evPack = signEvidence (Evidence eList) nonce
       quote = mkSignedTPMQuote (tpmRequest r) nonce
-      hash = doHash $ ((jsonEncode eList) ++ (jsonEncode nonce))--ePack eList (nonceRequest r)
-      quoPack = signQuote quote hash
+      hash = doHash $ LB.toStrict $ (jsonEncode eList) `LB.append` (jsonEncode nonce))--ePack eList (nonceRequest r)
+      quoPack = signQuote quote (B.unpack hash)
         
   return (Response evPack quoPack)
 
@@ -102,8 +102,8 @@ signQuote :: Quote -> Hash -> QuotePackage
 signQuote quote hash =
   case sign Nothing md5 pri res of
          Left err -> throw . ErrorCall $ show err
-         Right signature -> QuotePackage quote hash signature
- where res =  (DA.encode quote) ++ (DA.encode hash)
+         Right signature -> QuotePackage quote hash (B.unpack signature)
+ where res =  LB.toStrict $ (DA.encode quote) `LB.append` (DA.encode hash)
 
 signEvidence :: Evidence -> Nonce -> EvidencePackage
 signEvidence e n =
@@ -111,13 +111,13 @@ signEvidence e n =
          Left err -> throw . ErrorCall $ show err
          Right signature -> EvidencePackage e n (B.unpack signature)
          
-   where res = (DA.encode e) ++ (DA.encode n) --ePack e n
+   where res = LB.toStrict $ (DA.encode e) `LB.append` (DA.encode n) --ePack e n
 
 mkSignedTPMQuote :: TPMRequest -> Nonce -> Quote
 mkSignedTPMQuote mask nonce =
     let pcrs' = pcrSelect mask in
        -- quote = (pcrs', nonce) in
-      case sign Nothing md5 pri $ ((DA.encode pcrs') ++ (DA.encode nonce)) of
+      case sign Nothing md5 pri $ LB.toStrict $ ((DA.encode pcrs') `LB.append` (DA.encode nonce)) of
          Left err -> throw . ErrorCall $ show err
          Right signature -> Quote pcrs' nonce (B.unpack signature) 
                  
