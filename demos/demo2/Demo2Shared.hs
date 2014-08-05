@@ -123,7 +123,7 @@ type M0Rep = [Word8]
 type M1Rep = [Word8]
 type M2Rep = [Word8]
 
-
+{--
 ePack :: Evidence -> Nonce -> B.ByteString
 ePack e n = (ePack' e) `B.append` (B.pack n) --pik
 
@@ -137,11 +137,11 @@ ePack' es = foldr f B.empty (evidencePieceList es)
 
 qPack :: Quote -> Hash -> B.ByteString
 qPack q hash = 
-  (tPack ((pcrList q), (nonceQuote q))) `B.append` (signatureQuote q) `B.append` (B.pack hash)
+  (tPack ((pcrList q), (B.pack (nonceQuote q))) `B.append` (signatureQuote q) `B.append` (B.pack hash)
   
 tPack :: ([PCR], Nonce) -> B.ByteString
 tPack (pcrs, nonce) = B.pack pcrs `B.append` (B.pack nonce)
-
+--}
 
 doHash :: B.ByteString -> B.ByteString
 doHash = hash
