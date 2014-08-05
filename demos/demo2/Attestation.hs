@@ -61,12 +61,13 @@ mkResponse r  = do
   chan <- client_init measurerID
   eList <- mapM (getEvidencePiece chan) (desiredEvidence r)
   --close chan
-  let evPack = signEvidence eList (nonceRequest nonce)
+  let nonce = nonceRequest r
+      evPack = signEvidence eList nonce
       quote = mkSignedTPMQuote desiredPCRs nonce
-      hash = doHash $ ePack eList nonce
+      hash = doHash $ ((jsonEncode eList) ++ (jsonEncode nonce))--ePack eList (nonceRequest r)
       quoPack = signQuote quote hash
         
-  return (evPack, quoPack)
+  return (Response evPack quoPack)
 
 getEvidencePiece :: LibXenVChan -> EvidenceDescriptor -> IO EvidencePiece
 getEvidencePiece chan ed = do

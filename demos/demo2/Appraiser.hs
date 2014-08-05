@@ -95,16 +95,16 @@ evaluate request response = --(d, tReq, nonce) ((e, eNonce, eSig), (tpmQuote@((p
       eBlob = (jsonEncode (evidence evidencePkg)) ++ (jsonEncode (nonceEvidencePackage evidencePkg))--ePack e eNonce
       qBlob = (jsonEncode quote) ++ (jsonEncode (hashQuotePackage (quotePackage response)))--qPack tpmQuote hashIn
       qpSig = signatureQuotePackage (quotePackage response)
-      esig = signatureEvidencePackage (evidencePackage response)
+      eSig = signatureEvidencePackage (evidencePackage response)
       qSig = signatureQuote quote
       r1 = verify md5 pub qBlob qpSig 
       r2 = verify md5 pub eBlob eSig
       r3 = verify md5 pub tpmBlob qSig 
-      r4 = pcrsIn == pcrs'
-      r5 = nonce == qNonce
-      r6 = (doHash eBlob) == hashIn
-      r7 = nonce == eNonce
-      ms =  evaluateEvidence d e in
+      r4 = (pcrList quote) == pcrs'
+      r5 = nonce == (nonceQuote quote)
+      r6 = (doHash eBlob) == (hashQuotePackage (quotePackage response))
+      r7 = nonce == (nonceEvidencePackage evidencePkg)
+      ms =  evaluateEvidence (desiredEvidence request) (evidence(evidencePackage response)) in
  (r1, r2, r3, r4, r5, r6, r7, ms)
   
                                             
