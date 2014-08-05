@@ -64,7 +64,7 @@ mkResponse r  = do
   let nonce = nonceRequest r
       evPack = signEvidence (Evidence eList) nonce
       quote = mkSignedTPMQuote (tpmRequest r) nonce
-      hash = doHash $ LB.toStrict $ (jsonEncode eList) `LB.append` (jsonEncode nonce))--ePack eList (nonceRequest r)
+      hash = doHash $ LB.toStrict $ (jsonEncode eList) `LB.append` (jsonEncode nonce)--ePack eList (nonceRequest r)
       quoPack = signQuote quote (B.unpack hash)
         
   return (Response evPack quoPack)
