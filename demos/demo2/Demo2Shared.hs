@@ -125,19 +125,19 @@ type M2Rep = [Word8]
 
 
 ePack :: Evidence -> Nonce -> B.ByteString
-ePack e n = (ePack' e) `B.append` n
+ePack e n = (ePack' e) `B.append` (pack n) --pik
 
 --This is where we will need to convert measurement type to ByteString
 -- if it is something else.  see comment below
 ePack' :: Evidence -> B.ByteString
-ePack' es = foldr f B.empty es
-  where f (Demo2Shared.M0 x) y = x `B.append` y -- (i.e. (toByteString x) `append` y )
-        f (Demo2Shared.M1 x) y = x `B.append` y
-        f (Demo2Shared.M2 x) y = x `B.append` y
+ePack' es = foldr f B.empty (evidencePieceList es)
+  where f (Demo2Shared.M0 x) y = x `B.append` (pack y) -- (i.e. (toByteString x) `append` y )
+        f (Demo2Shared.M1 x) y = x `B.append` (pack y)
+        f (Demo2Shared.M2 x) y = x `B.append` (pack y)
 
 qPack :: Quote -> Hash -> B.ByteString
-qPack q@((pcrsIn, nonce), sig) hash = 
-  (tPack (pcrsIn, nonce)) `B.append` sig `B.append` hash
+qPack (Quote q) hash = 
+  (tPack ((pcrList q), (nonceQuote q))) `B.append` sig `B.append` (pack hash)
   
 tPack :: ([PCR], Nonce) -> B.ByteString
 tPack (pcrs, nonce) = B.pack pcrs `B.append` nonce
