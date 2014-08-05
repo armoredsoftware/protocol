@@ -16,9 +16,13 @@ import qualified Data.ByteString as B
 syntax. Therefore, these are simply wrappers of the existing data types with the 
 exception of EvidencePieceW which contains a more 'JSON-friendly' internal data type 
 --}
+
+{--
 data DesiredEvidenceW = DEW {desiredEvidence :: DesiredEvidence} deriving (Show)
 data EvidenceDescriptorW = EDW {evidenceDescriptor :: EvidenceDescriptor} deriving ( Show)
 data EvidencePieceW = EPW {evidencePiece2 :: EvidencePiece2} deriving (Show)
+--}
+
 
 --main= putStrLn (show (toJSON D0))
 
@@ -26,10 +30,11 @@ data EvidencePieceW = EPW {evidencePiece2 :: EvidencePiece2} deriving (Show)
   This data type is 'JSON-ready' since Word8 is already an instance of To(From)JSON whereas
 ByteString is not.
 -}
+{--
 data EvidencePiece2 = M02 [Word8]|
                       M12 [Word8] |
                       M22 [Word8] deriving (Show)
-
+--}
 {--
 -- |Conversion from an EvidencePiece to a 'JSON-ready' data type (EvidencePiece2)
 createEvidencePiece2 :: EvidencePiece -> EvidencePiece2
@@ -48,10 +53,15 @@ ep2ToEp (M22 rep) = M2 (B.pack rep)
    for reference.
    Genereated by: ghc -ddump-splices JSONCaster.hs 2> JSONCaster_splices.hs-}
 $(deriveJSON defaultOptions ''EvidenceDescriptor)
-$(deriveJSON defaultOptions ''EvidenceDescriptorW)
-$(deriveJSON defaultOptions ''DesiredEvidenceW)
-$(deriveJSON defaultOptions ''EvidencePieceW)
-$(deriveJSON defaultOptions ''EvidencePiece2)
+--$(deriveJSON defaultOptions ''EvidenceDescriptorW)
+--$(deriveJSON defaultOptions ''DesiredEvidenceW)
+--$(deriveJSON defaultOptions ''EvidencePieceW)
+--$(deriveJSON defaultOptions ''EvidencePiece2)
+
+
+$(deriveJSON defaultOptions ''DesiredEvidence)
+$(deriveJSON defaultOptions ''EvidencePiece)
+
 
 {--
 data Testdata = Dat {field :: String} deriving (Show)
