@@ -101,9 +101,9 @@ evaluate request response = --(d, tReq, nonce) ((e, eNonce, eSig), (tpmQuote@((p
       r2 = verify md5 pub eBlob eSig
       r3 = verify md5 pub tpmBlob qSig 
       r4 = (pcrList quote) == pcrs'
-      r5 = nonce == (nonceQuote quote)
+      r5 = (nonceRequest request) == (nonceQuote quote)
       r6 = (doHash eBlob) == (hashQuotePackage (quotePackage response))
-      r7 = nonce == (nonceEvidencePackage evidencePkg)
+      r7 = (nonceRequest request) == (nonceEvidencePackage evidencePkg)
       ms =  evaluateEvidence (desiredEvidence request) (evidence(evidencePackage response)) in
  (r1, r2, r3, r4, r5, r6, r7, ms)
   
