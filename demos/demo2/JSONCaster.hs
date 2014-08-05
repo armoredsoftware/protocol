@@ -53,10 +53,6 @@ ep2ToEp (M22 rep) = M2 (B.pack rep)
    for reference.
    Genereated by: ghc -ddump-splices JSONCaster.hs 2> JSONCaster_splices.hs-}
 $(deriveJSON defaultOptions ''EvidenceDescriptor)
---$(deriveJSON defaultOptions ''EvidenceDescriptorW)
---$(deriveJSON defaultOptions ''DesiredEvidenceW)
---$(deriveJSON defaultOptions ''EvidencePieceW)
---$(deriveJSON defaultOptions ''EvidencePiece2)
 
 
 $(deriveJSON defaultOptions ''DesiredEvidence)
