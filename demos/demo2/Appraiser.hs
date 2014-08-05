@@ -75,8 +75,8 @@ receiveResponse :: LibXenVChan -> IO Response
 receiveResponse chan =  do
   ctrlWait chan
   logger <- createLogger
-  bytes <- LB.fromStrict $ readChunkedMessageByteString logger chan
-  let res =  ((jsonDecode bytes) :: Maybe Response)
+  bytes <- readChunkedMessageByteString logger chan
+  let res =  ((jsonDecode (LB.fromStrict bytes) :: Maybe Response)
   --res :: Shared <- receive chan
   case res of 
     Just response ->  do
