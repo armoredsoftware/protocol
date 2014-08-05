@@ -26,7 +26,7 @@ instance Show Shared where
     show (Attestation att) = "Attestation: " ++ (show att)
     show (Result True) = "Appraisal succeeded."
     show (Result False) = "Appraisal failed."
-    
+  {--  
 instance Binary Shared where
   put (Appraisal req)              = do put (0::Word8)
                                         put req
@@ -60,9 +60,8 @@ instance Binary EvidencePiece where
                             return (Demo2Shared.M1 quote)
                     2 -> do res <- get
                             return (Demo2Shared.M2 res)
-
-
-
+--}
+                            
 -- Primitive types
 type PCR = Word8
 type Nonce = [Word8]
