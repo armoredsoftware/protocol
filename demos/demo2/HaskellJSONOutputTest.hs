@@ -7,7 +7,7 @@ import System.Environment
 
 evidenceDescriptorW = EDW D1
 desiredEvidence = DesiredEvidence [D0,D1,D2]
-evidencePiece = = M0 [bit 1]
+evidencePiece = M0 [bit 1]
 
 
 
