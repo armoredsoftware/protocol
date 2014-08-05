@@ -169,7 +169,7 @@ e8 = "Measurement #"
 
 --Golden Values
 
-goldenMap = M.fromList $ zip [0..2] (evidence expectedEvidence)
+goldenMap = M.fromList $ zip [0..2] (evidencePieceList expectedEvidence)
 
 expectedEvidence :: Evidence
 expectedEvidence = Evidence
