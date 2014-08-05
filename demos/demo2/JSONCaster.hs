@@ -13,7 +13,7 @@ import qualified Data.ByteString.Lazy.Char8 as LBC
 import qualified Data.ByteString as B
 
 
-$(deriveJSON defaultOptions{allNullaryToStringTag=true} ''EvidenceDescriptor)
+$(deriveJSON defaultOptions ''EvidenceDescriptor)
 $(deriveJSON defaultOptions ''DesiredEvidence)
 $(deriveJSON defaultOptions ''EvidencePiece)
 $(deriveJSON defaultOptions ''Quote)
