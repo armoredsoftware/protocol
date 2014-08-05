@@ -33,7 +33,7 @@ main = do
   measurerID <- prompt
   chan <- server_init measurerID
   forever $ process chan
-  return ()
+  return () 
 
   
 process :: LibXenVChan -> IO ()

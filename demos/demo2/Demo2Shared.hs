@@ -120,7 +120,7 @@ data QuotePackage = QuotePackage { quoteQuotePackage :: Quote,
 --changed to work well with JSON from ByteStrings
 type M0Rep = [Word8]
 type M1Rep = [Word8]
-type M2Rep = [Word8]
+type M2Rep = [Word8] 
 
 {--
 ePack :: Evidence -> Nonce -> B.ByteString

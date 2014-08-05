@@ -27,7 +27,7 @@ $(deriveJSON defaultOptions ''Response)
 $(deriveJSON defaultOptions ''EvidencePackage)
 $(deriveJSON defaultOptions ''QuotePackage)
 
-
+ 
 
 {--To properly (successfully) convert to a JSON object the data object must have record
 syntax. Therefore, these are simply wrappers of the existing data types with the 

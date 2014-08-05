@@ -54,7 +54,7 @@ main = do
   return ()
 
 -- Attestation primitives  
-  
+   
 mkResponse :: Request -> IO Response
 mkResponse r  = do
   measurerID <- measurePrompt
@@ -81,7 +81,7 @@ getEvidencePiece chan ed = do
   let evidence =  fromJust (jsonDecode (LB.fromStrict bytes) :: Maybe EvidencePiece) --TODO:  error handling
   putStrLn $ "Received: " ++ (show evidence)
   return evidence
-
+  
 receiveRequest :: LibXenVChan -> IO Request
 receiveRequest chan = do
   ctrlWait chan

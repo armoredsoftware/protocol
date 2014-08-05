@@ -1,5 +1,5 @@
 {-# LANGUAGE ScopedTypeVariables #-}
-
+ 
 --our libraries
 import Demo2Shared
 import JSONCaster
