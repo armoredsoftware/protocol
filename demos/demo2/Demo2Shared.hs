@@ -69,17 +69,17 @@ type Signature =[Word8]
 type TPMRequest = Word8 -- Request = (Mask, Nonce)
 data Quote = Quote { pcrList ::[PCR],
                      nonceQuote ::  Nonce,
-                     signatureQuote :: Signature}--simulates TPM 
+                     signatureQuote :: Signature} deriving (Show) --simulates TPM 
 
 --Request
 data Request = Request { desiredEvidence ::DesiredEvidence,
                          tpmRequest :: TPMRequest,
-                         nonceRequest :: Nonce}
+                         nonceRequest :: Nonce} deriving (Show)
                
 data DesiredEvidence = DesiredEvidence {evidenceDescriptorList :: [EvidenceDescriptor]}
 data EvidenceDescriptor = D0 |
                           D1 |
-                          D2 deriving(Eq, Ord, Generic) --for now
+                          D2 deriving(Eq, Ord, Generic,Show) --for now
 
 instance Binary EvidenceDescriptor where
   put D0 = do put (0::Word8)
@@ -101,12 +101,12 @@ instance Show EvidenceDescriptor where
 
 --Response
 data Response = Response {evidencePackage :: EvidencePackage,
-                          quotePackage :: QuotePackage}
+                          quotePackage :: QuotePackage} deriving (Show)
                 
 data EvidencePackage = EvidencePackage {evidence :: Evidence,
                                         nonceEvidencePackage :: Nonce,
-                                        signatureEvidencePackage :: Signature}
-data Evidence = Evidence {evidencePieceList :: [EvidencePiece]}
+                                        signatureEvidencePackage :: Signature} deriving (Show)
+data Evidence = Evidence {evidencePieceList :: [EvidencePiece]} deriving (Show)
  
 data EvidencePiece =  M0 {m0Rep ::  M0Rep} 
                    | M1 {m1Rep :: M1Rep}
@@ -115,7 +115,7 @@ data EvidencePiece =  M0 {m0Rep ::  M0Rep}
 type Hash = [Word8]
 data QuotePackage = QuotePackage { quoteQuotePackage :: Quote,
                                    hashQuotePackage :: Hash,
-                                   signatureQuotePackage :: Signature}
+                                   signatureQuotePackage :: Signature} deriving (Show)
 
 --changed to work well with JSON from ByteStrings
 type M0Rep = [Word8]
