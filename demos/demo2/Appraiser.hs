@@ -84,8 +84,7 @@ type MeasureEval = (EvidenceDescriptor, Bool)
 type Demo2EvalResult = (Bool, Bool, Bool, Bool, Bool, Bool, Bool,[MeasureEval])
 
 evaluate :: Request -> Response -> Demo2EvalResult
-evaluate request response --(d, tReq, nonce)
-  --((e, eNonce, eSig), (tpmQuote@((pcrsIn, qNonce), qSig), hashIn, qpSig))
+evaluate request response = --(d, tReq, nonce) ((e, eNonce, eSig), (tpmQuote@((pcrsIn, qNonce), qSig), hashIn, qpSig))
   let pcrs' = pcrSelect (tpmRequest request)
       --quotePackage gets the quotepackage out of the response.
       --quoteQuotePackage gets the quote out of the QuotePackage

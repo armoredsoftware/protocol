@@ -114,8 +114,7 @@ signEvidence e n =
 
 mkSignedTPMQuote :: TPMRequest -> Nonce -> Quote
 mkSignedTPMQuote mask nonce =
-    let pcrs' = pcrSelect mask
-        
+    let pcrs' = pcrSelect mask in
        -- quote = (pcrs', nonce) in
       case sign Nothing md5 pri $ ((DA.encode pcrs') ++ (DA.encode nonce)) of
          Left err -> throw . ErrorCall $ show err
