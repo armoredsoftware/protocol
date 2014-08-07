@@ -59,35 +59,37 @@ mkResponse :: Request -> IO Response
 mkResponse r  = do
   measurerID <- measurePrompt
   chan <- client_init measurerID
-  eList <- mapM (getEvidencePieceFromChan chan) (evidenceDescriptorList_DesiredEvidence (desiredEvidence_Request r))
+  eList <- mapM (getEvidencePieceFromChan chan) (evidenceDescriptorList_DesiredEvidence
+                                                        (desiredEvidence_Request r))
   --close chan
   let nonce = nonce_Request r
       evPack = signEvidence (Evidence eList) nonce
       quote = mkSignedTPMQuote (tpm_Request r) nonce
-      hash = doHash $ LB.toStrict $ (jsonEncode eList) `LB.append` (jsonEncode nonce)--ePack eList (nonceRequest r)
+      hash = doHash $ LB.toStrict $ (jsonEncode eList) `LB.append`
+                                    (jsonEncode nonce)--ePack eList (nonceRequest r)
       quoPack = signQuote quote (B.unpack hash)
         
   return (Response evPack quoPack)
 
 getEvidencePieceFromChan :: LibXenVChan -> EvidenceDescriptor -> IO EvidencePiece
 getEvidencePieceFromChan chan ed = do
-  putStrLn $ "\n" ++ "Attestation Agent Sending: " ++ (show (jsonEncode (EDW ed)))
+  putStrLn $ "\n" ++ "Attestation Agent Sending: " ++ (show (jsonEncode (EvidenceDescriptorW ed)))
   logger <- createLogger
-  sendChunkedMessageByteString logger chan (LB.toStrict  (jsonEncode (EDW ed)))
+  sendChunkedMessageByteString logger chan (LB.toStrict  (jsonEncode (EvidenceDescriptorW ed)))
   --send chan $ encode (wrapED ed)
   ctrlWait chan
   logger <- createLogger
   bytes <- readChunkedMessageByteString logger chan
-  let evidence =  fromJust (jsonDecode (LB.fromStrict bytes) :: Maybe EvidencePiece) --TODO:  error handling
-  putStrLn $ "Received: " ++ (show evidence)
-  return evidence
+  let evidenceP = getEvidencePiece $ fromJust (jsonDecode (LB.fromStrict bytes) :: Maybe WrappedData) --TODO:  error handling
+  putStrLn $ "Received: " ++ (show evidenceP)
+  return evidenceP
   
 receiveRequest :: LibXenVChan -> IO Request
 receiveRequest chan = do
   ctrlWait chan
   logger <- createLogger
   bytes <-  readChunkedMessageByteString logger chan
-  let res = (jsonDecode (LB.fromStrict bytes)) :: Maybe Request
+  let Just res = getRequest (jsonDecode (LB.fromStrict bytes)) :: Maybe WrappedData
   --res :: Shared <- receive chan
   case res of
     Just req -> do
@@ -99,7 +101,7 @@ sendResponse :: LibXenVChan -> Response-> IO ()
 sendResponse chan resp = do
   putStrLn $ "Attester Sending: " ++ (show $ resp) ++ "\n"
   logger <- createLogger
-  sendChunkedMessageByteString logger chan (LB.toStrict  (jsonEncode resp))
+  sendChunkedMessageByteString logger chan (LB.toStrict  (jsonEncode (ResponseW resp)))
   --send chan $ Attestation resp
   return () 
 
