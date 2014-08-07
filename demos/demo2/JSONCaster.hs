@@ -27,7 +27,7 @@ $(deriveJSON defaultOptions ''WrappedData)
 
 
 $(deriveJSON defaultOptions ''EvidenceDescriptor)
-$(deriveJSON defaultOptions ''EvidenceDescriptorW)
+--(deriveJSON defaultOptions ''EvidenceDescriptorW)
 $(deriveJSON defaultOptions ''DesiredEvidence)
 $(deriveJSON defaultOptions ''EvidencePiece)
 $(deriveJSON defaultOptions ''Quote)
