@@ -43,9 +43,9 @@ process chan = do
   logger <- createLogger
   bytes <- readChunkedMessageByteString logger chan
   putStrLn("bytes: " ++ (show bytes))
-  let ed =   evidenceDescriptor (fromJust (jsonDecode  (LB.fromStrict bytes) :: Maybe EvidenceDescriptorW))
+  let ed =   getEvidenceDescriptor (fromJust (jsonDecode  (LB.fromStrict bytes) :: Maybe WrappedData))
   putStrLn ("Meaurer received:" ++ (show ed))
-  let ep = LB.toStrict (jsonEncode  (measure ed))
+  let ep = LB.toStrict (jsonEncode  (EvidencePieceW (measure ed)))
   logger <- createLogger
   sendChunkedMessageByteString logger chan ep
   return ()
