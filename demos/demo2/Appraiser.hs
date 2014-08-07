@@ -67,7 +67,7 @@ sendRequest req = do
   chan <- client_init other
   putStrLn $ "\n" ++ "Appraiser Sending: "++(show $ req) ++ "\n"
   logger <- createLogger
-  sendChunkedMessageByteString logger chan (LB.toStrict  (jsonEncode req))
+  sendChunkedMessageByteString logger chan (LB.toStrict  (jsonEncode (RequestW req))
   --send chan $ Appraisal req
   return chan
 
@@ -76,7 +76,7 @@ receiveResponse chan =  do
   ctrlWait chan
   logger <- createLogger
   bytes <- readChunkedMessageByteString logger chan
-  let res =  (jsonDecode (LB.fromStrict bytes)) :: Maybe Response
+  let Just res = getResponse $ fromJust $ (jsonDecode (LB.fromStrict bytes)) :: Maybe WrappedData
   --res :: Shared <- receive chan
   case res of 
     Just response ->  do
@@ -97,10 +97,13 @@ evaluate request response = --(d, tReq, nonce) ((e, eNonce, eSig), (tpmQuote@((p
       --quoteQuotePackage gets the quote out of the QuotePackage
       quote = (quote_QuotePackage (quotePackage_Response response))
       --pcrList gets the pcr list out of the quote
-      tpmBlob = LB.toStrict ((jsonEncode (pcrList_Quote quote)) `LB.append` (jsonEncode (nonce_Quote quote))) --tPack (pcrsIn, qNonce)
+      tpmBlob = LB.toStrict ((jsonEncode (pcrList_Quote quote)) `LB.append`
+                             (jsonEncode (nonce_Quote quote))) --tPack (pcrsIn, qNonce)
       evidencePkg = evidencePackage_Response response
-      eBlob = LB.toStrict $ (jsonEncode (evidence_EvidencePackage evidencePkg)) `LB.append` (jsonEncode (nonce_EvidencePackage evidencePkg))--ePack e eNonce
-      qBlob = LB.toStrict $(jsonEncode quote) `LB.append` (jsonEncode (hash_QuotePackage (quotePackage_Response response)))--qPack tpmQuote hashIn
+      eBlob = LB.toStrict $ (jsonEncode (evidence_EvidencePackage evidencePkg)) `LB.append`
+                            (jsonEncode (nonce_EvidencePackage evidencePkg))--ePack e eNonce
+      qBlob = LB.toStrict $(jsonEncode quote) `LB.append`
+                           (jsonEncode (hash_QuotePackage (quotePackage_Response response)))--qPack tpmQuote hashIn
       qpSig = signature_QuotePackage (quotePackage_Response response)
       eSig = signature_EvidencePackage (evidencePackage_Response response)
       qSig = signature_Quote quote
@@ -111,8 +114,9 @@ evaluate request response = --(d, tReq, nonce) ((e, eNonce, eSig), (tpmQuote@((p
       r5 = (nonce_Request request) == (nonce_Quote quote)
       r6 = (doHash eBlob) == B.pack (hash_QuotePackage (quotePackage_Response response))
       r7 = (nonce_Request request) == (nonce_EvidencePackage evidencePkg)
-      ms =  evaluateEvidence (desiredEvidence_Request request) (evidence_EvidencePackage (evidencePackage_Response response)) in
- (r1, r2, r3, r4, r5, r6, r7, ms)
+      ms =  evaluateEvidence (desiredEvidence_Request request) (evidence_EvidencePackage (
+                                                                   evidencePackage_Response response)) in
+  (r1, r2, r3, r4, r5, r6, r7, ms)
   
                                             
 evaluateEvidence :: DesiredEvidence -> Evidence -> [MeasureEval]

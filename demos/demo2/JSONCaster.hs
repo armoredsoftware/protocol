@@ -12,9 +12,9 @@ import qualified Data.ByteString.Lazy as LB
 import qualified Data.ByteString.Lazy.Char8 as LBC
 import qualified Data.ByteString as B
 
-data EvidenceDescriptorW = EDW {evidenceDescriptor :: EvidenceDescriptor} deriving ( Show)
+--data EvidenceDescriptorW = EDW {evidenceDescriptor :: EvidenceDescriptor} deriving ( Show)
 
-data WrappedData = EvidenceDescriptorWW {getEvidenceDescriptorW :: EvidenceDescriptorW} |
+data WrappedData = EvidenceDescriptorW {getEvidenceDescriptor :: EvidenceDescriptor} |
                    DesiredEvidenceW {getDesiredEvidence :: DesiredEvidence} |
                    EvidencePieceW {getEvidencePiece :: EvidencePiece} |
                    QuoteW {getQuote :: Quote} |
