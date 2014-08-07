@@ -12,19 +12,20 @@ import qualified Data.ByteString.Lazy as LB
 import qualified Data.ByteString.Lazy.Char8 as LBC
 import qualified Data.ByteString as B
 
-
-data WrappedData = EvidenceDescriptorWW {getEvidenceDescriptorW EvidenceDescriptorW} |
-                   DesiredEvidenceW {getDesiredEvidence DesiredEvidence} |
-                   EvidencePieceW {getEvidencePiece EvidencePiece} |
-                   QuoteW {getQuote Quote} |
-                   EvidenceW {getEvidence Evidence} |
-                   RequestW {getRequest Request} |
-                   ResponseW {getResponse Response} |
-                   EvidencePackageW {getEvidencePackage EvidencePackage} |
-                   QuotePackageW {getQuotePackage quotePackage} deriving (Show)
-$(derivejson defaultoptions ''WrappedData)
-
 data EvidenceDescriptorW = EDW {evidenceDescriptor :: EvidenceDescriptor} deriving ( Show)
+
+data WrappedData = EvidenceDescriptorWW {getEvidenceDescriptorW :: EvidenceDescriptorW} |
+                   DesiredEvidenceW {getDesiredEvidence :: DesiredEvidence} |
+                   EvidencePieceW {getEvidencePiece :: EvidencePiece} |
+                   QuoteW {getQuote :: Quote} |
+                   EvidenceW {getEvidence :: Evidence} |
+                   RequestW {getRequest :: Request} |
+                   ResponseW {getResponse :: Response} |
+                   EvidencePackageW {getEvidencePackage :: EvidencePackage} |
+                   QuotePackageW {getQuotePackage :: QuotePackage} deriving (Show)
+$(deriveJSON defaultOptions ''WrappedData)
+
+
 $(deriveJSON defaultOptions ''EvidenceDescriptor)
 $(deriveJSON defaultOptions ''EvidenceDescriptorW)
 $(deriveJSON defaultOptions ''DesiredEvidence)
