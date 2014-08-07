@@ -67,7 +67,7 @@ sendRequest req = do
   chan <- client_init other
   putStrLn $ "\n" ++ "Appraiser Sending: "++(show $ req) ++ "\n"
   logger <- createLogger
-  sendChunkedMessageByteString logger chan (LB.toStrict  (jsonEncode (RequestW req))
+  sendChunkedMessageByteString logger chan (LB.toStrict  (jsonEncode (RequestW req)))
   --send chan $ Appraisal req
   return chan
 
