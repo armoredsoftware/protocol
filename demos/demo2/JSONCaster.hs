@@ -1,6 +1,6 @@
 {-# LANGUAGE OverloadedStrings, TemplateHaskell #-}
 module JSONCaster where
-
+   
 import Demo2Shared as D2
 import Data.Aeson
 import qualified Data.Aeson as DA
