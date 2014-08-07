@@ -92,31 +92,31 @@ type Demo2EvalResult = (Bool, Bool, Bool, Bool, Bool, Bool, Bool,[MeasureEval])
 
 evaluate :: Request -> Response -> Demo2EvalResult
 evaluate request response = --(d, tReq, nonce) ((e, eNonce, eSig), (tpmQuote@((pcrsIn, qNonce), qSig), hashIn, qpSig))
-  let pcrs' = pcrSelect (tpmRequest request)
+  let pcrs' = pcrSelect (tpm_Request request)
       --quotePackage gets the quotepackage out of the response.
       --quoteQuotePackage gets the quote out of the QuotePackage
-      quote = (quoteQuotePackage (quotePackage response))
+      quote = (quote_QuotePackage (quotePackage_Response response))
       --pcrList gets the pcr list out of the quote
-      tpmBlob = LB.toStrict ((jsonEncode (pcrList quote)) `LB.append` (jsonEncode (nonceQuote quote))) --tPack (pcrsIn, qNonce)
-      evidencePkg = evidencePackage response
-      eBlob = LB.toStrict $ (jsonEncode (evidence evidencePkg)) `LB.append` (jsonEncode (nonceEvidencePackage evidencePkg))--ePack e eNonce
-      qBlob = LB.toStrict $(jsonEncode quote) `LB.append` (jsonEncode (hashQuotePackage (quotePackage response)))--qPack tpmQuote hashIn
-      qpSig = signatureQuotePackage (quotePackage response)
-      eSig = signatureEvidencePackage (evidencePackage response)
-      qSig = signatureQuote quote
+      tpmBlob = LB.toStrict ((jsonEncode (pcrList_Quote quote)) `LB.append` (jsonEncode (nonce_Quote quote))) --tPack (pcrsIn, qNonce)
+      evidencePkg = evidencePackage_Response response
+      eBlob = LB.toStrict $ (jsonEncode (evidence_EvidencePackage evidencePkg)) `LB.append` (jsonEncode (nonce_EvidencePackage evidencePkg))--ePack e eNonce
+      qBlob = LB.toStrict $(jsonEncode quote) `LB.append` (jsonEncode (hashQuotePackage (quotePackage_Response response)))--qPack tpmQuote hashIn
+      qpSig = signatureQuotePackage (quotePackage_Response response)
+      eSig = signatureEvidencePackage (evidencePackage_Response response)
+      qSig = signature_Quote quote
       r1 = verify md5 pub qBlob (B.pack qpSig)
       r2 = verify md5 pub eBlob (B.pack eSig)
       r3 = verify md5 pub tpmBlob (B.pack qSig) 
       r4 = (pcrList quote) == pcrs'
-      r5 = (nonceRequest request) == (nonceQuote quote)
-      r6 = (doHash eBlob) == B.pack (hashQuotePackage (quotePackage response))
-      r7 = (nonceRequest request) == (nonceEvidencePackage evidencePkg)
-      ms =  evaluateEvidence (desiredEvidence request) (evidence(evidencePackage response)) in
+      r5 = (nonceRequest request) == (nonce_Quote quote)
+      r6 = (doHash eBlob) == B.pack (hash_QuotePackage (quote_Package response))
+      r7 = (nonceRequest request) == (nonce_EvidencePackage evidencePkg)
+      ms =  evaluateEvidence (desiredEvidence_Request request) (evidence_EvidencePackage (evidencePackage_Response response)) in
  (r1, r2, r3, r4, r5, r6, r7, ms)
   
                                             
 evaluateEvidence :: DesiredEvidence -> Evidence -> [MeasureEval]
-evaluateEvidence ds es = zipWith f (evidenceDescriptorList ds) (evidencePieceList es) 
+evaluateEvidence ds es = zipWith f (evidenceDescriptorList_DesiredEvidence ds) (evidencePieceList_Evidence es) 
  where 
    f :: EvidenceDescriptor -> EvidencePiece -> MeasureEval
    f ed ep = case ed of 
