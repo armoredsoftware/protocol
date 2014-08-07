@@ -15,6 +15,7 @@ import Crypto.PubKey.RSA.PKCS15
 -- utility libraries
 import Control.Exception hiding (evaluate)
 import Control.Monad
+import Data.Maybe
 import Data.Word
 import Data.Bits
 import Data.ByteString (ByteString, pack, append, empty, cons)
