@@ -15,52 +15,7 @@ import GHC.Generics as G
 import Crypto.PubKey.RSA
 import Crypto.Hash.MD5(hash)
 
-data Shared = Appraisal Request
-              | Attestation Response
-              | Result Bool
 
-
-
-instance Show Shared where
-    show (Appraisal app) = "Appraisal: " ++ (show app)
-    show (Attestation att) = "Attestation: " ++ (show att)
-    show (Result True) = "Appraisal succeeded."
-    show (Result False) = "Appraisal failed."
-  {--  
-instance Binary Shared where
-  put (Appraisal req)              = do put (0::Word8)
-                                        put req
-  put(Attestation quote)           = do put (1::Word8)
-  		  		     	put quote
-  put(Result res)                  = do put(2::Word8)
-                                        put res
-
-  get = do t<- get :: Get Word8
-           case t of
-             0 -> do req <- get
-                     return (Appraisal req)
-             1 -> do quote <- get
-                     return (Attestation quote)
-             2 -> do res <- get
-                     return (Result res)
-                     
-instance Binary EvidencePiece where
-         put (Demo2Shared.M0 req) = do put (0::Word8);
-                                       put req;
-         put(Demo2Shared.M1 quote) =  do put (1::Word8);
-                                         put quote;
-         put(Demo2Shared.M2 res)= do put(2::Word8);
-                                     put res;
-                                            
-         get = do t<- get :: Get Word8
-                  case t of
-                    0 -> do req <- get
-                            return (Demo2Shared.M0 req)
-                    1 -> do quote <- get
-                            return (Demo2Shared.M1 quote)
-                    2 -> do res <- get
-                            return (Demo2Shared.M2 res)
---}
                             
 -- Primitive types
 type PCR = Word8
