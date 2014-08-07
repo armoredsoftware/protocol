@@ -65,7 +65,7 @@ sendRequest req = do
   putStrLn $ "Appraiser Domain id: "++(show id)
   other <- prompt
   chan <- client_init other
-  putStrLn $ "\n" ++ "Appraiser Sending: "++(show $ Appraisal req) ++ "\n"
+  putStrLn $ "\n" ++ "Appraiser Sending: "++(show $ req) ++ "\n"
   logger <- createLogger
   sendChunkedMessageByteString logger chan (LB.toStrict  (jsonEncode req))
   --send chan $ Appraisal req
@@ -109,8 +109,8 @@ evaluate request response = --(d, tReq, nonce) ((e, eNonce, eSig), (tpmQuote@((p
       r3 = verify md5 pub tpmBlob (B.pack qSig) 
       r4 = (pcrList_Quote quote) == pcrs'
       r5 = (nonce_Request request) == (nonce_Quote quote)
-      r6 = (doHash eBlob) == B.pack (hash_QuotePackage (quote_Response response))
-      r7 = (nonceRequest request) == (nonce_EvidencePackage evidencePkg)
+      r6 = (doHash eBlob) == B.pack (hash_QuotePackage (quotePackage_Response response))
+      r7 = (nonce_Request request) == (nonce_EvidencePackage evidencePkg)
       ms =  evaluateEvidence (desiredEvidence_Request request) (evidence_EvidencePackage (evidencePackage_Response response)) in
  (r1, r2, r3, r4, r5, r6, r7, ms)
   
