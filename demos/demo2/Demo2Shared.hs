@@ -22,31 +22,20 @@ type PCR = Word8
 type Nonce = [Word8]
 type Signature =[Word8]
 type TPMRequest = Word8 -- Request = (Mask, Nonce)
-data Quote = Quote { pcrList ::[PCR],
-                     nonceQuote ::  Nonce,
-                     signatureQuote :: Signature} deriving (Show) --simulates TPM 
+data Quote = Quote { pcrList_Quote ::[PCR],
+                     nonce_Quote ::  Nonce,
+                     signature_Quote :: Signature} deriving (Show) --simulates TPM 
 
 --Request
-data Request = Request { desiredEvidence ::DesiredEvidence,
-                         tpmRequest :: TPMRequest,
-                         nonceRequest :: Nonce} deriving (Show)
+data Request = Request { desiredEvidence_Request ::DesiredEvidence,
+                         tpm_Request :: TPMRequest,
+                         nonce_Request :: Nonce} deriving (Show)
                
-data DesiredEvidence = DesiredEvidence {evidenceDescriptorList :: [EvidenceDescriptor]} deriving (Show)
+data DesiredEvidence = DesiredEvidence {evidenceDescriptorList_DesiredEvidence :: [EvidenceDescriptor]} deriving (Show)
 data EvidenceDescriptor = D0 |
                           D1 |
                           D2 deriving(Eq, Ord, Generic) --for now
-
-instance Binary EvidenceDescriptor where
-  put D0 = do put (0::Word8)
-  put D1 = do put (1::Word8)
-  put D2 = do put (2::Word8)
-           
-  get = do t<- get :: Get Word8
-           case t of
-               0 -> return D0
-               1 -> return D1
-               2 -> return D2
-                    
+            
 
 instance Show EvidenceDescriptor where
   show D0 = "Measurement #0"
@@ -55,47 +44,27 @@ instance Show EvidenceDescriptor where
    
 
 --Response
-data Response = Response {evidencePackage :: EvidencePackage,
-                          quotePackage :: QuotePackage} deriving (Show)
+data Response = Response {evidencePackage_Response :: EvidencePackage,
+                          quotePackage_Response :: QuotePackage} deriving (Show)
                 
-data EvidencePackage = EvidencePackage {evidence :: Evidence,
-                                        nonceEvidencePackage :: Nonce,
-                                        signatureEvidencePackage :: Signature} deriving (Show)
-data Evidence = Evidence {evidencePieceList :: [EvidencePiece]} deriving (Show)
+data EvidencePackage = EvidencePackage {evidence_EvidencePackage :: Evidence,
+                                        nonce_EvidencePackage :: Nonce,
+                                        signature_EvidencePackage :: Signature} deriving (Show)
+data Evidence = Evidence {evidencePieceList_Evidence :: [EvidencePiece]} deriving (Show)
  
-data EvidencePiece =  M0 {m0Rep ::  M0Rep} 
-                   | M1 {m1Rep :: M1Rep}
-                   | M2 {m2Rep :: M2Rep} deriving (Eq, Ord, Show, Generic)
+data EvidencePiece =  M0 {m0Rep_EvidencePiece ::  M0Rep} 
+                   | M1 {m1Rep_EvidencePiece :: M1Rep}
+                   | M2 {m2Rep_EvidencePiece :: M2Rep} deriving (Eq, Ord, Show, Generic)
                          
 type Hash = [Word8]
-data QuotePackage = QuotePackage { quoteQuotePackage :: Quote,
-                                   hashQuotePackage :: Hash,
-                                   signatureQuotePackage :: Signature} deriving (Show)
+data QuotePackage = QuotePackage { quote_QuotePackage :: Quote,
+                                   hash_QuotePackage :: Hash,
+                                   signature_QuotePackage :: Signature} deriving (Show)
 
 --changed to work well with JSON from ByteStrings
 type M0Rep = [Word8]
 type M1Rep = [Word8]
 type M2Rep = [Word8] 
-
-{--
-ePack :: Evidence -> Nonce -> B.ByteString
-ePack e n = (ePack' e) `B.append` (B.pack n) --pik
-
---This is where we will need to convert measurement type to ByteString
--- if it is something else.  see comment below
-ePack' :: Evidence -> B.ByteString
-ePack' es = foldr f B.empty (evidencePieceList es)
-  where f (Demo2Shared.M0 x) y =(B.pack $ m0Rep  x) `B.append` (B.pack y) -- (i.e. (toByteString x) `append` y )
-        f (Demo2Shared.M1 x) y = (B.pack $ m1Rep x) `B.append` (B.pack y)
-        f (Demo2Shared.M2 x) y =(B.pack $ m2Rep x) `B.append` (B.pack y)
-
-qPack :: Quote -> Hash -> B.ByteString
-qPack q hash = 
-  (tPack ((pcrList q), (B.pack (nonceQuote q))) `B.append` (signatureQuote q) `B.append` (B.pack hash)
-  
-tPack :: ([PCR], Nonce) -> B.ByteString
-tPack (pcrs, nonce) = B.pack pcrs `B.append` (B.pack nonce)
---}
 
 doHash :: B.ByteString -> B.ByteString
 doHash = hash
