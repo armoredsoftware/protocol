@@ -77,7 +77,7 @@ receiveResponse chan =  do
   ctrlWait chan
   logger <- createLogger
   bytes <- readChunkedMessageByteString logger chan
-  let res = Just $ getResponse $ fromJust $ (jsonDecode (LB.fromStrict bytes)) :: Maybe WrappedData
+  let res = Just $ getResponse ( fromJust ((jsonDecode (LB.fromStrict bytes)) :: Maybe WrappedData))
   --res :: Shared <- receive chan
   case res of 
     Just response ->  do
