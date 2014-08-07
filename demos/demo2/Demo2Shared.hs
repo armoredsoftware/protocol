@@ -31,10 +31,10 @@ data Request = Request { desiredEvidence_Request ::DesiredEvidence,
                          tpm_Request :: TPMRequest,
                          nonce_Request :: Nonce} deriving (Show)
                
-data DesiredEvidence = DesiredEvidence {evidenceDescriptorList_DesiredEvidence :: [EvidenceDescriptor]} deriving (Show)
-data EvidenceDescriptor = D0 |
-                          D1 |
-                          D2 deriving(Eq, Ord, Generic) --for now
+type DesiredEvidence =  [EvidenceDescriptor]
+data EvidenceDescriptor = D0 
+                        | D1
+                        | D2 deriving(Eq, Ord, Generic) --for now
             
 
 instance Show EvidenceDescriptor where
@@ -50,11 +50,11 @@ data Response = Response {evidencePackage_Response :: EvidencePackage,
 data EvidencePackage = EvidencePackage {evidence_EvidencePackage :: Evidence,
                                         nonce_EvidencePackage :: Nonce,
                                         signature_EvidencePackage :: Signature} deriving (Show)
-data Evidence = Evidence {evidencePieceList_Evidence :: [EvidencePiece]} deriving (Show)
+type Evidence = [EvidencePiece] 
  
-data EvidencePiece =  M0 {m0Rep_EvidencePiece ::  M0Rep} 
-                   | M1 {m1Rep_EvidencePiece :: M1Rep}
-                   | M2 {m2Rep_EvidencePiece :: M2Rep} deriving (Eq, Ord, Show, Generic)
+data EvidencePiece = M0  M0Rep
+                   | M1 M1Rep
+                   | M2 M2Rep deriving (Eq, Ord, Show, Generic)
                          
 type Hash = [Word8]
 data QuotePackage = QuotePackage { quote_QuotePackage :: Quote,
