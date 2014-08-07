@@ -59,18 +59,18 @@ mkResponse :: Request -> IO Response
 mkResponse r  = do
   measurerID <- measurePrompt
   chan <- client_init measurerID
-  eList <- mapM (getEvidencePiece chan) (evidenceDescriptorList (desiredEvidence r))
+  eList <- mapM (getEvidencePieceFromChan chan) (evidenceDescriptorList_DesiredEvidence (desiredEvidence_Request r))
   --close chan
-  let nonce = nonceRequest r
+  let nonce = nonce_Request r
       evPack = signEvidence (Evidence eList) nonce
-      quote = mkSignedTPMQuote (tpmRequest r) nonce
+      quote = mkSignedTPMQuote (tpm_Request r) nonce
       hash = doHash $ LB.toStrict $ (jsonEncode eList) `LB.append` (jsonEncode nonce)--ePack eList (nonceRequest r)
       quoPack = signQuote quote (B.unpack hash)
         
   return (Response evPack quoPack)
 
-getEvidencePiece :: LibXenVChan -> EvidenceDescriptor -> IO EvidencePiece
-getEvidencePiece chan ed = do
+getEvidencePieceFromChan :: LibXenVChan -> EvidenceDescriptor -> IO EvidencePiece
+getEvidencePieceFromChan chan ed = do
   putStrLn $ "\n" ++ "Attestation Agent Sending: " ++ (show (jsonEncode (EDW ed)))
   logger <- createLogger
   sendChunkedMessageByteString logger chan (LB.toStrict  (jsonEncode (EDW ed)))
