@@ -1,0 +1,32 @@
+Name:               shell
+Version:            1.0
+Description:        A package to aid in building pluggable shells
+License:            BSD3
+License-file:       LICENSE
+Author:             Wesley Peck
+Maintainer:         peckw@ittc.ku.edu
+Cabal-Version:      >= 1.2
+
+Build-type: Simple
+
+library
+  hs-source-dirs:   src
+  build-depends:    base >= 4,
+                    mtl,
+                    editline,
+                    directory,
+                    containers,
+                    filepath,
+                    old-time,
+                    bytestring,
+                    zip-archive,
+                    ghc >= 6.10.1, ghc-paths
+  exposed-modules:  Shell
+                    Shell.API
+                    Shell.Zip
+  other-modules:    Shell.Commands.Exit
+                    Shell.Commands.Echo
+                    Shell.Commands.Help
+                    Shell.Commands.Repeat
+                    Shell.Commands.Reload
+  ghc-options:      -O

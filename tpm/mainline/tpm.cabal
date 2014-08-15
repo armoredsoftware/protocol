@@ -1,0 +1,29 @@
+Name:                   tpm
+Version:                0.1
+Description:            A tpm shell
+License:                BSD3
+License-file:           LICENSE
+Author:                 Wesley Peck
+Maintainer:             peckw@ittc.ku.edu
+Cabal-Version:          >= 1.2
+
+Build-type:             Simple
+
+executable              tpmi
+  hs-source-dirs:       api, shell, src
+  build-depends:        base >= 4,
+                        shell >= 1.0,
+                        mtl,
+                        directory,
+                        containers,
+                        bytestring,
+                        binary,
+                        network,
+                        --network-bytestring,
+                        HsOpenSSL,
+                        SHA,
+                        RSA,
+                        parsec >= 3,
+                        filepath
+  Main-is:              Main.hs
+  ghc-options:          -O
