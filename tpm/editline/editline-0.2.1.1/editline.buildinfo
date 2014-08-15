@@ -1,0 +1,4 @@
+buildable: True
+cc-options: 
+ld-options: 
+extra-libraries: edit curses
