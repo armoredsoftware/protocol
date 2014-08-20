@@ -35,7 +35,7 @@ import TPM.Storage
 import TPM.Eviction
 import Control.Exception
 
-tpm_with_socket c = c (tpm_socket "/var/run/tpm/tpmd_socket:0")
+tpm_with_socket c = c (tpm_socket "/var/run/tpm/tpmd_socket:0") 
 tpm_with_socket' c = c (tpm_logging_socket "/var/run/tpm/tpmd_socket:0")
 
 tpm_with_oiap c = tpm_with_socket $ \s -> do 

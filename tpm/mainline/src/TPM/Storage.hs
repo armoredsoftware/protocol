@@ -112,4 +112,29 @@ tpm_getpubkey tpm (OIAP ah en) key pass = do
 
 -------------------------------------------------------------------------------
 -------------------------------------------------------------------------------
+
+tpm_quote :: TPM tpm => tpm -> Session -> TPM_KEY_HANDLE -> TPM_NONCE ->
+                        TPM_PCR_SELECTION -> TPM_DIGEST ->
+                        IO (TPM_PCR_COMPOSITE, ByteString)
+tpm_quote tpm (OIAP ah en) key nonce pcrs pass = do
+  on <- nonce_create
+  (rtag,size,resl,dat) <- tpm_transmit' tpm tag cod (dat on)
+  let numPcrs = (fromIntegral $ P.length $ tpm_pcr_unselection pcrs) :: UINT32
+      pcb = encode pcrs
+      selectionSize =  (fromIntegral $ length pcb) :: UINT32
+      pcrsSize = (fromIntegral $ numPcrs * 20) :: UINT32
+      vSize = 4 :: UINT32
+      compositeSize = selectionSize + vSize + pcrsSize
+      (comp, rest) = splitAt (fromIntegral compositeSize)  dat
+      (_, sig) = splitAt 4 rest
+  
+  return (decode comp, sig)
+  where tag = tpm_tag_rqu_auth1_command
+        cod = tpm_ord_quote
+        dat on = concat [ encode key, encode nonce, encode pcrs, ah,
+                          encode on, encode False, encode (ath on) ]
+        ath on = tpm_auth_hmac pass en on 0 $ concat [ encode cod, encode nonce,
+                                                       encode pcrs]
+  
+          
 tpm_sealx = undefined

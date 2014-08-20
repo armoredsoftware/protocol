@@ -69,6 +69,41 @@ cmd_key = ShellCmd ["key","k"]
             shellPutStrLn $ "Public Key:\n" ++ 
                             "--------------------------------------------\n" ++
                             show pub
+
+          quote name tpm = do
+            handle <- getLoaded name
+            pass <- readPass "Key Password: "
+            max   <- liftIO $ tpm_getcap_pcrs tpm
+            let list = [(22::Word8), (23::Word8)]
+                pcrSelect = tpm_pcr_selection max list
+            (shn,clo) <- retrieveOIAP tpm
+            nonce <- liftIO $ nonce_create
+            (comp, sig) <- liftIO $ tpm_quote tpm shn handle nonce pcrSelect pass
+
+            let pcrs = tpmPcrCompositePcrs comp
+                output = zip list pcrs
+                doshow x | x < 10 = "0" ++ (show x)
+                doshow x = show x
+                
+                f (x, y) = shellPutStrLn $ "PCR " ++ (doshow x) ++ ": " ++
+                                                     (show y)
+            liftIO $ mapM_ f output
+
+            {-
+            readit tpm num = do val <- tpm_pcr_read tpm (fromIntegral num)
+                              shellPutStrLn $ "PCR " ++ (doshow num) ++ ": " ++
+                                                        (show val)
+            doshow x | x < 10 = "0" ++ (show x)
+            doshow x = show x
+            readall _ tpm = do
+            pcrs <- liftIO $ tpm_getcap_pcrs tpm
+            liftIO $ mapM_ (readit tpm) [0..pcrs-1]
+            return ()
+            -}
+            
+            
+            shellPutStrLn $ "hi"
+          
           list _ tpm = do
             keys <- getAllKeys
             loaded <- getAllLoaded
@@ -77,7 +112,7 @@ cmd_key = ShellCmd ["key","k"]
             where msg l (k,_) | k `elem` l = "[" ++ k ++ "]"
                   msg l (k,_) = k
           parse s = liftIO $ witheof s use $ choice [enkp,loadp,cretp,evicp
-                                                    ,lstp,destp,gpubp]
+                                                    ,lstp,destp,gpubp, quotp]
           lstp  = command ["list","l"] none list
           enkp  = command ["endorsement","ek"] none enkey
           loadp = command ["load","ld"] none load
@@ -85,13 +120,15 @@ cmd_key = ShellCmd ["key","k"]
           evicp = command ["evict","ev"] name evict
           destp = command ["destroy","ds"] name destroy
           gpubp = command ["getpub","gp"] none getpub
+          quotp = command ["quote", "q"] name quote
           use  = "Usage: key <list,l>\n" ++
                  "       key <endorsement|ek>\n" ++
                  "       key <create|cr>\n" ++
                  "       key <load|ld>\n" ++
                  "       key <getpub|gp>\n" ++
                  "       key <destroy|ds> <name>\n" ++
-                 "       key <evict|ev> <name>"
+                 "       key <evict|ev> <name>" ++
+                 "       key <quote|q> <name>"
 
 -------------------------------------------------------------------------------
 -------------------------------------------------------------------------------
