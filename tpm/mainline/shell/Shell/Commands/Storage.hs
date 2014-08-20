@@ -103,6 +103,7 @@ cmd_key = ShellCmd ["key","k"]
                 f (x, y) = shellPutStrLn $ "PCR " ++ (doshow x) ++ ": " ++
                                                      (show y)
             liftIO $ mapM_ f output
+            closeSession tpm clo shn
 
             {-
             readit tpm num = do val <- tpm_pcr_read tpm (fromIntegral num)
@@ -117,7 +118,7 @@ cmd_key = ShellCmd ["key","k"]
             -}
             
             
-            shellPutStrLn $ "hi"
+            shellPutStrLn $ "Quote Completed"
           
           list _ tpm = do
             keys <- getAllKeys
