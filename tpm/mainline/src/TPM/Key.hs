@@ -97,6 +97,17 @@ tpm_key_create auth = TPM_KEY tpm_key_storage 0 auth kprm empty spub empty
           rsad = TPM_RSA_KEY_PARMS 2048 2 empty
 
 -------------------------------------------------------------------------------
+-------------------------------------------------------------------------------
+tpm_key_create_signing :: TPM_AUTH_DATA_USAGE -> TPM_KEY
+tpm_key_create_signing auth = TPM_KEY tpm_key_signing 0 auth kprm empty spub empty
+    where spub = TPM_STORE_PUBKEY empty
+          kprm = TPM_KEY_PARMS tpm_alg_rsa
+                               tpm_es_rsaesoaep_sha1_mgf1
+                               tpm_ss_none
+                               (RSA_DATA rsad)
+          rsad = TPM_RSA_KEY_PARMS 2048 2 empty
+          
+-------------------------------------------------------------------------------
 -- Create a key which is suitable for use with the TPM_TakeOwnership
 -- command. This kind of key does not actually contain any key data. It
 -- only contains information about the desired key parameters.

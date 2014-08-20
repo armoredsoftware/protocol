@@ -52,6 +52,21 @@ cmd_key = ShellCmd ["key","k"]
             closeSession tpm True shn
             putKey name key
             shellPutStrLn $ "Key " ++ name ++ " created\n" ++ show key
+
+          createSign _ tpm = do
+            name  <- readKeyName "Key Name: " False
+            parnt <- readKeyHandle "Parent Key: "
+            npass <- readPass "Key Password: "
+            ppass <- readPass "Parent Key Password: "
+            let key = tpm_key_create_signing tpm_auth_priv_use_only
+            let kty = tpm_et_xor_keyhandle
+            shn <- liftIO $ tpm_session_osap tpm ppass kty parnt
+            key <- liftIO $ tpm_createwrapkey tpm shn parnt npass npass key
+            closeSession tpm True shn
+            putKey name key
+            shellPutStrLn $ "Key " ++ name ++ " created\n" ++ show key
+
+          
           evict name tpm = do
             handle <- getLoaded name
             liftIO $ tpm_flushspecific tpm handle tpm_rt_key
@@ -111,12 +126,13 @@ cmd_key = ShellCmd ["key","k"]
             shellPutStrLn $ "Keys: " ++ (unwords (map (msg l) keys))
             where msg l (k,_) | k `elem` l = "[" ++ k ++ "]"
                   msg l (k,_) = k
-          parse s = liftIO $ witheof s use $ choice [enkp,loadp,cretp,evicp
+          parse s = liftIO $ witheof s use $ choice [enkp,loadp,cretp,cresp, evicp
                                                     ,lstp,destp,gpubp, quotp]
           lstp  = command ["list","l"] none list
           enkp  = command ["endorsement","ek"] none enkey
           loadp = command ["load","ld"] none load
           cretp = command ["create","cr"] none create
+          cresp = command ["createSign", "cs"] none createSign
           evicp = command ["evict","ev"] name evict
           destp = command ["destroy","ds"] name destroy
           gpubp = command ["getpub","gp"] none getpub
