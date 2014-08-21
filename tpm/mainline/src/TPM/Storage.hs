@@ -10,6 +10,7 @@ import TPM.Nonce
 import TPM.Utils
 import TPM.Digest
 import TPM.Cipher
+import TPM.Session --Remove this after testing
 import TPM.PCR
 import Data.Word
 import Data.Bits(rotate, (.&.))
@@ -138,7 +139,8 @@ tpm_quote tpm shn@(OIAP ah en) key nonce pcrs pass = do
       blob :: ByteString
       blob = bytestringDigest $ sha1 $ encode x
 
-  pubKey <- tpm_getpubkey tpm shn key pass
+  shn2 <- tpm_session_oiap tpm
+  pubKey <- tpm_getpubkey tpm shn2 key pass
   let publicKey = tpm_get_rsa_PublicKey pubKey
   case (verify publicKey blob sig) of True -> putStrLn "Verified"
                                       False -> putStrLn "NOT Verified"
