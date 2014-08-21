@@ -19,6 +19,7 @@ import Data.Binary
 import Data.ByteString.Lazy hiding (putStrLn)
 import Data.Digest.Pure.SHA (hmacSha1,bytestringDigest, sha1)
 import Codec.Crypto.RSA
+
 import Prelude hiding (concat,length,map,splitAt,replicate)
 import qualified Prelude as P
 
@@ -136,7 +137,9 @@ tpm_quote tpm shn@(OIAP ah en) key nonce pcrs pass = do
       x :: TPM_QUOTE_INFO
       x = TPM_QUOTE_INFO  tpm_struct_ver_default tpm_quote_info_fixed (tpm_pcr_composite_hash $ decode comp) nonce
 
-      blob :: ByteString
+  putStrLn $ mkhex tpm_quote_info_fixed
+
+  let blob :: ByteString
       blob = bytestringDigest $ sha1 $ encode x
 
   shn2 <- tpm_session_oiap tpm
