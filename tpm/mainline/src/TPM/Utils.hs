@@ -52,24 +52,28 @@ tohex 15 = 'F'
 
 
 fourCharsToWord32 :: String -> Word32
-fourCharsToWord32 s = a .&. b' .&. c' .&. d'
- where a :: Word32
-       a = (fromIntegral $ ord $ head s) :: Word32
-       s' = tail s
+fourCharsToWord32 s = final
+   where char1 = ord $ head s
+         char2 = ord $ head(tail s)
+         char3 = ord $ head(tail(tail s))
+         char4 = ord $ head(tail(tail(tail s)))
 
-       b :: Word32
-       b = (fromIntegral $ ord $ head s') :: Word32
-       b' = rotate b (-8)
-       s'' = tail s'
+         list :: [Word32]
+         list = map f [char1, char2, char3, char4]
 
-       c :: Word32
-       c = (fromIntegral $ ord $ head s'') :: Word32
-       c' = rotate c (-16)
-       s''' = tail s''
+         f :: Int -> Word32
+         f x = (fromIntegral x) :: Word32
 
-       d :: Word32
-       d = (fromIntegral $ ord $ head s''') :: Word32
-       d' = rotate d (-24)
+         q = rotateL (head list) 24
+         u = rotateL (head (tail list)) 16
+         o = rotateL (head (tail (tail list))) 8
+         t = (head (tail (tail (tail list)))) 
+
+         zeros :: Word32
+         zeros = zeroBits
+         final = foldr (.|.) zeros [q,u,o,t]
+
+         
 
 -------------------------------------------------------------------------------
 -- Convert a bit value into a hexadecimal string.
