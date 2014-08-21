@@ -102,7 +102,7 @@ tpm_key_create_signing :: TPM_AUTH_DATA_USAGE -> TPM_KEY
 tpm_key_create_signing auth = TPM_KEY tpm_key_signing 0 auth kprm empty spub empty
     where spub = TPM_STORE_PUBKEY empty
           kprm = TPM_KEY_PARMS tpm_alg_rsa
-                               tpm_es_rsaesoaep_sha1_mgf1
+                               tpm_es_none
                                tpm_ss_rsassapkcs1v15_sha1
                                (RSA_DATA rsad)
           rsad = TPM_RSA_KEY_PARMS 2048 2 empty
