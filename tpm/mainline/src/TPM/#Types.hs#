@@ -423,8 +423,6 @@ instance Binary TPM_QUOTE_INFO where
 tpm_quote_info_fixed :: Word32
 tpm_quote_info_fixed = fourCharsToWord32 "QUOT"
 
-      
-
 -------------------------------------------------------------------------------
 -- TPM msa composite structure as defined by section 5.15 of the document:
 --  TPM Main: Part 2 - TPM Structures

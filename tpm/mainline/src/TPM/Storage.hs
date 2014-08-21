@@ -16,7 +16,8 @@ import Data.Bits(rotate, (.&.))
 import Data.Char(ord)
 import Data.Binary
 import Data.ByteString.Lazy hiding (putStrLn)
-import Data.Digest.Pure.SHA (hmacSha1,bytestringDigest)
+import Data.Digest.Pure.SHA (hmacSha1,bytestringDigest, sha1)
+import Codec.Crypto.RSA
 import Prelude hiding (concat,length,map,splitAt,replicate)
 import qualified Prelude as P
 
@@ -118,7 +119,7 @@ tpm_getpubkey tpm (OIAP ah en) key pass = do
 tpm_quote :: TPM tpm => tpm -> Session -> TPM_KEY_HANDLE -> TPM_NONCE ->
                         TPM_PCR_SELECTION -> TPM_DIGEST ->
                         IO (TPM_PCR_COMPOSITE, ByteString)
-tpm_quote tpm (OIAP ah en) key nonce pcrs pass = do
+tpm_quote tpm shn@(OIAP ah en) key nonce pcrs pass = do
   on <- nonce_create
   (rtag,size,resl,dat) <- tpm_transmit' tpm tag cod (dat on)
   let numPcrs = (fromIntegral $ P.length $ tpm_pcr_unselection pcrs) :: UINT32
@@ -133,7 +134,14 @@ tpm_quote tpm (OIAP ah en) key nonce pcrs pass = do
       
       x :: TPM_QUOTE_INFO
       x = TPM_QUOTE_INFO  tpm_struct_ver_default tpm_quote_info_fixed (tpm_pcr_composite_hash $ decode comp) nonce
-  
+
+      blob :: ByteString
+      blob = bytestringDigest $ sha1 $ encode x
+
+  pubKey <- tpm_getpubkey tpm shn key pass
+  let publicKey = tpm_get_rsa_PublicKey pubKey
+  case (verify publicKey blob sig) of True -> putStrLn "Verified"
+                                      False -> putStrLn "NOT Verified"
   return (decode comp, sig)
   where tag = tpm_tag_rqu_auth1_command
         cod = tpm_ord_quote
