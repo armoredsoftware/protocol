@@ -145,8 +145,10 @@ tpm_quote tpm shn@(OIAP ah en) key nonce pcrs pass = do
   shn2 <- tpm_session_oiap tpm
   pubKey <- tpm_getpubkey tpm shn2 key pass
   let publicKey = tpm_get_rsa_PublicKey pubKey
-  case (verify publicKey blob sig) of True -> putStrLn "Verified"
-                                      False -> putStrLn "NOT Verified"
+  case (rsassa_pkcs1_v1_5_verify ha_SHA1 publicKey blob sig) of
+    True -> putStrLn "Verified"
+    False -> putStrLn "NOT Verified"
+    
   return (decode comp, sig)
   where tag = tpm_tag_rqu_auth1_command
         cod = tpm_ord_quote
