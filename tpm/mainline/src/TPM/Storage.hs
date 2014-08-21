@@ -12,6 +12,8 @@ import TPM.Digest
 import TPM.Cipher
 import TPM.PCR
 import Data.Word
+import Data.Bits(rotate, (.&.))
+import Data.Char(ord)
 import Data.Binary
 import Data.ByteString.Lazy hiding (putStrLn)
 import Data.Digest.Pure.SHA (hmacSha1,bytestringDigest)
@@ -127,6 +129,10 @@ tpm_quote tpm (OIAP ah en) key nonce pcrs pass = do
       compositeSize = selectionSize + vSize + pcrsSize
       (comp, rest) = splitAt (fromIntegral compositeSize)  dat
       (_, sig) = splitAt 4 rest
+
+      
+      x :: TPM_QUOTE_INFO
+      x = TPM_QUOTE_INFO  tpm_struct_ver_default tpm_quote_info_fixed (tpm_pcr_composite_hash $ decode comp) nonce
   
   return (decode comp, sig)
   where tag = tpm_tag_rqu_auth1_command
@@ -138,3 +144,7 @@ tpm_quote tpm (OIAP ah en) key nonce pcrs pass = do
   
           
 tpm_sealx = undefined
+
+
+
+

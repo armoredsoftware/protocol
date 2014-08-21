@@ -1,6 +1,7 @@
 {-# LANGUAGE DeriveDataTypeable #-}
 module TPM.Utils where
 import Data.Bits
+import Data.Char(ord)
 import Data.Binary
 import Data.Typeable
 import Control.Exception
@@ -48,6 +49,27 @@ tohex 12 = 'C'
 tohex 13 = 'D'
 tohex 14 = 'E'
 tohex 15 = 'F'
+
+
+fourCharsToWord32 :: String -> Word32
+fourCharsToWord32 s = a .&. b' .&. c' .&. d'
+ where a :: Word32
+       a = (fromIntegral $ ord $ head s) :: Word32
+       s' = tail s
+
+       b :: Word32
+       b = (fromIntegral $ ord $ head s') :: Word32
+       b' = rotate b (-8)
+       s'' = tail s'
+
+       c :: Word32
+       c = (fromIntegral $ ord $ head s'') :: Word32
+       c' = rotate c (-16)
+       s''' = tail s''
+
+       d :: Word32
+       d = (fromIntegral $ ord $ head s''') :: Word32
+       d' = rotate d (-24)
 
 -------------------------------------------------------------------------------
 -- Convert a bit value into a hexadecimal string.
