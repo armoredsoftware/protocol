@@ -57,7 +57,7 @@ tpm_rsa_pubencrypt key dat = frombs ecbs
 
 
 tpm_get_rsa_PublicKey :: TPM_PUBKEY -> IO PublicKey
-tpm_get_rsa_PublicKey key = do P.putStrLn (bshex $ tpm_key_pubexp key)
+tpm_get_rsa_PublicKey key = do --P.putStrLn (bshex $ tpm_key_pubexp key)
                                return $ PublicKey (P.fromIntegral size) modl
                                                   0
   where size = (tpm_key_pubsize key) `P.div` 8

@@ -137,7 +137,7 @@ tpm_quote tpm shn@(OIAP ah en) key nonce pcrs pass = do
       (sig, _) = splitAt (fromIntegral sigSizeDecoded) dat'
       --sigDecoded = decode sig
       
-  putStrLn (show sigSizeDecoded)
+  --putStrLn (show sigSizeDecoded)
 
 {-
 let (size,dat') = splitAt 4 dat
