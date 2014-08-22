@@ -131,25 +131,11 @@ tpm_quote tpm shn@(OIAP ah en) key nonce pcrs pass = do
       vSize = 4 
       compositeSize = selectionSize + vSize + pcrsSize
       (comp, rest) = splitAt (fromIntegral compositeSize)  dat
+      compDecoded = decode comp
       (_, sig) = splitAt 4 rest
+      sigDecoded = decode sig
 
-      
-      x :: TPM_QUOTE_INFO
-      x = TPM_QUOTE_INFO  tpm_struct_ver_default tpm_quote_info_fixed (tpm_pcr_composite_hash $ decode comp) nonce
-
-  putStrLn $ mkhex tpm_quote_info_fixed
-
-  let blob :: ByteString
-      blob = bytestringDigest $ sha1 $ encode x
-
-  shn2 <- tpm_session_oiap tpm
-  pubKey <- tpm_getpubkey tpm shn2 key pass
-  let publicKey = tpm_get_rsa_PublicKey pubKey
-  case (rsassa_pkcs1_v1_5_verify ha_SHA1 publicKey blob (decode sig)) of
-    True -> putStrLn "Verified"
-    False -> putStrLn "NOT Verified"
-    
-  return (decode comp, sig)
+  return (compDecoded,sigDecoded)
   where tag = tpm_tag_rqu_auth1_command
         cod = tpm_ord_quote
         dat on = concat [ encode key, encode nonce, encode pcrs, ah,

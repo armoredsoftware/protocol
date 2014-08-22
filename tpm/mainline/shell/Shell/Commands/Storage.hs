@@ -12,6 +12,10 @@ import System.Directory
 import Data.List hiding (find)
 import Data.Map hiding (map,null,filter,(\\))
 import Data.Word
+import Data.Digest.Pure.SHA (hmacSha1,bytestringDigest, sha1)
+import Data.ByteString.Lazy hiding (putStrLn, map, elem, zip)
+import Data.Binary
+import Codec.Crypto.RSA
 import Prelude hiding (catch)
 import qualified Data.ByteString.Lazy.Char8 as CHAR
 
@@ -93,7 +97,25 @@ cmd_key = ShellCmd ["key","k"]
                 pcrSelect = tpm_pcr_selection max list
             (shn,clo) <- retrieveOIAP tpm
             nonce <- liftIO $ nonce_create
-            (comp, sig) <- liftIO $ tpm_quote tpm shn handle nonce pcrSelect pass
+            (comp,sig) <- liftIO $ tpm_quote tpm shn handle nonce pcrSelect pass
+            closeSession tpm clo shn
+            
+            let x :: TPM_QUOTE_INFO
+                x = TPM_QUOTE_INFO  tpm_struct_ver_default tpm_quote_info_fixed
+                                 (tpm_pcr_composite_hash $ comp) nonce
+
+            liftIO $ putStrLn $ mkhex tpm_quote_info_fixed
+
+            let blob :: ByteString
+                blob = bytestringDigest $ sha1 $ encode x
+
+            (shn2, clo2) <- retrieveOIAP tpm
+            pubKey <- liftIO $ tpm_getpubkey tpm shn2 handle pass
+            let publicKey = tpm_get_rsa_PublicKey pubKey
+            case (rsassa_pkcs1_v1_5_verify ha_SHA1 publicKey blob sig) of
+              True -> liftIO $ putStrLn "Verified"
+              False -> liftIO $ putStrLn "NOT Verified"
+
 
             let pcrs = tpmPcrCompositePcrs comp
                 output = zip list pcrs
@@ -103,7 +125,16 @@ cmd_key = ShellCmd ["key","k"]
                 f (x, y) = shellPutStrLn $ "PCR " ++ (doshow x) ++ ": " ++
                                                      (show y)
             liftIO $ mapM_ f output
-            closeSession tpm clo shn
+
+            closeSession tpm clo shn2
+
+
+
+
+
+
+            
+            
 
             {-
             readit tpm num = do val <- tpm_pcr_read tpm (fromIntegral num)
