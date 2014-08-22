@@ -126,9 +126,9 @@ tpm_quote tpm shn@(OIAP ah en) key nonce pcrs pass = do
   (rtag,size,resl,dat) <- tpm_transmit' tpm tag cod (dat on)
   let numPcrs = P.length $ tpm_pcr_unselection pcrs
       pcb = encode pcrs
-      selectionSize =  (fromIntegral $ length pcb) :: UINT32
-      pcrsSize = (fromIntegral $ numPcrs * 20) :: UINT32
-      vSize = 4 :: UINT32
+      selectionSize =  (fromIntegral $ length pcb) :: Int
+      pcrsSize = numPcrs * 20
+      vSize = 4 
       compositeSize = selectionSize + vSize + pcrsSize
       (comp, rest) = splitAt (fromIntegral compositeSize)  dat
       (_, sig) = splitAt 4 rest
