@@ -123,8 +123,8 @@ tpm_quote :: TPM tpm => tpm -> Session -> TPM_KEY_HANDLE -> TPM_NONCE ->
                         IO (TPM_PCR_COMPOSITE, ByteString)
 tpm_quote tpm shn@(OIAP ah en) key nonce pcrs pass = do
   on <- nonce_create
-  (rtag,size,resl,dat) <- tpm_transmit' tpm tag cod (dat on)
-  let numPcrs = (fromIntegral $ P.length $ tpm_pcr_unselection pcrs) :: UINT32
+  (rtag,size,resl,dat) <- tpm_transmit tpm 45 tag cod (dat on)
+  let numPcrs = P.length $ tpm_pcr_unselection pcrs
       pcb = encode pcrs
       selectionSize =  (fromIntegral $ length pcb) :: UINT32
       pcrsSize = (fromIntegral $ numPcrs * 20) :: UINT32
