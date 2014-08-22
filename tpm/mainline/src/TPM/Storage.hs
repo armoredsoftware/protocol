@@ -135,7 +135,7 @@ tpm_quote tpm shn@(OIAP ah en) key nonce pcrs pass = do
       (sigSize, dat') = splitAt 4 rest
       sigSizeDecoded = ((decode sigSize) :: UINT32)
       (sig, _) = splitAt (fromIntegral sigSizeDecoded) dat'
-      sigDecoded = decode sig
+      --sigDecoded = decode sig
       
   putStrLn (show sigSizeDecoded)
 
@@ -150,7 +150,7 @@ let (size,dat') = splitAt 4 dat
 
   
 
-  return (compDecoded,sigDecoded)
+  return (compDecoded,sig)
   where tag = tpm_tag_rqu_auth1_command
         cod = tpm_ord_quote
         dat on = concat [ encode key, encode nonce, encode pcrs, ah,
