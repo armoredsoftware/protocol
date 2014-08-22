@@ -56,8 +56,10 @@ tpm_rsa_pubencrypt key dat = frombs ecbs
           ecbs = rsaes_oaep_encrypt hf mgf rsa 0 labl (tobs dat)
 
 
-tpm_get_rsa_PublicKey :: TPM_PUBKEY -> PublicKey
-tpm_get_rsa_PublicKey key = PublicKey (P.fromIntegral size) modl expn
+tpm_get_rsa_PublicKey :: TPM_PUBKEY -> IO PublicKey
+tpm_get_rsa_PublicKey key = do P.putStrLn (bshex $ tpm_key_pubmod key)
+                               return $ PublicKey (P.fromIntegral size) modl
+                                                  expn
   where size = (tpm_key_pubsize key) `P.div` 8
         expn = bs2int $ tpm_key_pubexp key
         modl = bs2int $ tpm_key_pubmod key
