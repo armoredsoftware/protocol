@@ -98,9 +98,9 @@ tpm_key_create auth = TPM_KEY tpm_key_storage 0 auth kprm empty spub empty
 
 -------------------------------------------------------------------------------
 -------------------------------------------------------------------------------
-tpm_key_create_signing :: TPM_AUTH_DATA_USAGE -> TPM_KEY
+tpm_key_create_signing :: TPM_AUTH_DATA_USAGE {-TPM_STORE_PUBKEY-} -> TPM_KEY
 tpm_key_create_signing auth = TPM_KEY tpm_key_signing 0 auth kprm empty spub empty
-    where spub = TPM_STORE_PUBKEY empty
+    where spub = TPM_STORE_PUBKEY empty --sbub
           kprm = TPM_KEY_PARMS tpm_alg_rsa
                                tpm_es_none
                                tpm_ss_rsassapkcs1v15_sha1
