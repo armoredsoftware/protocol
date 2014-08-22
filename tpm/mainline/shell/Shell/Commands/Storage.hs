@@ -63,6 +63,7 @@ cmd_key = ShellCmd ["key","k"]
             npass <- readPass "Key Password: "
             ppass <- readPass "Parent Key Password: "
             let key = tpm_key_create_signing tpm_auth_priv_use_only
+            shellPutStrLn $ show key
             let kty = tpm_et_xor_keyhandle
             shn <- liftIO $ tpm_session_osap tpm ppass kty parnt
             key' <- liftIO $ tpm_createwrapkey tpm shn parnt npass npass key
