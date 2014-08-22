@@ -409,7 +409,10 @@ data TPM_QUOTE_INFO = TPM_QUOTE_INFO {
 instance Binary TPM_QUOTE_INFO where
     put (TPM_QUOTE_INFO t f c d) = do
         put t
-        put f
+        put (0x51 :: Word8)
+        put (0x55 :: Word8)
+        put (0x4F :: Word8)
+        put (0x54 :: Word8)
         put c
         put d
     get = do

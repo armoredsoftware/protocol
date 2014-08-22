@@ -132,10 +132,23 @@ tpm_quote tpm shn@(OIAP ah en) key nonce pcrs pass = do
       compositeSize = selectionSize + vSize + pcrsSize
       (comp, rest) = splitAt (fromIntegral compositeSize)  dat
       compDecoded = decode comp
-      (sigSize, sig) = splitAt (fromIntegral 4) rest
-      sigSizeDecoded = (decode sigSize) :: UINT32
+      (sigSize, dat') = splitAt 4 rest
+      sigSizeDecoded = ((decode sigSize) :: UINT32)
+      (sig, _) = splitAt (fromIntegral sigSizeDecoded) dat'
       sigDecoded = decode sig
+      
   putStrLn (show sigSizeDecoded)
+
+{-
+let (size,dat') = splitAt 4 dat
+    let size' = ((decode size) :: UINT32)
+    let (dat'',_) = splitAt (fromIntegral size') dat'
+    return dat''
+-}
+
+
+
+  
 
   return (compDecoded,sigDecoded)
   where tag = tpm_tag_rqu_auth1_command
