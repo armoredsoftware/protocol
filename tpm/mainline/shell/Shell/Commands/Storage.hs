@@ -89,7 +89,7 @@ cmd_key = ShellCmd ["key","k"]
             handle <- getLoaded name
             pass <- readPass "Key Password: "
             max   <- liftIO $ tpm_getcap_pcrs tpm
-            let list = [(0::Word8), (1::Word8)]
+            let list = [0..23] :: [Word8]
                 pcrSelect = tpm_pcr_selection max list
             (shn,clo) <- retrieveOIAP tpm
             nonce <- liftIO $ nonce_create
