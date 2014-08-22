@@ -135,6 +135,7 @@ tpm_quote tpm shn@(OIAP ah en) key nonce pcrs pass = do
       (sigSize, sig) = splitAt (fromIntegral 4) rest
       sigSizeDecoded = (decode sigSize) :: UINT32
       sigDecoded = decode sig
+  putStrLn (show sigSizeDecoded)
 
   return (compDecoded,sigDecoded)
   where tag = tpm_tag_rqu_auth1_command
