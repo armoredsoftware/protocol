@@ -105,7 +105,7 @@ tpm_key_create_signing auth = TPM_KEY tpm_key_signing 0 auth kprm empty spub emp
                                tpm_es_none
                                tpm_ss_rsassapkcs1v15_sha1
                                (RSA_DATA rsad)
-          rsad = TPM_RSA_KEY_PARMS 2048 2 (encode (65537 :: Word32)) 
+          rsad = TPM_RSA_KEY_PARMS 2048 2 empty --(encode (65537 :: Word32)) 
           
 -------------------------------------------------------------------------------
 -- Create a key which is suitable for use with the TPM_TakeOwnership
