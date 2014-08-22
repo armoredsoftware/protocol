@@ -104,7 +104,7 @@ cmd_key = ShellCmd ["key","k"]
                 x = TPM_QUOTE_INFO  tpm_struct_ver_default tpm_quote_info_fixed
                                  (tpm_pcr_composite_hash $ comp) nonce
 
-            liftIO $ putStrLn $ mkhex tpm_quote_info_fixed
+            --liftIO $ putStrLn $ mkhex tpm_quote_info_fixed
 
             let blob :: ByteString
                 blob = bytestringDigest $ sha1 $ encode x
@@ -112,6 +112,7 @@ cmd_key = ShellCmd ["key","k"]
             (shn2, clo2) <- retrieveOIAP tpm
             pubKey <- liftIO $ tpm_getpubkey tpm shn2 handle pass
             publicKey <- liftIO $ tpm_get_rsa_PublicKey pubKey
+            liftIO $ putStrLn (show publicKey)
             case (rsassa_pkcs1_v1_5_verify ha_SHA1 publicKey blob sig) of
               True -> liftIO $ putStrLn "Verified"
               False -> liftIO $ putStrLn "NOT Verified"
