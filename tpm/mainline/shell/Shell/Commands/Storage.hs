@@ -52,10 +52,10 @@ cmd_key = ShellCmd ["key","k"]
             let key = tpm_key_create tpm_auth_priv_use_only
             let kty = tpm_et_xor_keyhandle
             shn <- liftIO $ tpm_session_osap tpm ppass kty parnt
-            key <- liftIO $ tpm_createwrapkey tpm shn parnt npass npass key
+            key' <- liftIO $ tpm_createwrapkey tpm shn parnt npass npass key
             closeSession tpm True shn
-            putKey name key
-            shellPutStrLn $ "Key " ++ name ++ " created\n" ++ show key
+            putKey name key'
+            shellPutStrLn $ "Key " ++ name ++ " created\n" ++ show key'
 
           createSign _ tpm = do
             name  <- readKeyName "Key Name: " False
@@ -65,10 +65,10 @@ cmd_key = ShellCmd ["key","k"]
             let key = tpm_key_create_signing tpm_auth_priv_use_only
             let kty = tpm_et_xor_keyhandle
             shn <- liftIO $ tpm_session_osap tpm ppass kty parnt
-            key <- liftIO $ tpm_createwrapkey tpm shn parnt npass npass key
+            key' <- liftIO $ tpm_createwrapkey tpm shn parnt npass npass key
             closeSession tpm True shn
-            putKey name key
-            shellPutStrLn $ "Key " ++ name ++ " created\n" ++ show key
+            putKey name key'
+            shellPutStrLn $ "Key " ++ name ++ " created\n" ++ show key'
 
           
           evict name tpm = do
