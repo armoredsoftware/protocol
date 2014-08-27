@@ -81,16 +81,22 @@ cmd_key = ShellCmd ["key","k"]
             name  <- readKeyName "Key Name: " False
             kpass <- readPass "Key Password: "
             let key = tpm_key_create_identity tpm_auth_priv_use_only
+                keySize = (fromIntegral $ Data.ByteString.Lazy.length $ encode key):: Int
                 kty = tpm_et_xor_owner
-            oShn <- liftIO $ tpm_session_osap tpm opass kty 0x40000001
             (sShn,clo) <- retrieveOIAP tpm
-           -- key' <- liftIO $ tpm_makeidentity 
+            oShn <- liftIO $ tpm_session_osap tpm opass kty 0x40000001
+            
+            key' <- liftIO $ tpm_makeidentity tpm sShn oShn key
+                                              spass opass kpass
 
+            let key'Size = (fromIntegral $ Data.ByteString.Lazy.length $ encode key'):: Int
             closeSession tpm True oShn
             closeSession tpm clo sShn
 
-
-            shellPutStrLn $ "Identity Key " ++ name ++ " created\n"-- ++ show key'
+            putKey name key'
+            shellPutStrLn $ "Identity Key " ++ name ++ " created\n" ++ (show key')
+            shellPutStrLn $ "Key size BEFORE: " ++ (show keySize)
+            shellPutStrLn $ "Key size AFTER: " ++ (show key'Size)
           
           evict name tpm = do
             handle <- getLoaded name

@@ -16,6 +16,7 @@ import Data.Word
 import Data.Bits(rotate, (.&.))
 import Data.Char(ord)
 import Data.Binary
+import Data.Binary.Get
 import Data.ByteString.Lazy hiding (putStrLn)
 import Data.Digest.Pure.SHA (hmacSha1,bytestringDigest, sha1)
 import Codec.Crypto.RSA
@@ -158,9 +159,10 @@ tpm_makeidentity tpm (OIAP sah sen) (OSAP oah oosn oen oesn oscr) key
                  spass opass ipass = do
   son <- nonce_create
   (rtag,size,resl,dat) <- tpm_transmit' tpm tag cod (dat son oosn)
+  let newKey :: TPM_KEY
+      newKey = runGet (get :: Get TPM_KEY) dat
 
-
-  return $ TPM_KEY undefined undefined undefined undefined undefined undefined undefined
+  return $ newKey
 
  where tag = tpm_tag_rqu_auth2_command
        cod = tpm_ord_makeidentity
