@@ -168,7 +168,7 @@ tpm_makeidentity tpm (OIAP sah sen) (OSAP oah oosn oen oesn oscr) key
 
  where tag = tpm_tag_rqu_auth2_command
        cod = tpm_ord_makeidentity
-       privCA = TPM_DIGEST $ Data.ByteString.Lazy.replicate 20 ((bit 1)::Word8)
+       privCA = TPM_DIGEST empty -- $ Data.ByteString.Lazy.replicate 20 ((bit 1)::Word8)
        dat son oon = concat [ encode kah, encode privCA, encode key, sah,
                               encode son, encode False, encode(sath son),
                               oah, encode oon,encode False, encode(oath oon)]
