@@ -185,13 +185,15 @@ cmd_key = ShellCmd ["key","k"]
             shellPutStrLn $ "Keys: " ++ (unwords (map (msg l) keys))
             where msg l (k,_) | k `elem` l = "[" ++ k ++ "]"
                   msg l (k,_) = k
-          parse s = liftIO $ witheof s use $ choice [enkp,loadp,cretp,cresp, evicp
-                                                    ,lstp,destp,gpubp, quotp]
+          parse s = liftIO $ witheof s use $ choice [enkp,loadp,cretp,cresp,
+                                                     creip,evicp,lstp,destp,
+                                                     gpubp, quotp]
           lstp  = command ["list","l"] none list
           enkp  = command ["endorsement","ek"] none enkey
           loadp = command ["load","ld"] none load
           cretp = command ["create","cr"] none create
           cresp = command ["createSign", "cs"] none createSign
+          creip = command ["createIdentity", "ci"] none createIdentity
           evicp = command ["evict","ev"] name evict
           destp = command ["destroy","ds"] name destroy
           gpubp = command ["getpub","gp"] none getpub
@@ -199,11 +201,14 @@ cmd_key = ShellCmd ["key","k"]
           use  = "Usage: key <list,l>\n" ++
                  "       key <endorsement|ek>\n" ++
                  "       key <create|cr>\n" ++
+                 "       key <createSign|cs>\n" ++
+                 "       key <createIdent|ci>\n" ++
                  "       key <load|ld>\n" ++
                  "       key <getpub|gp>\n" ++
                  "       key <destroy|ds> <name>\n" ++
-                 "       key <evict|ev> <name>" ++
+                 "       key <evict|ev> <name>\n" ++
                  "       key <quote|q> <name>"
+                 
 
 -------------------------------------------------------------------------------
 -------------------------------------------------------------------------------
