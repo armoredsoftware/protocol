@@ -18,6 +18,7 @@ import Data.Char(ord)
 import Data.Binary
 import Data.Binary.Get
 import Data.ByteString.Lazy hiding (putStrLn)
+import qualified Data.ByteString.Lazy.Char8 as CHAR(pack)
 import Data.Digest.Pure.SHA (hmacSha1,bytestringDigest, sha1)
 import Codec.Crypto.RSA
 
@@ -168,7 +169,7 @@ tpm_makeidentity tpm (OIAP sah sen) (OSAP oah oosn oen oesn oscr) key
 
  where tag = tpm_tag_rqu_auth2_command
        cod = tpm_ord_makeidentity
-       privCA = TPM_DIGEST empty
+       privCA = TPM_DIGEST (CHAR.pack "adam")
        dat son oon = concat [ encode kah, encode privCA, encode key, sah,
                               encode son, encode False, encode(sath son),
                               oah, encode oon,encode False, encode(oath oon)]
