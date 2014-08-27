@@ -139,17 +139,6 @@ tpm_quote tpm shn@(OIAP ah en) key nonce pcrs pass = do
       
   --putStrLn (show sigSizeDecoded)
 
-{-
-let (size,dat') = splitAt 4 dat
-    let size' = ((decode size) :: UINT32)
-    let (dat'',_) = splitAt (fromIntegral size') dat'
-    return dat''
--}
-
-
-
-  
-
   return (compDecoded,sig)
   where tag = tpm_tag_rqu_auth1_command
         cod = tpm_ord_quote
@@ -158,7 +147,39 @@ let (size,dat') = splitAt 4 dat
         ath on = tpm_auth_hmac pass en on 0 $ concat [ encode cod, encode nonce,
                                                        encode pcrs]
   
-          
+
+
+tpm_makeidentity :: TPM tpm => tpm -> Session -> Session -> TPM_KEY ->
+                               TPM_DIGEST -> TPM_DIGEST -> TPM_DIGEST ->
+                               IO TPM_KEY
+
+tpm_makeidentity tpm (OIAP sah sen) (OSAP oah osn oen esn scr) key
+                 spass opass ipass = do
+  son <- nonce_create
+  (rtag,size,resl,dat) <- tpm_transmit' tpm tag cod (dat son)
+
+
+  return $ TPM_KEY undefined undefined undefined undefined undefined undefined undefined
+
+ where tag = tpm_tag_rqu_auth2_command
+       cod = tpm_ord_makeidentity
+       privCA = TPM_DIGEST empty
+       dat on = concat [ encode kah, encode privCA, encode key, sah, encode on,                          encode False, encode(sath on), oah, encode on,
+                         encode False, encode(oath on)]
+       kah = tpm_encauth_info scr oen ipass
+       sath on = tpm_auth_hmac spass sen on 0 $
+                               concat [ encode cod, encode kah, encode privCA,
+                                        encode key]
+       oath on = tpm_auth_hmac opass oen on 0 $
+                               concat [ encode cod, encode kah, encode privCA,
+                                        encode key]
+                         
+
+
+
+
+
+  
 tpm_sealx = undefined
 
 

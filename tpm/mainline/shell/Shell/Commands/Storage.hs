@@ -71,6 +71,20 @@ cmd_key = ShellCmd ["key","k"]
             putKey name key'
             shellPutStrLn $ "Key " ++ name ++ " created\n" ++ show key'
 
+          createIdentity _ tpm = do
+            spass <- readPass "SRK Password: "
+            opass <- readPass "Owner Password: "
+            name  <- readKeyName "Key Name: " False
+            kpass <- readPass "Key Password: "
+            let key = tpm_key_create_identity tpm_auth_priv_use_only
+                kty = tpm_et_xor_owner
+            oShn <- liftIO $ tpm_session_osap tpm opass kty 0x40000001
+            (sShn,clo) <- retrieveOIAP tpm
+            closeSession tpm True oShn
+            closeSession tpm clo sShn
+
+
+            shellPutStrLn $ "Identity Key " ++ name ++ " created\n"-- ++ show key'
           
           evict name tpm = do
             handle <- getLoaded name
