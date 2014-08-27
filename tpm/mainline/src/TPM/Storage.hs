@@ -127,7 +127,7 @@ tpm_quote tpm shn@(OIAP ah en) key nonce pcrs pass = do
   let numPcrs = P.length $ tpm_pcr_unselection pcrs
       pcb = encode pcrs
       selectionSize =  (fromIntegral $ length pcb) :: Int
-      pcrsSize = numPcrs * 20
+      pcrsSize = (numPcrs + 1) * 20
       vSize = 4 
       compositeSize = selectionSize + vSize + pcrsSize
       (comp, rest) = splitAt (fromIntegral compositeSize)  dat
@@ -149,14 +149,15 @@ tpm_quote tpm shn@(OIAP ah en) key nonce pcrs pass = do
   
 
 
+-- (OSAP ah osn en esn scr)
 tpm_makeidentity :: TPM tpm => tpm -> Session -> Session -> TPM_KEY ->
                                TPM_DIGEST -> TPM_DIGEST -> TPM_DIGEST ->
                                IO TPM_KEY
 
-tpm_makeidentity tpm (OIAP sah sen) (OSAP oah osn oen esn scr) key
+tpm_makeidentity tpm (OIAP sah sen) (OSAP oah oosn oen oesn oscr) key
                  spass opass ipass = do
   son <- nonce_create
-  (rtag,size,resl,dat) <- tpm_transmit' tpm tag cod (dat son)
+  (rtag,size,resl,dat) <- tpm_transmit' tpm tag cod (dat son oosn)
 
 
   return $ TPM_KEY undefined undefined undefined undefined undefined undefined undefined
@@ -164,9 +165,10 @@ tpm_makeidentity tpm (OIAP sah sen) (OSAP oah osn oen esn scr) key
  where tag = tpm_tag_rqu_auth2_command
        cod = tpm_ord_makeidentity
        privCA = TPM_DIGEST empty
-       dat on = concat [ encode kah, encode privCA, encode key, sah, encode on,                          encode False, encode(sath on), oah, encode on,
-                         encode False, encode(oath on)]
-       kah = tpm_encauth_info scr oen ipass
+       dat son oon = concat [ encode kah, encode privCA, encode key, sah,
+                              encode son, encode False, encode(sath son),
+                              oah, encode oon,encode False, encode(oath oon)]
+       kah = tpm_encauth_info oscr oen ipass
        sath on = tpm_auth_hmac spass sen on 0 $
                                concat [ encode cod, encode kah, encode privCA,
                                         encode key]

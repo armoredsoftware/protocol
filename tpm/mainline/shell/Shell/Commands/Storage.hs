@@ -80,6 +80,8 @@ cmd_key = ShellCmd ["key","k"]
                 kty = tpm_et_xor_owner
             oShn <- liftIO $ tpm_session_osap tpm opass kty 0x40000001
             (sShn,clo) <- retrieveOIAP tpm
+           -- key' <- liftIO $ tpm_makeidentity 
+
             closeSession tpm True oShn
             closeSession tpm clo sShn
 
@@ -116,8 +118,7 @@ cmd_key = ShellCmd ["key","k"]
             closeSession tpm clo shn
             
             let x :: TPM_QUOTE_INFO
-                x = TPM_QUOTE_INFO  tpm_struct_ver_default tpm_quote_info_fixed
-                                 (tpm_pcr_composite_hash $ comp) nonce
+                x = TPM_QUOTE_INFO (tpm_pcr_composite_hash $ comp) nonce
 
             --liftIO $ putStrLn $ mkhex tpm_quote_info_fixed
 

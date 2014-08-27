@@ -399,33 +399,31 @@ instance Binary TPM_SIGN_INFO where
 --  TPM Main: Part 2 - TPM Structures
 -------------------------------------------------------------------------------
 data TPM_QUOTE_INFO = TPM_QUOTE_INFO {
-      tpmQuoteInfoVer      :: TPM_STRUCT_VER
-    , tpmQuoteInfoFixed    :: Word32
-    , tpmQuoteInfoCompHash :: TPM_COMPOSITE_HASH
+      tpmQuoteInfoCompHash :: TPM_COMPOSITE_HASH
     , tpmQuoteInfoExData   :: TPM_NONCE
     } deriving (Show,Eq)
 
 --TODO:  is this instance necessary since all components implement Binary?
 instance Binary TPM_QUOTE_INFO where
-    put (TPM_QUOTE_INFO t f c d) = do
-        put t
+    put (TPM_QUOTE_INFO c d) = do
+        put tpm_struct_ver_default
         --put (0x51 :: Word8)
         --put (0x55 :: Word8)
         --put (0x4F :: Word8)
         --put (0x54 :: Word8)
-        put f
+        put $ C.pack "QUOT"
         put c
         put d
     get = do
-        t <- get
-        f <- get
+        t  <- (get :: Get TPM_STRUCT_VER)
+        f  <- (get :: Get ByteString)
         c <- get
         d <- get
-        return $ TPM_QUOTE_INFO t f c d
+        return $ TPM_QUOTE_INFO c d
 
     
-tpm_quote_info_fixed :: Word32
-tpm_quote_info_fixed = fourCharsToWord32 "QUOT"
+--tpm_quote_info_fixed :: Word32
+--tpm_quote_info_fixed = fourCharsToWord32 "QUOT"
 
       
       
