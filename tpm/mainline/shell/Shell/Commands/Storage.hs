@@ -85,18 +85,18 @@ cmd_key = ShellCmd ["key","k"]
                 kty = tpm_et_xor_owner
             (sShn,clo) <- retrieveOIAP tpm
             oShn <- liftIO $ tpm_session_osap tpm opass kty 0x40000001
-            {-
+            
             key' <- liftIO $ tpm_makeidentity tpm sShn oShn key
                                               spass opass kpass
 
-            let key'Size = (fromIntegral $ Data.ByteString.Lazy.length $ encode key'):: Int -}
+            let key'Size = (fromIntegral $ Data.ByteString.Lazy.length $ encode key'):: Int 
             closeSession tpm True oShn
             closeSession tpm clo sShn
 
-           -- putKey name key'
-            --shellPutStrLn $ "Identity Key " ++ name ++ " created\n" ++ (show key')
+            putKey name key'
+            shellPutStrLn $ "Identity Key " ++ name ++ " created\n" ++ (show key')
             shellPutStrLn $ "Key size BEFORE: " ++ (show keySize)
-           -- shellPutStrLn $ "Key size AFTER: " ++ (show key'Size)
+            shellPutStrLn $ "Key size AFTER: " ++ (show key'Size)
           
           evict name tpm = do
             handle <- getLoaded name
