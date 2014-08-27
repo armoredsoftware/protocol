@@ -50,13 +50,17 @@ cmd_key = ShellCmd ["key","k"]
             npass <- readPass "Key Password: "
             ppass <- readPass "Parent Key Password: "
             let key = tpm_key_create tpm_auth_priv_use_only
+                keySize = (fromIntegral $ Data.ByteString.Lazy.length $ encode key):: Int
             let kty = tpm_et_xor_keyhandle
             shn <- liftIO $ tpm_session_osap tpm ppass kty parnt
             key' <- liftIO $ tpm_createwrapkey tpm shn parnt npass npass key
+            let key'Size = (fromIntegral $ Data.ByteString.Lazy.length $ encode key'):: Int
             closeSession tpm True shn
             putKey name key'
             shellPutStrLn $ "Key " ++ name ++ " created\n" ++ show key'
-
+            shellPutStrLn $ "Key size BEFORE: " ++ (show keySize)
+            shellPutStrLn $ "Key size AFTER: " ++ (show key'Size)
+            
           createSign _ tpm = do
             name  <- readKeyName "Key Name: " False
             parnt <- readKeyHandle "Parent Key: "
