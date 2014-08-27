@@ -10,10 +10,9 @@ import TPM.Nonce
 import TPM.Utils
 import TPM.Digest
 import TPM.Cipher
-import TPM.Session --Remove this after testing
 import TPM.PCR
 import Data.Word
-import Data.Bits(rotate, (.&.))
+import Data.Bits(rotate, (.&.), bit)
 import Data.Char(ord)
 import Data.Binary
 import Data.Binary.Get
@@ -169,7 +168,7 @@ tpm_makeidentity tpm (OIAP sah sen) (OSAP oah oosn oen oesn oscr) key
 
  where tag = tpm_tag_rqu_auth2_command
        cod = tpm_ord_makeidentity
-       privCA = TPM_DIGEST (CHAR.pack "adam")
+       privCA = TPM_DIGEST $ Data.ByteString.Lazy.replicate 20 ((bit 1)::Word8)
        dat son oon = concat [ encode kah, encode privCA, encode key, sah,
                               encode son, encode False, encode(sath son),
                               oah, encode oon,encode False, encode(oath oon)]
