@@ -84,7 +84,7 @@ cmd_key = ShellCmd ["key","k"]
                 keySize = (fromIntegral $ Data.ByteString.Lazy.length $ encode key):: Int
                 kty = tpm_et_xor_owner
             (sShn,clo) <- retrieveOIAP tpm
-            oShn <- liftIO $ tpm_session_osap tpm opass kty 0x40000001
+            oShn <- liftIO $ tpm_session_osap tpm opass kty (0x40000001 :: Word32)
             
             key' <- liftIO $ tpm_makeidentity tpm sShn oShn key
                                               spass opass kpass

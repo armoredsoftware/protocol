@@ -159,6 +159,7 @@ tpm_makeidentity tpm (OIAP sah sen) (OSAP oah oosn oen oesn oscr) key
                  spass opass ipass = do
   son <- nonce_create
   (rtag,size,resl,dat) <- tpm_transmit' tpm tag cod (dat son oosn)
+  putStrLn "hello"
   let newKey :: TPM_KEY
       newKey = runGet (get :: Get TPM_KEY) dat
 
