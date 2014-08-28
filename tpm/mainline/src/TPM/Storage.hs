@@ -63,7 +63,7 @@ tpm_unseal tpm (OIAP pah pen) (OIAP dah den) key sdat ppass dpass = do
                           , encode on, encode False, encode (dath on) ]
           dath on = tpm_auth_hmac dpass den on 0 $ concat [ encode cod
                                                           , encode sdat ]
-          path on = tpm_auth_hmac ppass pen on 0 $ concat [ encode cod
+          path on = tpm_auth_hmac dpass pen on 0 $ concat [ encode cod
                                                           , encode sdat ]
 
 -------------------------------------------------------------------------------
@@ -159,7 +159,7 @@ tpm_makeidentity tpm (OIAP sah sen) (OSAP oah oosn oen oesn oscr) key
                  spass opass ipass = do
   son <- nonce_create
   putStrLn "BEFORE"
-  (rtag,size,resl,dat) <- tpm_transmit' tpm tag cod (dat son oosn)
+  (rtag,size,resl,dat) <- tpm_transmit' tpm tag cod (dat son)
   putStrLn "hello"
   let newKey :: TPM_KEY
       newKey = runGet (get :: Get TPM_KEY) dat
@@ -169,10 +169,10 @@ tpm_makeidentity tpm (OIAP sah sen) (OSAP oah oosn oen oesn oscr) key
  where tag = tpm_tag_rqu_auth2_command
        cod = tpm_ord_makeidentity
        privCA = TPM_DIGEST $ Data.ByteString.Lazy.replicate 20 ((bit 1)::Word8)
-       dat son oon = concat [ encode kah, encode privCA, encode key, sah,
+       dat son = concat [ encode kah, encode privCA, encode key, sah,
                               encode son, encode False, encode(sath son),
-                              oah, encode oon,encode False, encode(oath oon)]
-       kah = tpm_encauth_info oscr oosn ipass
+                              oah, encode oosn,encode False, encode(oath oosn)]
+       kah = tpm_encauth_info oscr oen ipass
        sath on = tpm_auth_hmac spass sen on 0 $
                                concat [ encode cod, encode kah, encode privCA,
                                         encode key]
