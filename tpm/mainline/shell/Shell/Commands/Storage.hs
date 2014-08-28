@@ -84,14 +84,15 @@ cmd_key = ShellCmd ["key","k"]
                 keySize = (fromIntegral $ Data.ByteString.Lazy.length $ encode key):: Int
                 kty = tpm_et_xor_owner
             (sShn,clo) <- retrieveOIAP tpm
-            oShn <- liftIO $ tpm_session_osap tpm opass kty (0x40000001 :: Word32)
+            oShn <- liftIO $ tpm_session_osap tpm kpass kty (0x40000001 :: Word32)
             
             key' <- liftIO $ tpm_makeidentity tpm sShn oShn key
                                               spass opass kpass
             
-            let key'Size = (fromIntegral $ Data.ByteString.Lazy.length $ encode key'):: Int 
-            closeSession tpm True oShn
-            closeSession tpm clo sShn
+            let key'Size = (fromIntegral $ Data.ByteString.Lazy.length $ encode key'):: Int
+            --closeSession tpm clo sShn
+            --closeSession tpm True oShn
+            
 
             putKey name key'
             shellPutStrLn $ "Identity Key " ++ name ++ " created\n" ++ (show key')
