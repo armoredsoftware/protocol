@@ -80,7 +80,6 @@ cmd_key = ShellCmd ["key","k"]
             opass <- readPass "Owner Password: "
             name  <- readKeyName "Key Name: " False
             kpass <- readPass "Key Password: "
-            shellPutStrLn "here"
             let key = tpm_key_create_identity tpm_auth_priv_use_only
                 keySize = (fromIntegral $ Data.ByteString.Lazy.length $ encode key):: Int
                 kty = tpm_et_xor_owner

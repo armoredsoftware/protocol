@@ -172,7 +172,7 @@ tpm_makeidentity tpm (OIAP sah sen) (OSAP oah oosn oen oesn oscr) key
        dat son oon = concat [ encode kah, encode privCA, encode key, sah,
                               encode son, encode False, encode(sath son),
                               oah, encode oon,encode False, encode(oath oon)]
-       kah = tpm_encauth_info oscr oen ipass
+       kah = tpm_encauth_info oscr oosn ipass
        sath on = tpm_auth_hmac spass sen on 0 $
                                concat [ encode cod, encode kah, encode privCA,
                                         encode key]
