@@ -61,9 +61,9 @@ tpm_unseal tpm (OIAP pah pen) (OIAP dah den) key sdat ppass dpass = do
           dat on = concat [ encode key, encode sdat, pah, encode on
                           , encode False, encode (path on), dah
                           , encode on, encode False, encode (dath on) ]
-          dath on = tpm_auth_hmac dpass (TPM_NONCE empty) on 0 $ concat [ encode cod
+          dath on = tpm_auth_hmac dpass den on 0 $ concat [ encode cod
                                                           , encode sdat ]
-          path on = tpm_auth_hmac ppass pen on 0 $ concat [ encode cod
+          path on = tpm_auth_hmac dpass pen on 0 $ concat [ encode cod
                                                           , encode sdat ]
 
 -------------------------------------------------------------------------------
