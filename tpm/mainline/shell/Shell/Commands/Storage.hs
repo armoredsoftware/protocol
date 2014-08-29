@@ -155,9 +155,14 @@ cmd_key = ShellCmd ["key","k"]
                 doshow x | x < 10 = "0" ++ (show x)
                 doshow x = show x
                 
-                f (x, y) = shellPutStrLn $ "PCR " ++ (doshow x) ++ ": " ++
-                                                     (show y)
+                f (x, y) = shellPutStrLn $ "PCR " ++ (doshow x) ++ ": " ++ (show y)
+            liftIO $ putStrLn "Quoted PCRS: "
             liftIO $ mapM_ f output
+            let gPcrs = tpmPcrCompositePcrs compGolden
+                gOutput = zip list gPcrs
+
+            liftIO $ putStrLn "Golden PCRS: "
+            liftIO $ mapM_ f gOutput
 
             closeSession tpm clo shn
 
