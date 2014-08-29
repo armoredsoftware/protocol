@@ -142,7 +142,7 @@ cmd_key = ShellCmd ["key","k"]
             pubKey <- liftIO $ tpm_getpubkey tpm shn2 handle pass
             publicKey <- liftIO $ tpm_get_rsa_PublicKey pubKey
             liftIO $ putStrLn (show publicKey)
-            case (rsassa_pkcs1_v1_5_verify ha_SHA1 publicKey blob sig) of
+            case (rsassa_pkcs1_v1_5_verify ha_SHA256 publicKey blob sig) of
               True -> liftIO $ putStrLn "Verified"
               False -> liftIO $ putStrLn "NOT Verified"
 
