@@ -127,14 +127,15 @@ cmd_key = ShellCmd ["key","k"]
                 pcrSelect = tpm_pcr_selection max list
             (shn,clo) <- retrieveOIAP tpm
             nonce <- liftIO $ nonce_create
+            compGolden <- liftIO $ tpm_pcr_composite tpm pcrSelect
             (comp,sig) <- liftIO $ tpm_quote tpm shn handle nonce pcrSelect pass
             closeSession tpm clo shn
-            compGolden <- liftIO $ tpm_pcr_composite tpm pcrSelect
+            --compGolden <- liftIO $ tpm_pcr_composite tpm pcrSelect
             liftIO $ putStrLn $ "Golden comp length: " ++
                                  (show $ Data.ByteString.Lazy.length (encode compGolden))
             
             let x :: TPM_QUOTE_INFO
-                x = TPM_QUOTE_INFO (tpm_pcr_composite_hash $ comp) nonce
+                x = TPM_QUOTE_INFO (tpm_pcr_composite_hash $ compGolden) nonce
 
             --liftIO $ putStrLn $ mkhex tpm_quote_info_fixed
 
