@@ -165,6 +165,10 @@ cmd_key = ShellCmd ["key","k"]
             liftIO $ putStrLn "Golden PCRS: "
             liftIO $ mapM_ f gOutput
 
+            case compGolden == comp of
+              True -> liftIO $ putStrLn "Same"
+              False -> liftIO $ putStrLn "Different"
+
             closeSession tpm clo shn
 
 
