@@ -133,9 +133,9 @@ tpm_quote tpm shn@(OIAP ah en) key nonce pcrs pass = do
       compositeSize = selectionSize + vSize + pcrsSize
       (comp, rest) = splitAt (fromIntegral compositeSize)  dat
       compDecoded = decode comp
-      (sigSize, dat') = splitAt 4 rest
-      sigSizeDecoded = ((decode sigSize) :: UINT32)
-      (sig, _) = splitAt (fromIntegral sigSizeDecoded) dat'
+      (sigSize, sig) = splitAt 4 rest
+      --sigSizeDecoded = ((decode sigSize) :: UINT32)
+      --(sig, _) = splitAt (fromIntegral sigSizeDecoded) dat'
       --sigDecoded = decode sig
       
   --putStrLn (show sigSizeDecoded)

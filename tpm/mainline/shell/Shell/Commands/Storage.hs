@@ -97,7 +97,9 @@ cmd_key = ShellCmd ["key","k"]
             putKey name key'
             shellPutStrLn $ "Identity Key " ++ name ++ " created\n" ++ (show key')
             shellPutStrLn $ "Key size BEFORE: " ++ (show keySize)
+            shellPutStrLn $ "Key Before: " ++ (show key)
             shellPutStrLn $ "Key size AFTER: " ++ (show key'Size)
+            shellPutStrLn $ "Key After: " ++ (show key')
           
           evict name tpm = do
             handle <- getLoaded name
