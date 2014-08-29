@@ -140,7 +140,7 @@ cmd_key = ShellCmd ["key","k"]
             --liftIO $ putStrLn $ mkhex tpm_quote_info_fixed
 
             let blob :: ByteString
-                blob = bytestringDigest $ sha1 $ encode x
+                blob = {- bytestringDigest $ sha1 $ -}encode $ tpm_digest $ encode x
 
             (shn2, clo2) <- retrieveOIAP tpm
             pubKey <- liftIO $ tpm_getpubkey tpm shn2 handle pass
