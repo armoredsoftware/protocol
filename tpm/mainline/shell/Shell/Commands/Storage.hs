@@ -79,15 +79,15 @@ cmd_key = ShellCmd ["key","k"]
             spass <- readPass "SRK Password: "
             opass <- readPass "Owner Password: "
             name  <- readKeyName "Key Name: " False
-            kpass <- readPass "Key Password: "
+            ipass <- readPass "Key Password: "
             let key = tpm_key_create_identity tpm_auth_priv_use_only
                 keySize = (fromIntegral $ Data.ByteString.Lazy.length $ encode key):: Int
                 kty = tpm_et_xor_owner
             (sShn,clo) <- retrieveOIAP tpm
-            oShn <- liftIO $ tpm_session_osap tpm kpass kty (0x40000001 :: Word32)
+            oShn <- liftIO $ tpm_session_osap tpm opass kty (0x40000001 :: Word32)
             
             key' <- liftIO $ tpm_makeidentity tpm sShn oShn key
-                                              spass opass kpass
+                                              spass opass ipass
             
             let key'Size = (fromIntegral $ Data.ByteString.Lazy.length $ encode key'):: Int
             --closeSession tpm clo sShn

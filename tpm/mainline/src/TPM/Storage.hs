@@ -176,7 +176,7 @@ tpm_makeidentity tpm (OIAP sah sen) (OSAP oah oosn oen oesn oscr) key
        sath on = tpm_auth_hmac spass sen on 0 $
                                concat [ encode cod, encode kah, encode privCA,
                                         encode key]
-       oath on = tpm_auth_hmac opass oen on 0 $
+       oath on = tpm_auth_hmac oscr oen on 0 $
                                concat [ encode cod, encode kah, encode privCA,
                                         encode key]
                          
