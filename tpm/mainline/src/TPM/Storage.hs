@@ -137,6 +137,7 @@ tpm_quote tpm shn@(OIAP ah en) key nonce pcrs pass = do
       sigSizeDecoded = ((decode sigSize) :: UINT32)
       (sig, rest2) = splitAt (fromIntegral sigSizeDecoded) dat'
       --sigDecoded = decode sig
+  putStrLn $ "Comp encoded length(in quote): " ++ (show $ length comp)
   putStrLn $ "Sig length: " ++ (show $ length sig)    
   putStrLn $ "Size of Output after sig: " ++ (show $ length rest2)
   

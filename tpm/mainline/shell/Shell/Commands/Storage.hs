@@ -129,6 +129,9 @@ cmd_key = ShellCmd ["key","k"]
             nonce <- liftIO $ nonce_create
             (comp,sig) <- liftIO $ tpm_quote tpm shn handle nonce pcrSelect pass
             closeSession tpm clo shn
+            compGolden <- liftIO $ tpm_pcr_composite tpm pcrSelect
+            liftIO $ putStrLn $ "Golden comp length: " ++
+                                 (show $ Data.ByteString.Lazy.length (encode compGolden))
             
             let x :: TPM_QUOTE_INFO
                 x = TPM_QUOTE_INFO (tpm_pcr_composite_hash $ comp) nonce
