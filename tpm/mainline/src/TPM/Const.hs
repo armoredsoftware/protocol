@@ -129,8 +129,9 @@ tpm_key_names = [ (tpm_key_signing, "Signing")
                 , (tpm_key_storage, "Authentication Change")
                 , (tpm_key_storage, "Binding")
                 , (tpm_key_storage, "Legacy Usage")
-                , (tpm_key_storage, "Migration") ]
-tpm_key_getname k = case lookup k tpm_key_names of
+                , (tpm_key_storage, "Migration")
+                , (tpm_key_identity, "Identity") ]
+tpm_key_getname k = case lookup k tpm_key_names of 
                         Nothing -> "Unknown Key Usage"
                         Just x  -> x
 
