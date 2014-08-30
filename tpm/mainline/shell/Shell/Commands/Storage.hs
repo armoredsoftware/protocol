@@ -153,6 +153,9 @@ cmd_key = ShellCmd ["key","k"]
 
 
             let (pub, pri) = getKeyPair
+            liftIO $ putStrLn (show pub)
+            liftIO $ putStrLn (show pri)
+            
             qi <- liftIO $ makeQuoteInfo tpm
             let qiBlob = encode (blob)
                 qiSig = rsassa_pkcs1_v1_5_sign ha_SHA1 pri qiBlob
