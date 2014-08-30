@@ -19,6 +19,7 @@ executable              tpmi
                         bytestring,
                         binary,
                         network,
+                        random,
                         --network-bytestring,
                         HsOpenSSL,
                         SHA,

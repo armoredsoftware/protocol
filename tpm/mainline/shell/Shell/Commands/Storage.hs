@@ -18,6 +18,7 @@ import Data.Binary
 import Codec.Crypto.RSA
 import Prelude hiding (catch)
 import qualified Data.ByteString.Lazy.Char8 as CHAR
+import TPM.SignTest
 
 -------------------------------------------------------------------------------
 -------------------------------------------------------------------------------
@@ -131,8 +132,8 @@ cmd_key = ShellCmd ["key","k"]
             (comp,sig) <- liftIO $ tpm_quote tpm shn handle nonce pcrSelect pass
             closeSession tpm clo shn
             --compGolden <- liftIO $ tpm_pcr_composite tpm pcrSelect
-            liftIO $ putStrLn $ "Golden comp length: " ++
-                                 (show $ Data.ByteString.Lazy.length (encode compGolden))
+            {-liftIO $ putStrLn $ "Golden comp length: " ++
+                                 (show $ Data.ByteString.Lazy.length (encode compGolden)) -}
             
             let x :: TPM_QUOTE_INFO
                 x = TPM_QUOTE_INFO (tpm_pcr_composite_hash $ compGolden) nonce
@@ -145,10 +146,19 @@ cmd_key = ShellCmd ["key","k"]
             (shn2, clo2) <- retrieveOIAP tpm
             pubKey <- liftIO $ tpm_getpubkey tpm shn2 handle pass
             publicKey <- liftIO $ tpm_get_rsa_PublicKey pubKey
-            liftIO $ putStrLn (show publicKey)
-            case (rsassa_pkcs1_v1_5_verify ha_SHA1 publicKey blob sig) of
+            --liftIO $ putStrLn (show publicKey)
+            {-case (rsassa_pkcs1_v1_5_verify ha_SHA1 publicKey blob sig) of
               True -> liftIO $ putStrLn "Verified"
-              False -> liftIO $ putStrLn "NOT Verified"
+              False -> liftIO $ putStrLn "NOT Verified" -}
+
+
+            let (pub, pri) = getKeyPair
+            qi <- liftIO $ makeQuoteInfo tpm
+            let qiBlob = encode qi
+                qiSig = rsassa_pkcs1_v1_5_sign ha_SHA1 pri qiBlob
+            case rsassa_pkcs1_v1_5_verify ha_SHA1 pub qiBlob qiSig of
+              True -> liftIO $ putStrLn "VERIFIED!!!"
+              False -> liftIO $ putStrLn "NOT Verified!!!!"
 
 
             let pcrs = tpmPcrCompositePcrs comp
@@ -157,22 +167,23 @@ cmd_key = ShellCmd ["key","k"]
                 doshow x = show x
                 
                 f (x, y) = shellPutStrLn $ "PCR " ++ (doshow x) ++ ": " ++ (show y)
-            liftIO $ putStrLn "Quoted PCRS: "
-            liftIO $ mapM_ f output
+            --liftIO $ putStrLn "Quoted PCRS: "
+           -- liftIO $ mapM_ f output
             let gPcrs = tpmPcrCompositePcrs compGolden
                 gOutput = zip list gPcrs
 
-            liftIO $ putStrLn "Golden PCRS: "
-            liftIO $ mapM_ f gOutput
+           -- liftIO $ putStrLn "Golden PCRS: "
+            --liftIO $ mapM_ f gOutput
 
+            {-
             case compGolden == comp of
               True -> liftIO $ putStrLn "Same"
-              False -> liftIO $ putStrLn "Different"
+              False -> liftIO $ putStrLn "Different" -}
 
             closeSession tpm clo shn
 
 
-
+            
 
 
 

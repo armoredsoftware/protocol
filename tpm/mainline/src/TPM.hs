@@ -34,6 +34,7 @@ import TPM.Cipher
 import TPM.Storage
 import TPM.Eviction
 import Control.Exception
+import TPM.SignTest
 
 tpm_with_socket c = c (tpm_socket "/var/run/tpm/tpmd_socket:0") 
 tpm_with_socket' c = c (tpm_logging_socket "/var/run/tpm/tpmd_socket:0")
