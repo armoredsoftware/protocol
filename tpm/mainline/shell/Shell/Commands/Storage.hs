@@ -156,6 +156,8 @@ cmd_key = ShellCmd ["key","k"]
             qi <- liftIO $ makeQuoteInfo tpm
             let qiBlob = encode (qiBlob)
                 qiSig = rsassa_pkcs1_v1_5_sign ha_SHA1 pri qiBlob
+            liftIO $ putStrLn "Signed..."
+            liftIO $ putStrLn $ "sigLength: " ++ (show $ Data.ByteString.Lazy.length qiSig)
             case rsassa_pkcs1_v1_5_verify ha_SHA1 pub qiBlob qiSig of
               True -> liftIO $ putStrLn "VERIFIED!!!"
               False -> liftIO $ putStrLn "NOT Verified!!!!"
