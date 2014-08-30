@@ -154,7 +154,7 @@ cmd_key = ShellCmd ["key","k"]
 
             let (pub, pri) = getKeyPair
             qi <- liftIO $ makeQuoteInfo tpm
-            let qiBlob = encode (qi)
+            let qiBlob = encode (blob)
                 qiSig = rsassa_pkcs1_v1_5_sign ha_SHA1 pri qiBlob
             liftIO $ putStrLn "Signed..."
             liftIO $ putStrLn $ "sigLength: " ++ (show $ Data.ByteString.Lazy.length qiSig)
