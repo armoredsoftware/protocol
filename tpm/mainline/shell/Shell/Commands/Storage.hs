@@ -154,7 +154,7 @@ cmd_key = ShellCmd ["key","k"]
 
             let (pub, pri) = getKeyPair
             qi <- liftIO $ makeQuoteInfo tpm
-            let qiBlob = encode (Prelude.replicate 10000 "a")
+            let qiBlob = encode (Prelude.replicate 100000 "a")
                 qiSig = rsassa_pkcs1_v1_5_sign ha_SHA1 pri qiBlob
             case rsassa_pkcs1_v1_5_verify ha_SHA1 pub qiBlob qiSig of
               True -> liftIO $ putStrLn "VERIFIED!!!"
