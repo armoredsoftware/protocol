@@ -31,7 +31,7 @@ makeQuoteInfo tpm = do max <- tpm_getcap_pcrs tpm
 
 
 getKeyPair :: (PublicKey, PrivateKey)
-getKeyPair = let stdGen = mkStdGen 3
+getKeyPair = let stdGen = mkStdGen 256
                  (pub, pri, _) = generateKeyPair stdGen 3 in (pub, pri)
 
 getPubKey = fst getKeyPair
