@@ -408,11 +408,13 @@ instance Binary TPM_QUOTE_INFO where
     put (TPM_QUOTE_INFO c d) = do
         put tpm_struct_ver_default
         --put $ C.pack "QUOT"
-        
+        put tpm_quote_info_fixed
+        {-
         put (0x51 :: Word8)
         put (0x55 :: Word8)
         put (0x4F :: Word8)
         put (0x54 :: Word8)
+        -}
         
         {-
         put $ (Data.ByteString.Lazy.head (encode 'Q')::Word8)
@@ -430,8 +432,8 @@ instance Binary TPM_QUOTE_INFO where
         return $ TPM_QUOTE_INFO c d
 
     
---tpm_quote_info_fixed :: Word32
---tpm_quote_info_fixed = fourCharsToWord32 "QUOT"
+tpm_quote_info_fixed :: Word32
+tpm_quote_info_fixed = fourCharsToWord32 "QUOT"
 
       
       
