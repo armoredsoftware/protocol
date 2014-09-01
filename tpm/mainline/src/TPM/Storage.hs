@@ -125,23 +125,25 @@ tpm_quote :: TPM tpm => tpm -> Session -> TPM_KEY_HANDLE -> TPM_NONCE ->
 tpm_quote tpm shn@(OIAP ah en) key nonce pcrs pass = do
   on <- nonce_create
   (rtag,size,resl,dat) <- tpm_transmit' tpm tag cod (dat on)
-  let numPcrs = P.length $ tpm_pcr_unselection pcrs
+  let {-numPcrs = P.length $ tpm_pcr_unselection pcrs
       pcb = encode pcrs
       selectionSize =  (fromIntegral $ length pcb) :: Int
       pcrsSize = numPcrs * 20
-      vSize = 4 
-      compositeSize = selectionSize + vSize + pcrsSize
-      (comp, rest) = splitAt (fromIntegral compositeSize)  dat
-      compDecoded = decode comp
+      vSize = 4 -}
+      newComp :: TPM_PCR_COMPOSITE
+      newComp = runGet (get :: Get TPM_PCR_COMPOSITE) dat
+      compositeSize = (fromIntegral $ length (encode newComp)) :: Int --selectionSize + vSize + pcrsSize
+      (_, rest) = splitAt (fromIntegral compositeSize)  dat
+      --compDecoded = decode comp
       (sigSize, dat') = splitAt 4 rest
       sigSizeDecoded = ((decode sigSize) :: UINT32)
       (sig, rest2) = splitAt (fromIntegral sigSizeDecoded) dat'
       --sigDecoded = decode sig
-  putStrLn $ "Comp encoded length(in quote): " ++ (show $ length comp)
+  --putStrLn $ "Comp encoded length(in quote): " ++ (show $ length comp)
   putStrLn $ "Sig length: " ++ (show $ length sig)    
   putStrLn $ "Size of Output after sig: " ++ (show $ length rest2)
   
-  return (compDecoded, sig )
+  return (newComp, sig )
   where tag = tpm_tag_rqu_auth1_command
         cod = tpm_ord_quote
         dat on = concat [ encode key, encode nonce, encode pcrs, ah,

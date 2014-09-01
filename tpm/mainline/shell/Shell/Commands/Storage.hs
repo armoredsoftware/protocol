@@ -136,22 +136,22 @@ cmd_key = ShellCmd ["key","k"]
                                  (show $ Data.ByteString.Lazy.length (encode compGolden)) -}
             
             let x :: TPM_QUOTE_INFO
-                x = TPM_QUOTE_INFO (tpm_pcr_composite_hash $ compGolden) nonce
+                x = TPM_QUOTE_INFO (tpm_pcr_composite_hash $ comp) nonce
 
             --liftIO $ putStrLn $ mkhex tpm_quote_info_fixed
 
             let blob :: ByteString
-                blob = {- bytestringDigest $ sha1 $ -}encode $ tpm_digest $ encode x
+                blob = {-bytestringDigest $ sha1 $-} encode x
 
             (shn2, clo2) <- retrieveOIAP tpm
             pubKey <- liftIO $ tpm_getpubkey tpm shn2 handle pass
             publicKey <- liftIO $ tpm_get_rsa_PublicKey pubKey
-            --liftIO $ putStrLn (show publicKey)
-            {-case (rsassa_pkcs1_v1_5_verify ha_SHA1 publicKey blob sig) of
+            liftIO $ putStrLn (show publicKey)
+            case (rsassa_pkcs1_v1_5_verify ha_SHA1 publicKey blob sig) of
               True -> liftIO $ putStrLn "Verified"
-              False -> liftIO $ putStrLn "NOT Verified" -}
+              False -> liftIO $ putStrLn "NOT Verified" 
 
-
+          {-
             let (pub, pri) = getKeyPair
             liftIO $ putStrLn (show pub)
             liftIO $ putStrLn (show pri)
@@ -164,7 +164,7 @@ cmd_key = ShellCmd ["key","k"]
             case rsassa_pkcs1_v1_5_verify ha_SHA1 pub qiBlob qiSig of
               True -> liftIO $ putStrLn "VERIFIED!!!"
               False -> liftIO $ putStrLn "NOT Verified!!!!"
-
+-}
 
             let pcrs = tpmPcrCompositePcrs comp
                 output = zip list pcrs
@@ -172,13 +172,13 @@ cmd_key = ShellCmd ["key","k"]
                 doshow x = show x
                 
                 f (x, y) = shellPutStrLn $ "PCR " ++ (doshow x) ++ ": " ++ (show y)
-            --liftIO $ putStrLn "Quoted PCRS: "
-           -- liftIO $ mapM_ f output
+            liftIO $ putStrLn "Quoted PCRS: "
+            liftIO $ mapM_ f output
             let gPcrs = tpmPcrCompositePcrs compGolden
                 gOutput = zip list gPcrs
 
-           -- liftIO $ putStrLn "Golden PCRS: "
-            --liftIO $ mapM_ f gOutput
+            liftIO $ putStrLn "Golden PCRS: "
+            liftIO $ mapM_ f gOutput
 
             {-
             case compGolden == comp of

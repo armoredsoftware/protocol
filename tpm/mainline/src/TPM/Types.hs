@@ -411,7 +411,10 @@ instance Binary TPM_QUOTE_INFO where
         --put (0x55 :: Word8)
         --put (0x4F :: Word8)
         --put (0x54 :: Word8)
-        put $ C.pack "QUOT"
+        put $ (Data.ByteString.Lazy.head (encode 'Q')::Word8)
+        put $ (Data.ByteString.Lazy.head (encode 'U')::Word8)
+        put $ (Data.ByteString.Lazy.head (encode 'O')::Word8)
+        put $ (Data.ByteString.Lazy.head (encode 'T')::Word8)
         put c
         put d
     get = do
