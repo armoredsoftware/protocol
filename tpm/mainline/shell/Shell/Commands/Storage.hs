@@ -135,20 +135,20 @@ cmd_key = ShellCmd ["key","k"]
             {-liftIO $ putStrLn $ "Golden comp length: " ++
                                  (show $ Data.ByteString.Lazy.length (encode compGolden)) -}
             
-            let x :: TPM_QUOTE_INFO
-                x = TPM_QUOTE_INFO (tpm_pcr_composite_hash $ comp) nonce
+            let quoteInfoA :: TPM_QUOTE_INFO
+                quoteInfoA = TPM_QUOTE_INFO (tpm_pcr_composite_hash $ comp) nonce
 
             --liftIO $ putStrLn $ mkhex tpm_quote_info_fixed
 
-            let blob :: ByteString
-                blob = {-bytestringDigest $ sha1 $-} encode x
+            let blobQuoteA :: ByteString
+                blobQuoteA = {-bytestringDigest $ sha1 $-} encode quoteInfoA
 
             (shn2, clo2) <- retrieveOIAP tpm
             pubKey <- liftIO $ tpm_getpubkey tpm shn2 handle pass
             publicKey <- liftIO $ tpm_get_rsa_PublicKey pubKey
             liftIO $ putStrLn (show publicKey)
-            case (rsassa_pkcs1_v1_5_verify ha_SHA1 publicKey blob sig) of
-              True -> liftIO $ putStrLn "Verified"
+            case (rsassa_pkcs1_v1_5_verify ha_SHA1 publicKey blobQuoteA sig) of
+              True -> liftIO $ putStrLn "Verified Signature!!!!!!!!!"
               False -> liftIO $ putStrLn "NOT Verified" 
 
           {-
