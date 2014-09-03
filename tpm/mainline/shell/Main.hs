@@ -24,6 +24,7 @@ import Control.Exception (tryJust, catch, IOException, SomeException)
 import TPM
 import OpenSSL (withOpenSSL)
 import OpenSSL.EVP.Cipher
+import Demo3
 
 cmd_log :: (TPM t) => ShellCmd (State t)
 cmd_log = ShellCmd ["log", "l"]

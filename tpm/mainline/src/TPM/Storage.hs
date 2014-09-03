@@ -159,7 +159,7 @@ tpm_makeidentity :: TPM tpm => tpm -> Session -> Session -> TPM_KEY ->
                                IO TPM_KEY
 
 tpm_makeidentity tpm (OIAP sah sen) (OSAP oah oosn oen oesn oscr) key
-                 spass opass ipass = do
+                 spass ipass privCA = do
   son <- nonce_create
   putStrLn "BEFORE"
   (rtag,size,resl,dat) <- tpm_transmit' tpm tag cod (dat son)
@@ -171,7 +171,7 @@ tpm_makeidentity tpm (OIAP sah sen) (OSAP oah oosn oen oesn oscr) key
 
  where tag = tpm_tag_rqu_auth2_command
        cod = tpm_ord_makeidentity
-       privCA = TPM_DIGEST $ Data.ByteString.Lazy.replicate 19 ((bit 1)::Word8)
+     --privCA = TPM_DIGEST $ Data.ByteString.Lazy.replicate 20 ((bit 1)::Word8)
        dat son = concat [ encode kah, encode privCA, encode key, sah,
                               encode son, encode False, encode(sath son),
                               oah, encode oosn,encode False, encode(oath oosn)]
@@ -182,6 +182,7 @@ tpm_makeidentity tpm (OIAP sah sen) (OSAP oah oosn oen oesn oscr) key
        oath on = tpm_auth_hmac oscr oen on 0 $
                                concat [ encode cod, encode kah, encode privCA,
                                         encode key]
+       
                          
 
 

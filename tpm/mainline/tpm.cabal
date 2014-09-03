@@ -10,7 +10,7 @@ Cabal-Version:          >= 1.2
 Build-type:             Simple
 
 executable              tpmi
-  hs-source-dirs:       api, shell, src
+  hs-source-dirs:       api, shell, src, demo3
   build-depends:        base >= 4,
                         shell >= 1.0,
                         mtl,

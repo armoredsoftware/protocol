@@ -15,6 +15,7 @@ import Data.Word
 import Data.Digest.Pure.SHA (hmacSha1,bytestringDigest, sha1)
 import Data.ByteString.Lazy hiding (putStrLn, map, elem, zip)
 import Data.Binary
+import Data.Bits
 import Codec.Crypto.RSA
 import Prelude hiding (catch)
 import qualified Data.ByteString.Lazy.Char8 as CHAR
@@ -84,11 +85,12 @@ cmd_key = ShellCmd ["key","k"]
             let key = tpm_key_create_identity tpm_auth_priv_use_only
                 keySize = (fromIntegral $ Data.ByteString.Lazy.length $ encode key):: Int
                 kty = tpm_et_xor_owner
+                privCA = TPM_DIGEST $ Data.ByteString.Lazy.replicate 20 ((bit 1)::Word8)
             (sShn,clo) <- retrieveOIAP tpm
             oShn <- liftIO $ tpm_session_osap tpm opass kty (0x40000001 :: Word32)
             
             key' <- liftIO $ tpm_makeidentity tpm sShn oShn key
-                                              spass opass ipass
+                                              spass ipass privCA
             
             let key'Size = (fromIntegral $ Data.ByteString.Lazy.length $ encode key'):: Int
             --closeSession tpm clo sShn
