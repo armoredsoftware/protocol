@@ -16,6 +16,19 @@ import Crypto.PubKey.RSA
 import Crypto.Hash.MD5(hash)
 -}
 
+tpm :: TPMSocket
+tpm = tpm_socket "/var/run/tpm/tpmd_socket:0"
+
+appId :: Int
+appId = 3
+
+attId :: Int
+attId = 3
+
+meaId :: Int
+meaId = 3
+
+
 data Shared = Appraisal Request
               | Attestation Response
               | Result Bool
@@ -82,7 +95,7 @@ instance Show EvidenceDescriptor where
 
 --Response
 type Response = (EvidencePackage, Quote)
-type EvidencePackage = (Evidence, TPM_NONCE, Signature)
+type EvidencePackage = (Evidence, TPM_NONCE)
 type Evidence = [EvidencePiece]
 
 

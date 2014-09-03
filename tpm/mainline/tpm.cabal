@@ -25,6 +25,7 @@ executable              tpmi
                         SHA,
                         RSA,
                         parsec >= 3,
-                        filepath
+                        filepath,
+                        VChanUtil
   Main-is:              Main.hs
   ghc-options:          -O
