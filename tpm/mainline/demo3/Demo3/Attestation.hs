@@ -7,6 +7,8 @@ import VChanUtil
 import Demo3.Demo3Shared
 
 import Data.Binary
+import Data.ByteString.Lazy(ByteString, append, empty)
+
 
 --withOpenSSL 
 
@@ -28,13 +30,20 @@ mkResponse (desiredE, pcrSelect, nonce) = do
   sShn <- tpm_session_oiap tpm
   oShn <- tpm_session_osap tpm oPass kty ownerHandle
   identKey <- tpm_makeidentity tpm sShn oShn key sPass oPass iPass
-  --let evPack = signEvidence eList nonce --concat and hash elist and nonce, then sign that blob with AIK(using tpm_sign)
+  loadShn <- tpm_session_oiap tpm
+  iKeyHandle <- tpm_loadkey2 tpm loadShn tpm_kh_srk identKey sPass
+  let evBlob = ePack eList nonce --concat and hash elist and nonce, then sign that blob with AIK(using tpm_sign)
+  sigShn <- tpm_session_oiap tpm
+  eSig <- tpm_sign tpm sigShn iKeyHandle iPass evBlob
+  let evPack = (eList, nonce, eSig)
   --quote = mkSignedTPMQuote desiredPCRs nonce --tpm_quote
       -- hash = doHash $ ePack eList nonce --replace w/ 3 lines above
       --quoPack = signQuote quote hash --tpm_quote does this
-        
+  quoteShn <- tpm_session_oiap tpm
+  quote <- tpm_quote tpm quoteShn iKeyHandle nonce pcrSelect iPass 
+      
   --return (evPack, quoPack)  
-  return (undefined, undefined)
+  return (evPack, quote)
 
  where key = tpm_key_create_identity tpm_auth_priv_use_only
        kty = tpm_et_xor_owner
@@ -67,18 +76,9 @@ receiveRequest chan = do
       return req
     otherwise -> error requestReceiveError 
     
-{-
-ePack :: Evidence -> Nonce -> ByteString
-ePack e n = ePack' e `append` n
 
---This is where we will need to convert measurement type to ByteString
--- if it is something else.  see comment below
-ePack' :: Evidence -> ByteString
-ePack'  = foldr f empty 
-  where f (M0 x) y = x `append` y -- (i.e. (toByteString x) `append` y )
-        f (M1 x) y = x `append` y
-        f (M2 x) y = x `append` y  
--}
+
+
     
 --Error messages(only for debugging, at least for now)
 requestReceiveError :: String

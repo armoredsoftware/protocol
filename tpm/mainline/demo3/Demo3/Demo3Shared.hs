@@ -2,7 +2,7 @@ module Demo3.Demo3Shared where
 
 import TPM
 import Data.Binary
-import Data.ByteString.Lazy
+import Data.ByteString.Lazy(ByteString, empty, append)
 {-
 -- utility libraries
 import Data.Binary
@@ -133,6 +133,19 @@ instance Binary EvidencePiece where
                     2 -> do res <- get
                             return (M2 res)
                          
+         
+ePack :: Evidence -> TPM_NONCE -> ByteString
+ePack e (TPM_NONCE n) = ePack' e `append` n
+
+--This is where we will need to convert measurement type to ByteString
+-- if it is something else.  see comment below
+ePack' :: Evidence -> ByteString
+ePack'  = foldr f empty 
+  where f (M0 x) y = x `append` y -- (i.e. (toByteString x) `append` y )
+        f (M1 x) y = x `append` y
+        f (M2 x) y = x `append` y          
+         
+         
 --type Hash = ByteString
 --type QuotePackage = (Quote, Hash, Signature)
 
