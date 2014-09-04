@@ -93,8 +93,8 @@ cmd_key = ShellCmd ["key","k"]
                                               spass ipass privCA
             
             let key'Size = (fromIntegral $ Data.ByteString.Lazy.length $ encode key'):: Int
-            --closeSession tpm clo sShn
-            --closeSession tpm True oShn
+            closeSession tpm clo sShn
+            closeSession tpm True oShn
             
 
             putKey name key'
@@ -103,7 +103,7 @@ cmd_key = ShellCmd ["key","k"]
             shellPutStrLn $ "Key Before: " ++ (show key)
             shellPutStrLn $ "Key size AFTER: " ++ (show key'Size)
             shellPutStrLn $ "Key After: " ++ (show key')
-          
+            
           evict name tpm = do
             handle <- getLoaded name
             liftIO $ tpm_flushspecific tpm handle tpm_rt_key

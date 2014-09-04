@@ -183,6 +183,7 @@ tpm_makeidentity tpm (OIAP sah sen) (OSAP oah oosn oen oesn oscr) key
                                concat [ encode cod, encode kah, encode privCA,
                                         encode key]
                                 
+
 tpm_sign :: TPM tpm => tpm -> Session -> TPM_KEY_HANDLE 
                                            -> TPM_DIGEST -> ByteString -> IO ByteString
 tpm_sign tpm (OIAP ah en) key pass ud = do
@@ -190,7 +191,9 @@ tpm_sign tpm (OIAP ah en) key pass ud = do
   (rtag,size,resl,dat) <- tpm_transmit' tpm tag cod (dat on)
   let (size,dat') = splitAt 4 dat
   let size' = ((decode size) :: UINT32)
-  let (sig,_) = splitAt (fromIntegral size') dat'
+  let (sig,rest) = splitAt (fromIntegral size') dat'
+  putStrLn $ "after sig length: " ++  (show $ fromIntegral $ {-Data.ByteString.Lazy.-}length rest)
+  putStrLn $ "rand length: " ++ (show datL)
   return sig
   
 
@@ -200,8 +203,6 @@ tpm_sign tpm (OIAP ah en) key pass ud = do
        ath on = tpm_auth_hmac pass en on 0 $ concat [encode cod, encode datL, 
                                                                               ud]
        datL = ((fromIntegral $ length ud) :: UINT32)
-       
-
 
 
 

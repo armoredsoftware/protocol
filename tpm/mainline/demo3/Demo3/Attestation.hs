@@ -8,6 +8,7 @@ import Demo3.Demo3Shared
 
 import Data.Binary
 import Data.ByteString.Lazy(ByteString, append, empty)
+import Data.Digest.Pure.SHA (bytestringDigest, sha1)
 
 
 --withOpenSSL 
@@ -27,21 +28,27 @@ mkResponse (desiredE, pcrSelect, nonce) = do
   --measurerID <- measurePrompt
   chan <- client_init meaId
   eList <- mapM (getEvidencePiece chan) desiredE
+  --TODO: split these next two into getIdentitySession
   sShn <- tpm_session_oiap tpm
   oShn <- tpm_session_osap tpm oPass kty ownerHandle
   identKey <- tpm_makeidentity tpm sShn oShn key sPass oPass iPass
+  tpm_session_close tpm sShn --Check True val here!!(use clo?)
+  tpm_session_close tpm oShn
   loadShn <- tpm_session_oiap tpm
   iKeyHandle <- tpm_loadkey2 tpm loadShn tpm_kh_srk identKey sPass
+  tpm_session_close tpm loadShn
   let evBlob = ePack eList nonce --concat and hash elist and nonce, then sign that blob with AIK(using tpm_sign)
+      evBlobSha1 = bytestringDigest $ sha1 evBlob
   sigShn <- tpm_session_oiap tpm
-  eSig <- tpm_sign tpm sigShn iKeyHandle iPass evBlob
+  eSig <- tpm_sign tpm sigShn iKeyHandle iPass evBlobSha1
+  tpm_session_close tpm sigShn
   let evPack = (eList, nonce, eSig)
   --quote = mkSignedTPMQuote desiredPCRs nonce --tpm_quote
       -- hash = doHash $ ePack eList nonce --replace w/ 3 lines above
       --quoPack = signQuote quote hash --tpm_quote does this
   quoteShn <- tpm_session_oiap tpm
-  quote <- tpm_quote tpm quoteShn iKeyHandle nonce pcrSelect iPass 
-      
+  quote <- tpm_quote tpm quoteShn iKeyHandle (TPM_NONCE evBlobSha1) pcrSelect iPass 
+  tpm_session_close tpm quoteShn    
   --return (evPack, quoPack)  
   return (evPack, quote)
 
