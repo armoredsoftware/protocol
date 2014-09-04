@@ -42,8 +42,8 @@
   (major1) == 2 && (major2) <  1 || \
   (major1) == 2 && (major2) == 1 && (minor) <= 2)
 
-/* package random-1.0.1.1 */
-#define VERSION_random "1.0.1.1"
+/* package random-1.0.1.3 */
+#define VERSION_random "1.0.1.3"
 #define MIN_VERSION_random(major1,major2,minor) (\
   (major1) <  1 || \
   (major1) == 1 && (major2) <  0 || \

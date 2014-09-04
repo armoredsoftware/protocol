@@ -37,7 +37,7 @@ PATH: /sbin
 PATH: /home/armored/bin
 PATH: /home/armored/.cabal/bin
 PATH: /home/armored/bin
-PATH: /home/armored/.cabal/bin
+PATH: /root/.cabal/bin
 
 
 ## ----------- ##

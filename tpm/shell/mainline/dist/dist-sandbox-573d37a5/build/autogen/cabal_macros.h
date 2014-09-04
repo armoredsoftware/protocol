@@ -70,8 +70,8 @@
   (major1) == 1 && (major2) <  1 || \
   (major1) == 1 && (major2) == 1 && (minor) <= 0)
 
-/* package zip-archive-0.2.3.2 */
-#define VERSION_zip_archive "0.2.3.2"
+/* package zip-archive-0.2.3.4 */
+#define VERSION_zip_archive "0.2.3.4"
 #define MIN_VERSION_zip_archive(major1,major2,minor) (\
   (major1) <  0 || \
   (major1) == 0 && (major2) <  2 || \
