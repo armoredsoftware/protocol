@@ -1,0 +1,64 @@
+Configuring RSA-1.0.2...
+Building RSA-1.0.2...
+Preprocessing library RSA-1.0.2...
+
+on the commandline: Warning:
+    -XPatternSignatures is deprecated: use -XScopedTypeVariables or pragma {-# LANGUAGE ScopedTypeVariables #-} instead
+[1 of 1] Compiling Codec.Crypto.RSA ( Codec/Crypto/RSA.hs, dist/dist-sandbox-573d37a5/build/Codec/Crypto/RSA.o )
+
+Codec/Crypto/RSA.hs:186:19: Warning:
+    This binding for ‘hash’ shadows the existing binding
+      imported from ‘Data.Digest.Pure.MD5’ at Codec/Crypto/RSA.hs:63:1-27
+      (and originally defined in ‘crypto-api-0.13:Crypto.Classes’)
+
+Codec/Crypto/RSA.hs:209:25: Warning:
+    This binding for ‘hash’ shadows the existing binding
+      imported from ‘Data.Digest.Pure.MD5’ at Codec/Crypto/RSA.hs:63:1-27
+      (and originally defined in ‘crypto-api-0.13:Crypto.Classes’)
+
+Codec/Crypto/RSA.hs:238:20: Warning:
+    This binding for ‘hash’ shadows the existing binding
+      imported from ‘Data.Digest.Pure.MD5’ at Codec/Crypto/RSA.hs:63:1-27
+      (and originally defined in ‘crypto-api-0.13:Crypto.Classes’)
+
+Codec/Crypto/RSA.hs:286:20: Warning:
+    This binding for ‘hash’ shadows the existing binding
+      imported from ‘Data.Digest.Pure.MD5’ at Codec/Crypto/RSA.hs:63:1-27
+      (and originally defined in ‘crypto-api-0.13:Crypto.Classes’)
+
+Codec/Crypto/RSA.hs:438:15: Warning:
+    This binding for ‘hash’ shadows the existing binding
+      imported from ‘Data.Digest.Pure.MD5’ at Codec/Crypto/RSA.hs:63:1-27
+      (and originally defined in ‘crypto-api-0.13:Crypto.Classes’)
+
+Codec/Crypto/RSA.hs:545:45: Warning:
+    This binding for ‘hash’ shadows the existing binding
+      imported from ‘Data.Digest.Pure.MD5’ at Codec/Crypto/RSA.hs:63:1-27
+      (and originally defined in ‘crypto-api-0.13:Crypto.Classes’)
+In-place registering RSA-1.0.2...
+Preprocessing executable 'test_rsa' for RSA-1.0.2...
+
+on the commandline: Warning:
+    -XPatternSignatures is deprecated: use -XScopedTypeVariables or pragma {-# LANGUAGE ScopedTypeVariables #-} instead
+[1 of 2] Compiling Codec.Crypto.RSA ( Codec/Crypto/RSA.hs, dist/dist-sandbox-573d37a5/build/test_rsa/test_rsa-tmp/Codec/Crypto/RSA.o )
+[2 of 2] Compiling Main             ( Test.hs, dist/dist-sandbox-573d37a5/build/test_rsa/test_rsa-tmp/Main.o )
+
+Test.hs:6:1: Warning:
+    The import of ‘Data.Int’ is redundant
+      except perhaps to import instances from ‘Data.Int’
+    To import instances alone, use: import Data.Int()
+
+Test.hs:7:1: Warning:
+    The import of ‘Data.Word’ is redundant
+      except perhaps to import instances from ‘Data.Word’
+    To import instances alone, use: import Data.Word()
+
+on the commandline: Warning:
+    -XPatternSignatures is deprecated: use -XScopedTypeVariables or pragma {-# LANGUAGE ScopedTypeVariables #-} instead
+Linking dist/dist-sandbox-573d37a5/build/test_rsa/test_rsa ...
+Creating package registration file: /tmp/pkgConf-RSA-1.012743.2
+Installing library in
+/home/armored/protoLocal/protocol/tpm/mainline/.cabal-sandbox/lib/x86_64-linux-ghc-7.8.2/RSA-1.0.2
+Installing executable(s) in
+/home/armored/protoLocal/protocol/tpm/mainline/.cabal-sandbox/bin
+Registering RSA-1.0.2...

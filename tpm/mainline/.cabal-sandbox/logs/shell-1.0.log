@@ -1,0 +1,21 @@
+Configuring shell-1.0...
+Building shell-1.0...
+Preprocessing library shell-1.0...
+[1 of 8] Compiling Shell.Zip        ( src/Shell/Zip.hs, dist/dist-sandbox-573d37a5/build/Shell/Zip.o )
+[2 of 8] Compiling Shell.API        ( src/Shell/API.hs, dist/dist-sandbox-573d37a5/build/Shell/API.o )
+
+src/Shell/API.hs:121:10: Warning:
+    No explicit implementation for
+      ‘Exception.gmask’
+    In the instance declaration for ‘ExceptionMonad (StateT st m)’
+[3 of 8] Compiling Shell.Commands.Exit ( src/Shell/Commands/Exit.hs, dist/dist-sandbox-573d37a5/build/Shell/Commands/Exit.o )
+[4 of 8] Compiling Shell.Commands.Echo ( src/Shell/Commands/Echo.hs, dist/dist-sandbox-573d37a5/build/Shell/Commands/Echo.o )
+[5 of 8] Compiling Shell.Commands.Help ( src/Shell/Commands/Help.hs, dist/dist-sandbox-573d37a5/build/Shell/Commands/Help.o )
+[6 of 8] Compiling Shell.Commands.Repeat ( src/Shell/Commands/Repeat.hs, dist/dist-sandbox-573d37a5/build/Shell/Commands/Repeat.o )
+[7 of 8] Compiling Shell.Commands.Reload ( src/Shell/Commands/Reload.hs, dist/dist-sandbox-573d37a5/build/Shell/Commands/Reload.o )
+[8 of 8] Compiling Shell            ( src/Shell.hs, dist/dist-sandbox-573d37a5/build/Shell.o )
+In-place registering shell-1.0...
+Creating package registration file: /tmp/pkgConf-shell-112743.0
+Installing library in
+/home/armored/protoLocal/protocol/tpm/mainline/.cabal-sandbox/lib/x86_64-linux-ghc-7.8.2/shell-1.0
+Registering shell-1.0...

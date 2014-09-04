@@ -1,0 +1,68 @@
+Configuring HsOpenSSL-0.11...
+Building HsOpenSSL-0.11...
+Preprocessing library HsOpenSSL-0.11...
+[ 1 of 32] Compiling OpenSSL.ERR      ( dist/dist-sandbox-573d37a5/build/OpenSSL/ERR.hs, dist/dist-sandbox-573d37a5/build/OpenSSL/ERR.o )
+[ 2 of 32] Compiling OpenSSL.Stack    ( dist/dist-sandbox-573d37a5/build/OpenSSL/Stack.hs, dist/dist-sandbox-573d37a5/build/OpenSSL/Stack.o )
+[ 3 of 32] Compiling OpenSSL.DH.Internal ( dist/dist-sandbox-573d37a5/build/OpenSSL/DH/Internal.hs, dist/dist-sandbox-573d37a5/build/OpenSSL/DH/Internal.o )
+[ 4 of 32] Compiling OpenSSL.Objects  ( dist/dist-sandbox-573d37a5/build/OpenSSL/Objects.hs, dist/dist-sandbox-573d37a5/build/OpenSSL/Objects.o )
+[ 5 of 32] Compiling OpenSSL.EVP.Base64 ( dist/dist-sandbox-573d37a5/build/OpenSSL/EVP/Base64.hs, dist/dist-sandbox-573d37a5/build/OpenSSL/EVP/Base64.o )
+
+OpenSSL/EVP/Base64.hsc:18:1: Warning:
+    Module ‘Control.Exception’ does not export ‘block’
+
+OpenSSL/EVP/Base64.hsc:25:1: Warning:
+    Module ‘Foreign’ does not export ‘unsafePerformIO’
+[ 6 of 32] Compiling OpenSSL.Utils    ( OpenSSL/Utils.hs, dist/dist-sandbox-573d37a5/build/OpenSSL/Utils.o )
+[ 7 of 32] Compiling OpenSSL.EVP.Internal ( dist/dist-sandbox-573d37a5/build/OpenSSL/EVP/Internal.hs, dist/dist-sandbox-573d37a5/build/OpenSSL/EVP/Internal.o )
+[ 8 of 32] Compiling OpenSSL.EVP.Cipher ( dist/dist-sandbox-573d37a5/build/OpenSSL/EVP/Cipher.hs, dist/dist-sandbox-573d37a5/build/OpenSSL/EVP/Cipher.o )
+[ 9 of 32] Compiling OpenSSL.EVP.Digest ( dist/dist-sandbox-573d37a5/build/OpenSSL/EVP/Digest.hs, dist/dist-sandbox-573d37a5/build/OpenSSL/EVP/Digest.o )
+
+OpenSSL/EVP/Digest.hsc:26:1: Warning:
+    Module ‘Foreign’ does not export ‘unsafePerformIO’
+[10 of 32] Compiling OpenSSL.Cipher   ( dist/dist-sandbox-573d37a5/build/OpenSSL/Cipher.hs, dist/dist-sandbox-573d37a5/build/OpenSSL/Cipher.o )
+[11 of 32] Compiling OpenSSL.BIO      ( dist/dist-sandbox-573d37a5/build/OpenSSL/BIO.hs, dist/dist-sandbox-573d37a5/build/OpenSSL/BIO.o )
+[12 of 32] Compiling OpenSSL.Random   ( dist/dist-sandbox-573d37a5/build/OpenSSL/Random.hs, dist/dist-sandbox-573d37a5/build/OpenSSL/Random.o )
+[13 of 32] Compiling OpenSSL.BN       ( dist/dist-sandbox-573d37a5/build/OpenSSL/BN.hs, dist/dist-sandbox-573d37a5/build/OpenSSL/BN.o )
+[14 of 32] Compiling OpenSSL.DSA      ( dist/dist-sandbox-573d37a5/build/OpenSSL/DSA.hs, dist/dist-sandbox-573d37a5/build/OpenSSL/DSA.o )
+
+OpenSSL/DSA.hsc:37:1: Warning:
+    Module ‘Foreign’ does not export ‘unsafePerformIO’
+[15 of 32] Compiling OpenSSL.RSA      ( dist/dist-sandbox-573d37a5/build/OpenSSL/RSA.hs, dist/dist-sandbox-573d37a5/build/OpenSSL/RSA.o )
+
+OpenSSL/RSA.hsc:35:1: Warning:
+    Module ‘Foreign’ does not export ‘unsafePerformIO’
+[16 of 32] Compiling OpenSSL.EVP.PKey ( dist/dist-sandbox-573d37a5/build/OpenSSL/EVP/PKey.hs, dist/dist-sandbox-573d37a5/build/OpenSSL/EVP/PKey.o )
+[17 of 32] Compiling OpenSSL.EVP.Open ( dist/dist-sandbox-573d37a5/build/OpenSSL/EVP/Open.hs, dist/dist-sandbox-573d37a5/build/OpenSSL/EVP/Open.o )
+
+OpenSSL/EVP/Open.hsc:16:1: Warning:
+    Module ‘Foreign’ does not export ‘unsafePerformIO’
+[18 of 32] Compiling OpenSSL.EVP.Seal ( dist/dist-sandbox-573d37a5/build/OpenSSL/EVP/Seal.hs, dist/dist-sandbox-573d37a5/build/OpenSSL/EVP/Seal.o )
+[19 of 32] Compiling OpenSSL.EVP.Sign ( dist/dist-sandbox-573d37a5/build/OpenSSL/EVP/Sign.hs, dist/dist-sandbox-573d37a5/build/OpenSSL/EVP/Sign.o )
+[20 of 32] Compiling OpenSSL.EVP.Verify ( dist/dist-sandbox-573d37a5/build/OpenSSL/EVP/Verify.hs, dist/dist-sandbox-573d37a5/build/OpenSSL/EVP/Verify.o )
+[21 of 32] Compiling OpenSSL.DH       ( OpenSSL/DH.hs, dist/dist-sandbox-573d37a5/build/OpenSSL/DH.o )
+[22 of 32] Compiling OpenSSL.ASN1     ( dist/dist-sandbox-573d37a5/build/OpenSSL/ASN1.hs, dist/dist-sandbox-573d37a5/build/OpenSSL/ASN1.o )
+[23 of 32] Compiling OpenSSL.X509.Name ( dist/dist-sandbox-573d37a5/build/OpenSSL/X509/Name.hs, dist/dist-sandbox-573d37a5/build/OpenSSL/X509/Name.o )
+[24 of 32] Compiling OpenSSL.X509     ( OpenSSL/X509.hs, dist/dist-sandbox-573d37a5/build/OpenSSL/X509.o )
+[25 of 32] Compiling OpenSSL.X509.Request ( dist/dist-sandbox-573d37a5/build/OpenSSL/X509/Request.hs, dist/dist-sandbox-573d37a5/build/OpenSSL/X509/Request.o )
+[26 of 32] Compiling OpenSSL.X509.Revocation ( dist/dist-sandbox-573d37a5/build/OpenSSL/X509/Revocation.hs, dist/dist-sandbox-573d37a5/build/OpenSSL/X509/Revocation.o )
+[27 of 32] Compiling OpenSSL.X509.Store ( dist/dist-sandbox-573d37a5/build/OpenSSL/X509/Store.hs, dist/dist-sandbox-573d37a5/build/OpenSSL/X509/Store.o )
+[28 of 32] Compiling OpenSSL.PKCS7    ( dist/dist-sandbox-573d37a5/build/OpenSSL/PKCS7.hs, dist/dist-sandbox-573d37a5/build/OpenSSL/PKCS7.o )
+[29 of 32] Compiling OpenSSL.PEM      ( dist/dist-sandbox-573d37a5/build/OpenSSL/PEM.hs, dist/dist-sandbox-573d37a5/build/OpenSSL/PEM.o )
+[30 of 32] Compiling OpenSSL.Session  ( dist/dist-sandbox-573d37a5/build/OpenSSL/Session.hs, dist/dist-sandbox-573d37a5/build/OpenSSL/Session.o )
+
+OpenSSL/Session.hsc:122:3: Warning:
+    In the use of ‘addMVarFinalizer’
+    (imported from Control.Concurrent.MVar):
+    Deprecated: "use 'mkWeakMVar' instead"
+
+OpenSSL/Session.hsc:315:5: Warning:
+    In the use of ‘addMVarFinalizer’
+    (imported from Control.Concurrent.MVar):
+    Deprecated: "use 'mkWeakMVar' instead"
+[31 of 32] Compiling OpenSSL.SSL      ( dist/dist-sandbox-573d37a5/build/OpenSSL/SSL.hs, dist/dist-sandbox-573d37a5/build/OpenSSL/SSL.o )
+[32 of 32] Compiling OpenSSL          ( dist/dist-sandbox-573d37a5/build/OpenSSL.hs, dist/dist-sandbox-573d37a5/build/OpenSSL.o )
+In-place registering HsOpenSSL-0.11...
+Creating package registration file: /tmp/pkgConf-HsOpenSSL-012743.11
+Installing library in
+/home/armored/protoLocal/protocol/tpm/mainline/.cabal-sandbox/lib/x86_64-linux-ghc-7.8.2/HsOpenSSL-0.11
+Registering HsOpenSSL-0.11...

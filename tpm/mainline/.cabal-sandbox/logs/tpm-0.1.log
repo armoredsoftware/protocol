@@ -1,0 +1,78 @@
+Configuring tpm-0.1...
+Building tpm-0.1...
+Preprocessing executable 'tpmi' for tpm-0.1...
+
+shell/Shell/Commands/Storage.hs:1:12: Warning:
+    -fglasgow-exts is deprecated: Use individual extensions instead
+
+shell/Shell/Commands/Key.hs:1:12: Warning:
+    -fglasgow-exts is deprecated: Use individual extensions instead
+
+shell/Shell/Commands/Capability.hs:1:12: Warning:
+    -fglasgow-exts is deprecated: Use individual extensions instead
+
+shell/Shell/Commands/Session.hs:1:12: Warning:
+    -fglasgow-exts is deprecated: Use individual extensions instead
+
+shell/Shell/Commands/Admin.hs:1:12: Warning:
+    -fglasgow-exts is deprecated: Use individual extensions instead
+
+shell/Shell/Commands/PCR.hs:1:12: Warning:
+    -fglasgow-exts is deprecated: Use individual extensions instead
+[ 1 of 32] Compiling TPM.Const        ( src/TPM/Const.hs, dist/dist-sandbox-573d37a5/build/tpmi/tpmi-tmp/TPM/Const.o )
+[ 2 of 32] Compiling TPM.Error        ( src/TPM/Error.hs, dist/dist-sandbox-573d37a5/build/tpmi/tpmi-tmp/TPM/Error.o )
+[ 3 of 32] Compiling TPM.Utils        ( src/TPM/Utils.hs, dist/dist-sandbox-573d37a5/build/tpmi/tpmi-tmp/TPM/Utils.o )
+
+src/TPM/Utils.hs:83:31: Warning:
+    In the use of ‘bitSize’ (imported from Data.Bits):
+    Deprecated: "Use 'bitSizeMaybe' or 'finiteBitSize' instead"
+[ 4 of 32] Compiling TPM.Driver       ( src/TPM/Driver.hs, dist/dist-sandbox-573d37a5/build/tpmi/tpmi-tmp/TPM/Driver.o )
+[ 5 of 32] Compiling TPM.Driver.Socket ( src/TPM/Driver/Socket.hs, dist/dist-sandbox-573d37a5/build/tpmi/tpmi-tmp/TPM/Driver/Socket.o )
+[ 6 of 32] Compiling TPM.Types        ( src/TPM/Types.hs, dist/dist-sandbox-573d37a5/build/tpmi/tpmi-tmp/TPM/Types.o )
+[ 7 of 32] Compiling TPM.Nonce        ( src/TPM/Nonce.hs, dist/dist-sandbox-573d37a5/build/tpmi/tpmi-tmp/TPM/Nonce.o )
+[ 8 of 32] Compiling TPM.Key          ( src/TPM/Key.hs, dist/dist-sandbox-573d37a5/build/tpmi/tpmi-tmp/TPM/Key.o )
+[ 9 of 32] Compiling TPM.Digest       ( src/TPM/Digest.hs, dist/dist-sandbox-573d37a5/build/tpmi/tpmi-tmp/TPM/Digest.o )
+[10 of 32] Compiling TPM.PCR          ( src/TPM/PCR.hs, dist/dist-sandbox-573d37a5/build/tpmi/tpmi-tmp/TPM/PCR.o )
+[11 of 32] Compiling TPM.Session      ( src/TPM/Session.hs, dist/dist-sandbox-573d37a5/build/tpmi/tpmi-tmp/TPM/Session.o )
+[12 of 32] Compiling TPM.Cipher       ( src/TPM/Cipher.hs, dist/dist-sandbox-573d37a5/build/tpmi/tpmi-tmp/TPM/Cipher.o )
+[13 of 32] Compiling TPM.Storage      ( src/TPM/Storage.hs, dist/dist-sandbox-573d37a5/build/tpmi/tpmi-tmp/TPM/Storage.o )
+[14 of 32] Compiling TPM.Eviction     ( src/TPM/Eviction.hs, dist/dist-sandbox-573d37a5/build/tpmi/tpmi-tmp/TPM/Eviction.o )
+[15 of 32] Compiling TPM.Capability   ( src/TPM/Capability.hs, dist/dist-sandbox-573d37a5/build/tpmi/tpmi-tmp/TPM/Capability.o )
+[16 of 32] Compiling TPM.SignTest     ( src/TPM/SignTest.hs, dist/dist-sandbox-573d37a5/build/tpmi/tpmi-tmp/TPM/SignTest.o )
+[17 of 32] Compiling TPM.Admin        ( src/TPM/Admin.hs, dist/dist-sandbox-573d37a5/build/tpmi/tpmi-tmp/TPM/Admin.o )
+[18 of 32] Compiling TPM              ( src/TPM.hs, dist/dist-sandbox-573d37a5/build/tpmi/tpmi-tmp/TPM.o )
+[19 of 32] Compiling Plugins.API      ( api/Plugins/API.hs, dist/dist-sandbox-573d37a5/build/tpmi/tpmi-tmp/Plugins/API.o )
+[20 of 32] Compiling Shell.Commands.Admin ( shell/Shell/Commands/Admin.hs, dist/dist-sandbox-573d37a5/build/tpmi/tpmi-tmp/Shell/Commands/Admin.o )
+[21 of 32] Compiling Shell.Commands.Session ( shell/Shell/Commands/Session.hs, dist/dist-sandbox-573d37a5/build/tpmi/tpmi-tmp/Shell/Commands/Session.o )
+[22 of 32] Compiling Shell.Commands.Storage ( shell/Shell/Commands/Storage.hs, dist/dist-sandbox-573d37a5/build/tpmi/tpmi-tmp/Shell/Commands/Storage.o )
+[23 of 32] Compiling Shell.Commands.PCR ( shell/Shell/Commands/PCR.hs, dist/dist-sandbox-573d37a5/build/tpmi/tpmi-tmp/Shell/Commands/PCR.o )
+[24 of 32] Compiling Shell.Commands.Capability ( shell/Shell/Commands/Capability.hs, dist/dist-sandbox-573d37a5/build/tpmi/tpmi-tmp/Shell/Commands/Capability.o )
+[25 of 32] Compiling Shell.Commands.Key ( shell/Shell/Commands/Key.hs, dist/dist-sandbox-573d37a5/build/tpmi/tpmi-tmp/Shell/Commands/Key.o )
+[26 of 32] Compiling Demo3.Demo3Shared ( demo3/Demo3/Demo3Shared.hs, dist/dist-sandbox-573d37a5/build/tpmi/tpmi-tmp/Demo3/Demo3Shared.o )
+[27 of 32] Compiling Demo3.Appraiser  ( demo3/Demo3/Appraiser.hs, dist/dist-sandbox-573d37a5/build/tpmi/tpmi-tmp/Demo3/Appraiser.o )
+[28 of 32] Compiling Demo3.Attestation ( demo3/Demo3/Attestation.hs, dist/dist-sandbox-573d37a5/build/tpmi/tpmi-tmp/Demo3/Attestation.o )
+[29 of 32] Compiling Demo3.Measurer   ( demo3/Demo3/Measurer.hs, dist/dist-sandbox-573d37a5/build/tpmi/tpmi-tmp/Demo3/Measurer.o )
+[30 of 32] Compiling Demo3            ( demo3/Demo3.hs, dist/dist-sandbox-573d37a5/build/tpmi/tpmi-tmp/Demo3.o )
+[31 of 32] Compiling Paths_tpm        ( dist/dist-sandbox-573d37a5/build/autogen/Paths_tpm.hs, dist/dist-sandbox-573d37a5/build/tpmi/tpmi-tmp/Paths_tpm.o )
+[32 of 32] Compiling Main             ( shell/Main.hs, dist/dist-sandbox-573d37a5/build/tpmi/tpmi-tmp/Main.o )
+
+shell/Shell/Commands/Storage.hs:1:12: Warning:
+    -fglasgow-exts is deprecated: Use individual extensions instead
+
+shell/Shell/Commands/Key.hs:1:12: Warning:
+    -fglasgow-exts is deprecated: Use individual extensions instead
+
+shell/Shell/Commands/Capability.hs:1:12: Warning:
+    -fglasgow-exts is deprecated: Use individual extensions instead
+
+shell/Shell/Commands/Session.hs:1:12: Warning:
+    -fglasgow-exts is deprecated: Use individual extensions instead
+
+shell/Shell/Commands/Admin.hs:1:12: Warning:
+    -fglasgow-exts is deprecated: Use individual extensions instead
+
+shell/Shell/Commands/PCR.hs:1:12: Warning:
+    -fglasgow-exts is deprecated: Use individual extensions instead
+Linking dist/dist-sandbox-573d37a5/build/tpmi/tpmi ...
+Installing executable(s) in
+/home/armored/protoLocal/protocol/tpm/mainline/.cabal-sandbox/bin
