@@ -28,7 +28,6 @@ mkResponse (desiredE, pcrSelect, nonce) = do
   sShn <- tpm_session_oiap tpm
   oShn <- tpm_session_osap tpm oPass kty ownerHandle
   identKey <- tpm_makeidentity tpm sShn oShn key sPass oPass iPass
-  --makeIdentity(get key handle, maybe use sepearte function to build and load)
   --let evPack = signEvidence eList nonce --concat and hash elist and nonce, then sign that blob with AIK(using tpm_sign)
   --quote = mkSignedTPMQuote desiredPCRs nonce --tpm_quote
       -- hash = doHash $ ePack eList nonce --replace w/ 3 lines above
