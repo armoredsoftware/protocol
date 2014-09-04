@@ -95,7 +95,7 @@ instance Show EvidenceDescriptor where
 
 --Response
 type Response = (EvidencePackage, Quote)
-type EvidencePackage = (Evidence, TPM_NONCE)
+type EvidencePackage = (Evidence, TPM_NONCE, Signature)
 type Evidence = [EvidencePiece]
 
 
