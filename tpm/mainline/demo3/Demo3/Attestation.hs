@@ -6,6 +6,8 @@ import TPM
 import VChanUtil
 import Demo3.Demo3Shared
 
+import Data.Binary
+
 --withOpenSSL 
 
 --tpm_flushspecific tpm handle tpm_rt_key   (use to clean up-unload key)
@@ -23,6 +25,9 @@ mkResponse (desiredE, pcrSelect, nonce) = do
   --measurerID <- measurePrompt
   chan <- client_init meaId
   eList <- mapM (getEvidencePiece chan) desiredE
+  sShn <- tpm_session_oiap tpm
+  oShn <- tpm_session_osap tpm oPass kty ownerHandle
+  identKey <- tpm_makeidentity tpm sShn oShn key sPass oPass iPass
   --makeIdentity(get key handle, maybe use sepearte function to build and load)
   --let evPack = signEvidence eList nonce --concat and hash elist and nonce, then sign that blob with AIK(using tpm_sign)
   --quote = mkSignedTPMQuote desiredPCRs nonce --tpm_quote
@@ -31,6 +36,13 @@ mkResponse (desiredE, pcrSelect, nonce) = do
         
   --return (evPack, quoPack)  
   return (undefined, undefined)
+
+ where key = tpm_key_create_identity tpm_auth_priv_use_only
+       kty = tpm_et_xor_owner
+       ownerHandle = (0x40000001 :: Word32)
+       oPass = tpm_digest_pass ownerPass
+       sPass = tpm_digest_pass srkPass
+       iPass = tpm_digest_pass "i"
   
   
   

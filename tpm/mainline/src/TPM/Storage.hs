@@ -182,8 +182,25 @@ tpm_makeidentity tpm (OIAP sah sen) (OSAP oah oosn oen oesn oscr) key
        oath on = tpm_auth_hmac oscr oen on 0 $
                                concat [ encode cod, encode kah, encode privCA,
                                         encode key]
+                                
+tpm_sign :: TPM tpm => tpm -> Session -> TPM_KEY_HANDLE 
+                                           -> TPM_DIGEST -> ByteString -> IO ByteString
+tpm_sign tpm (OIAP ah en) key pass ud = do
+  on <- nonce_create
+  (rtag,size,resl,dat) <- tpm_transmit' tpm tag cod (dat on)
+  let (size,dat') = splitAt 4 dat
+  let size' = ((decode size) :: UINT32)
+  let (sig,_) = splitAt (fromIntegral size') dat'
+  return sig
+  
+
+ where tag = tpm_tag_rqu_auth1_command
+       cod = tpm_ord_sign
+       dat on = concat [ encode key, encode datL, ud, ah, encode on, encode False,                                 encode(ath on) ]
+       ath on = tpm_auth_hmac pass en on 0 $ concat [encode cod, encode datL, 
+                                                                              ud]
+       datL = ((fromIntegral $ length ud) :: UINT32)
        
-                         
 
 
 

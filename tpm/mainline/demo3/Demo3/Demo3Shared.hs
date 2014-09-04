@@ -28,6 +28,14 @@ attId = 3
 meaId :: Int
 meaId = 3
 
+ownerPass :: String
+ownerPass = "adam"
+
+srkPass :: String
+srkPass = ""
+
+
+
 
 data Shared = Appraisal Request
               | Attestation Response
