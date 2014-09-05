@@ -123,8 +123,10 @@ shell tpm = do
                     , historyFile = hist
                     }
 
-main = withOpenSSL $ do 
+
+
+main = testFun {- withOpenSSL $ do 
     let tpm = tpm_socket "/var/run/tpm/tpmd_socket:0"
     shell' <- shell tpm
     runShell shell'
-    return ()
+    return () -}

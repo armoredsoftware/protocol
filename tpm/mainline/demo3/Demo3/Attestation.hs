@@ -10,7 +10,7 @@ import Data.Binary
 import Data.ByteString.Lazy(ByteString, append, empty)
 import Data.Digest.Pure.SHA (bytestringDigest, sha1)
 
-
+import OpenSSL (withOpenSSL)
 --withOpenSSL 
 
 --tpm_flushspecific tpm handle tpm_rt_key   (use to clean up-unload key)
@@ -22,6 +22,29 @@ attMain = do
   resp <- mkResponse req
   return ()
   
+  
+testFun :: IO ()
+testFun = withOpenSSL $ do 
+  putStrLn "start of testFun!"
+  (pubkey, _) <- tpm_key_pubek tpm
+  tkShn <- tpm_session_oiap tpm
+  tpm_takeownership tpm tkShn pubkey oPass sPass
+  tpm_session_close tpm tkShn
+  sShn <- tpm_session_oiap tpm
+  oShn <- tpm_session_osap tpm oPass kty ownerHandle
+  putStrLn "here"
+  identKey <- tpm_makeidentity tpm sShn oShn key sPass oPass iPass
+  putStrLn (show identKey) 
+  tpm_session_close tpm sShn --Check True val here!!(use clo?)
+  tpm_session_close tpm oShn
+  putStrLn "testFun completed"
+  return ()
+ where key = tpm_key_create_identity tpm_auth_priv_use_only
+       kty = tpm_et_xor_owner
+       ownerHandle = (0x40000001 :: Word32)
+       oPass = tpm_digest_pass ownerPass
+       sPass = tpm_digest_pass srkPass
+       iPass = tpm_digest_pass "i"
   
 mkResponse :: Request -> IO Response
 mkResponse (desiredE, pcrSelect, nonce) = do
