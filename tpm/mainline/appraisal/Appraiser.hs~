@@ -1,24 +1,27 @@
 {-# LANGUAGE ScopedTypeVariables #-}
 
-module Demo3.Appraiser where
+module Appraiser where
 
 import TPM
 import VChanUtil
-import Demo3.Demo3Shared 
+import Demo3Shared 
 
 import Data.Word
 
 --withOpenSSL
 
-main' :: IO ()
-main' = do 
+{-
+main :: IO ()
+main = do {-do 
   (pcrSelect, nonce) <- mkTPMRequest ([0..23]::[Word8])
   let mReq = mkMeasureReq [0..2]
       req = (mReq, pcrSelect, nonce)
   chan <- sendRequest req
   response <- receiveResponse chan
-  --TODO:  Evaluation
-  return ()
+  --TODO:  Evaluation -}
+  putStrLn "main of Appraiser"
+  return () 
+-}
           
 
 

@@ -1,4 +1,4 @@
-module Demo3.Demo3Shared where
+module Demo3Shared where
 
 import TPM
 import Data.Binary
@@ -20,10 +20,10 @@ tpm :: TPMSocket
 tpm = tpm_socket "/var/run/tpm/tpmd_socket:0"
 
 appId :: Int
-appId = 3
+appId = 20
 
 attId :: Int
-attId = 3
+attId = 19
 
 meaId :: Int
 meaId = 3

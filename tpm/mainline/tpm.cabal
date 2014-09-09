@@ -9,8 +9,8 @@ Cabal-Version:          >= 1.2
 
 Build-type:             Simple
 
-executable              tpmi
-  hs-source-dirs:       api, shell, src, demo3
+executable              Project
+  hs-source-dirs:       api, shell, src, shared, project, appraisal, attestation, measurer
   build-depends:        base >= 4,
                         shell >= 1.0,
                         mtl,
@@ -29,3 +29,69 @@ executable              tpmi
                         VChanUtil
   Main-is:              Main.hs
   ghc-options:          -O
+
+
+executable              Attestation
+  hs-source-dirs:       api, shell, src, shared, attestation
+  build-depends:        base >= 4,
+                        shell >= 1.0,
+                        mtl,
+                        directory,
+                        containers,
+                        bytestring,
+                        binary,
+                        network,
+                        random,
+                        --network-bytestring,
+                        HsOpenSSL,
+                        SHA,
+                        RSA,
+                        parsec >= 3,
+                        filepath,
+                        VChanUtil
+  Main-is:              AttestationMain.hs
+  ghc-options:          -O
+
+executable              Appraiser
+  hs-source-dirs:       api, shell, src, shared, appraisal
+  build-depends:        base >= 4,
+                        shell >= 1.0,
+                        mtl,
+                        directory,
+                        containers,
+                        bytestring,
+                        binary,
+                        network,
+                        random,
+                        --network-bytestring,
+                        HsOpenSSL,
+                        SHA,
+                        RSA,
+                        parsec >= 3,
+                        filepath,
+                        VChanUtil
+  Main-is:              AppraiserMain.hs
+  ghc-options:          -O
+
+executable              Measurer
+  hs-source-dirs:       api, shell, src, shared, measurer
+  build-depends:        base >= 4,
+                        shell >= 1.0,
+                        mtl,
+                        directory,
+                        containers,
+                        bytestring,
+                        binary,
+                        network,
+                        random,
+                        --network-bytestring,
+                        HsOpenSSL,
+                        SHA,
+                        RSA,
+                        parsec >= 3,
+                        filepath,
+                        VChanUtil
+  Main-is:              MeasurerMain.hs
+  ghc-options:          -O
+
+

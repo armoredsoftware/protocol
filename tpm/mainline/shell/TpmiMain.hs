@@ -24,7 +24,10 @@ import Control.Exception (tryJust, catch, IOException, SomeException)
 import TPM
 import OpenSSL (withOpenSSL)
 import OpenSSL.EVP.Cipher
-import Demo3
+import Appraiser
+import Attestation
+import Measurer
+--import Demo3
 
 cmd_log :: (TPM t) => ShellCmd (State t)
 cmd_log = ShellCmd ["log", "l"]
@@ -125,8 +128,8 @@ shell tpm = do
 
 
 
-main = testFun {- withOpenSSL $ do 
+main = withOpenSSL $ do 
     let tpm = tpm_socket "/var/run/tpm/tpmd_socket:0"
     shell' <- shell tpm
     runShell shell'
-    return () -}
+    return () 

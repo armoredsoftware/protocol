@@ -11,6 +11,7 @@ import TPM.Utils
 import TPM.Digest
 import TPM.Cipher
 import TPM.PCR
+import TPM.Key
 import Data.Word
 import Data.Bits(rotate, (.&.), bit)
 import Data.Char(ord)
@@ -183,6 +184,17 @@ tpm_makeidentity tpm (OIAP sah sen) (OSAP oah oosn oen oesn oscr) key
                                concat [ encode cod, encode kah, encode privCA,
                                         encode key]
                                 
+
+tpm_make_signing :: TPM tpm => tpm -> Session -> TPM_KEY_HANDLE 
+                                                   -> TPM_DIGEST -> IO TPM_KEY
+tpm_make_signing tpm shn pHandle pass = do 
+  key' <- tpm_createwrapkey tpm shn pHandle pass pass key
+  return key'
+
+ where key = tpm_key_create_signing tpm_auth_always
+
+
+
 
 tpm_sign :: TPM tpm => tpm -> Session -> TPM_KEY_HANDLE 
                                            -> TPM_DIGEST -> ByteString -> IO ByteString
