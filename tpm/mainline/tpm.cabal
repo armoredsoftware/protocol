@@ -10,7 +10,7 @@ Cabal-Version:          >= 1.2
 Build-type:             Simple
 
 executable              Project
-  hs-source-dirs:       api, shell, src, shared, project, appraisal, attestation, measurer
+  hs-source-dirs:       api, shell, src, shared, project, appraisal, attestation, measurer, provisioning
   build-depends:        base >= 4,
                         shell >= 1.0,
                         mtl,
@@ -53,7 +53,7 @@ executable              Attestation
   ghc-options:          -O
 
 executable              Appraiser
-  hs-source-dirs:       api, shell, src, shared, appraisal
+  hs-source-dirs:       api, shell, src, shared, appraisal, provisioning
   build-depends:        base >= 4,
                         shell >= 1.0,
                         mtl,
@@ -93,5 +93,27 @@ executable              Measurer
                         VChanUtil
   Main-is:              MeasurerMain.hs
   ghc-options:          -O
+
+executable              Provisioning
+  hs-source-dirs:       api, shell, src, shared, provisioning
+  build-depends:        base >= 4,
+                        shell >= 1.0,
+                        mtl,
+                        directory,
+                        containers,
+                        bytestring,
+                        binary,
+                        network,
+                        random,
+                        --network-bytestring,
+                        HsOpenSSL,
+                        SHA,
+                        RSA,
+                        parsec >= 3,
+                        filepath,
+                        VChanUtil
+  Main-is:              ProvisioningMain.hs
+  ghc-options:          -O
+
 
 

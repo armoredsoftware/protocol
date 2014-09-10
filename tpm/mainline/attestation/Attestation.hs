@@ -90,6 +90,7 @@ attGetPubKey :: TPM_KEY_HANDLE -> IO TPM_PUBKEY
 attGetPubKey handle = do
   shn <- tpm_session_oiap tpm
   pubKey <- tpm_getpubkey tpm shn handle sigPass
+  tpm_session_close tpm shn
   return pubKey
 
  where sigPass = tpm_digest_pass "s"
@@ -123,8 +124,8 @@ createAndLoadKey = do
 mkResponse :: Request -> TPM_KEY_HANDLE -> IO Response
 mkResponse (desiredE, pcrSelect, nonce) sKeyHandle = do
   --measurerID <- measurePrompt
-  --chan <- client_init meaId
-  let eList = [] --eList <- mapM (getEvidencePiece chan) desiredE
+  chan <- client_init meaId
+  eList <- mapM (getEvidencePiece chan) desiredE
   --TODO: split these next two into getIdentitySession
   {-sShn <- tpm_session_oiap tpm
   oShn <- tpm_session_osap tpm oPass oKty ownerHandle

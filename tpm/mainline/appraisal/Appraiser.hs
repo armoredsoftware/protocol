@@ -5,12 +5,15 @@ module Appraiser where
 import TPM
 import VChanUtil
 import Demo3Shared 
+import Provisioning
 
 import Data.Word
 import Data.Binary
 import Codec.Crypto.RSA
 import Data.ByteString.Lazy (ByteString, pack, append, empty, cons)
 import Data.Bits
+import Control.Monad
+import Data.Digest.Pure.SHA (bytestringDigest, sha1)
 import qualified Data.Map.Lazy as M (fromList, lookup, empty)
 
 --withOpenSSL
@@ -95,24 +98,25 @@ receiveResponse chan =  do
 
 --EVALUATION-------------------------------------
 
-evaluate :: Request -> Response -> PublicKey -> Demo3EvalResult
+evaluate :: Request -> Response -> PublicKey -> IO Demo3EvalResult
 evaluate (d, pcrSelect, nonce) 
-  ( (eList, eNonce, eSig), tpmQuote@(pcrComposite, qSig) ) pubKey = 
+  ( (eList, eNonce, eSig), tpmQuote@(pcrComposite, qSig) ) pubKey = do
   let blobEvidence :: ByteString
       blobEvidence = encode (ePack eList eNonce)
+      evBlobSha1 =  bytestringDigest $ sha1 blobEvidence
       
       quoteInfo :: TPM_QUOTE_INFO
-      quoteInfo = TPM_QUOTE_INFO (tpm_pcr_composite_hash $ pcrComposite)                                                        nonce 
+      quoteInfo = TPM_QUOTE_INFO (tpm_pcr_composite_hash $ pcrComposite)                                                        (TPM_NONCE evBlobSha1) 
       blobQuote :: ByteString
       blobQuote = encode quoteInfo
       
       r1 = rsassa_pkcs1_v1_5_verify ha_SHA1 pubKey blobEvidence eSig
       r2 = rsassa_pkcs1_v1_5_verify ha_SHA1 pubKey blobQuote qSig
       r3 = nonce == eNonce
-      r4 = pcrComposite == goldenPcrComposite
+  goldenPcrComposite <- readComp
+  let r4 = pcrComposite == goldenPcrComposite
       ms = evaluateEvidence d eList 
-  in
-  (r1, r2, r3, r4, ms)
+  return (r1, r2, r3, r4, ms)
                                                                     {-
   let pcrs' = pcrSelect tReq
       tpmBlob = tPack (pcrsIn, qNonce)
@@ -131,7 +135,43 @@ evaluate (d, pcrSelect, nonce)
 
 
 
+
+
+
+
 type Demo3EvalResult = (Bool, Bool, Bool, Bool, [MeasureEval])
+
+
+showDemo3EvalResult :: Demo3EvalResult -> IO ()
+showDemo3EvalResult (r1, r2, r3, r4, ms) = 
+  let rs = [r1, r2, r3, r4] in do
+    zipWithM_ f evalStrings rs
+    mapM_ g ms
+       
+ where 
+   f :: String -> Bool -> IO ()
+   f s b = putStrLn $ s ++ show b
+   
+   g :: MeasureEval -> IO ()
+   g (d, b) = putStrLn $ show d ++ ": " ++ show b
+
+
+evalStrings :: [String]
+evalStrings = [e1, e2, e3, e4]
+
+e1 :: String
+e1 = "Evidence Package Signature: "
+e2 :: String
+e2 = "Quote Package Signature: "  
+e3 :: String
+e3 = "Nonce: "  
+e4 :: String
+e4 = "PCR values: "
+
+
+
+
+
 
 
 type MeasureEval = (EvidenceDescriptor, Bool) 
@@ -171,8 +211,10 @@ expectedM1Val = cons (bit 0) empty
 expectedM2Val :: M2Rep
 expectedM2Val = cons (bit 2) empty
 
+{-
 goldenPcrComposite :: TPM_PCR_COMPOSITE
 goldenPcrComposite = undefined
+-}
 
 --Error messages(only for debugging, at least for now)
 quoteReceiveError :: String

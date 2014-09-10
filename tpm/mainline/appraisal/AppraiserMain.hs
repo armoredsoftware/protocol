@@ -18,6 +18,8 @@ main = do
       req = (mReq, pcrSelect, nonce)
   sendRequest req chan
   response <- receiveResponse chan
+  result <- evaluate req response publicKey
+  showDemo3EvalResult result
   --TODO:  Evaluation -}
   putStrLn "END main of Appraiser"
   return () 
