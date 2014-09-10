@@ -26,7 +26,7 @@ attId :: Int
 attId = 19
 
 meaId :: Int
-meaId = 3
+meaId = 7
 
 ownerPass :: String
 ownerPass = "adam"

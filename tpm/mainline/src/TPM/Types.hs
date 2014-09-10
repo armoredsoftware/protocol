@@ -1,3 +1,5 @@
+{- {-# LANGUAGE FlexibleContexts, UndecidableInstances#-} -}
+
 module TPM.Types where
 import TPM.Utils
 import TPM.Const
@@ -231,10 +233,12 @@ instance Binary TPM_VERSION where
 -- TPM digest as defined by section 5.4 of the document:
 --  TPM Main: Part 2 - TPM Structures
 -------------------------------------------------------------------------------
-newtype TPM_DIGEST = TPM_DIGEST ByteString deriving (Eq, Read)
+newtype TPM_DIGEST = TPM_DIGEST ByteString deriving (Eq, Read, Show)
 
+{-
 instance Show TPM_DIGEST where
     show (TPM_DIGEST bs) = bshex bs
+-}
 
 instance Binary TPM_DIGEST where
     put (TPM_DIGEST bs) = putLazyByteString bs
@@ -648,10 +652,12 @@ data TPM_STANY_DATA = TPM_STANY_DATA {
 -- TPM pcr selection structure as defined by section 8.1 of the document:
 --  TPM Main: Part 2 - TPM Structures
 -------------------------------------------------------------------------------
-newtype TPM_PCR_SELECTION = TPM_PCR_SELECTION ByteString deriving (Eq, Read)
+newtype TPM_PCR_SELECTION = TPM_PCR_SELECTION ByteString deriving (Eq, Show, Read)
 
+{-
 instance Show TPM_PCR_SELECTION where
     show (TPM_PCR_SELECTION bs) = bshex bs
+-}
 
 instance Binary TPM_PCR_SELECTION where
     put (TPM_PCR_SELECTION bs) = do
