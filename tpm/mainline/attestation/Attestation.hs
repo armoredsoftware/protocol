@@ -28,6 +28,22 @@ main = do {-do
 -}
   
 
+receivePubKeyRequest :: LibXenVChan -> IO Bool
+receivePubKeyRequest chan = do
+  ctrlWait chan
+  b :: Bool <- receive chan
+  putStrLn $ "\n" ++ "Attester Received: " ++ "PubKey Request: " 
+                  ++ (show b) ++ "\n"
+  return b
+
+
+sendPubKeyResponse :: LibXenVChan -> TPM_PUBKEY -> IO ()
+sendPubKeyResponse chan pubKey = do
+  putStrLn $ "Attester Sending: " ++ show (pubKey) ++ "\n"
+  send chan pubKey
+  return () 
+
+
 
 takeInit :: IO ()
 takeInit = do 
@@ -69,18 +85,17 @@ testFun = withOpenSSL $ do
        iPass = tpm_digest_pass "i"
 -}
 
-mkResponse :: Request -> IO Response
-mkResponse (desiredE, pcrSelect, nonce) = do
-  --measurerID <- measurePrompt
-  --chan <- client_init meaId
-  let eList = [] --eList <- mapM (getEvidencePiece chan) desiredE
-  --TODO: split these next two into getIdentitySession
-  {-sShn <- tpm_session_oiap tpm
-  oShn <- tpm_session_osap tpm oPass oKty ownerHandle
-  identKey <- tpm_makeidentity tpm sShn oShn key sPass oPass iPass
-  tpm_session_close tpm sShn --Check True val here!!(use clo?)
-  tpm_session_close tpm oShn
-  -}
+
+attGetPubKey :: TPM_KEY_HANDLE -> IO TPM_PUBKEY
+attGetPubKey handle = do
+  shn <- tpm_session_oiap tpm
+  pubKey <- tpm_getpubkey tpm shn handle sigPass
+  return pubKey
+
+ where sigPass = tpm_digest_pass "s"
+
+createAndLoadKey :: IO TPM_KEY_HANDLE
+createAndLoadKey = do
   sigKeyShn <- tpm_session_osap tpm sPass kty tpm_kh_srk
   sigKey <- tpm_make_signing tpm sigKeyShn tpm_kh_srk sigPass
   
@@ -92,6 +107,45 @@ mkResponse (desiredE, pcrSelect, nonce) = do
   sKeyHandle <- tpm_loadkey2 tpm loadShn tpm_kh_srk sigKey sPass
   tpm_session_close tpm loadShn
   putStrLn "sigKey Loaded"
+  return sKeyHandle
+    
+ where key = tpm_key_create_identity tpm_auth_priv_use_only
+        --oKty = tpm_et_xor_owner
+       kty = tpm_et_xor_keyhandle
+       ownerHandle = (0x40000001 :: Word32)
+       --oPass = tpm_digest_pass ownerPass
+       sPass = tpm_digest_pass srkPass
+       --iPass = tpm_digest_pass "i"
+       sigPass = tpm_digest_pass "s"
+  
+
+
+mkResponse :: Request -> TPM_KEY_HANDLE -> IO Response
+mkResponse (desiredE, pcrSelect, nonce) sKeyHandle = do
+  --measurerID <- measurePrompt
+  --chan <- client_init meaId
+  let eList = [] --eList <- mapM (getEvidencePiece chan) desiredE
+  --TODO: split these next two into getIdentitySession
+  {-sShn <- tpm_session_oiap tpm
+  oShn <- tpm_session_osap tpm oPass oKty ownerHandle
+  identKey <- tpm_makeidentity tpm sShn oShn key sPass oPass iPass
+  tpm_session_close tpm sShn --Check True val here!!(use clo?)
+  tpm_session_close tpm oShn
+  -}
+      
+  {-    
+  sigKeyShn <- tpm_session_osap tpm sPass kty tpm_kh_srk
+  sigKey <- tpm_make_signing tpm sigKeyShn tpm_kh_srk sigPass
+  
+  tpm_session_close tpm sigKeyShn
+  putStrLn "sig TPM_KEY created"
+  
+  loadShn <- tpm_session_oiap tpm
+  --iKeyHandle <- tpm_loadkey2 tpm loadShn tpm_kh_srk identKey sPass
+  sKeyHandle <- tpm_loadkey2 tpm loadShn tpm_kh_srk sigKey sPass
+  tpm_session_close tpm loadShn
+  putStrLn "sigKey Loaded"
+-}
   
   let evBlob = ePack eList nonce --concat and hash elist and nonce, then sign that blob with AIK(using tpm_sign)
       evBlobSha1 = bytestringDigest $ sha1 evBlob
@@ -110,6 +164,8 @@ mkResponse (desiredE, pcrSelect, nonce) = do
   putStrLn "Quote generated"
   
   --return (evPack, quoPack)  
+  
+  --TODO:  EVICT SIGNING KEY HERE!!??
   putStrLn "End of MkResponse"
   return (evPack, quote)
 

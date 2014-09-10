@@ -1,6 +1,9 @@
 module Main where
 import Appraiser
 import VChanUtil
+import Demo3Shared
+
+
 import Data.Binary
 
 main :: IO ()

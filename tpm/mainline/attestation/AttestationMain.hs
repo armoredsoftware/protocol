@@ -10,9 +10,16 @@ main = do
   takeInit
   putStrLn "tpm ownership taken"
   chan <- server_init appId
-  req <- receiveRequest chan
-  resp <- mkResponse req
-  sendResponse chan resp
-  putStrLn "END main of Attestation"
-
-  return ()
+  
+  b <- receivePubKeyRequest chan
+  case b of 
+    True -> do 
+      sigKeyHandle <- createAndLoadKey
+      pubKey <- attGetPubKey sigKeyHandle
+      sendPubKeyResponse chan pubKey
+      req <- receiveRequest chan
+      resp <- mkResponse req sigKeyHandle
+      sendResponse chan resp
+      putStrLn "END main of Attestation"
+      return ()
+    False -> putStrLn "Could not recognize protocol" -- TODO:  Error handling

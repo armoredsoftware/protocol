@@ -7,6 +7,7 @@ import VChanUtil
 import Demo3Shared 
 
 import Data.Word
+import Codec.Crypto.RSA
 
 --withOpenSSL
 
@@ -23,6 +24,25 @@ main = do {-do
   return () 
 -}
           
+sendPubKeyRequest :: Bool -> IO LibXenVChan
+sendPubKeyRequest  b = do
+  --id <-getDomId
+  putStrLn $ "Appraiser Domain id: "++ show appId
+  --other <- prompt
+  chan <- client_init attId
+  putStrLn $ "\n" ++ "Appraiser Sending: "++ 
+                  "PubKey Request: " ++ (show b) ++ "\n"
+  send chan $ b
+  return chan
+
+receivePubKeyResponse :: LibXenVChan -> IO TPM_PUBKEY
+receivePubKeyResponse chan = do
+  ctrlWait chan
+  pubKey :: TPM_PUBKEY <- receive chan
+  putStrLn $ "\n" ++ "Appraiser Received: " ++ "Pubkey Response: " 
+                  ++ show pubKey ++ "\n"
+  return pubKey
+    --False ->  error quoteReceiveError --TODO: error handling?
 
 
 mkTPMRequest :: [Word8] -> IO (TPM_PCR_SELECTION, TPM_NONCE)
@@ -41,15 +61,15 @@ mkMeasureReq = map f
        f 2 = D2
        
        
-sendRequest :: Request -> IO LibXenVChan
-sendRequest req = do
+sendRequest :: Request -> LibXenVChan -> IO ()
+sendRequest req chan = do
   --id <-getDomId
   putStrLn $ "Appraiser Domain id: "++ show appId
   --other <- prompt
-  chan <- client_init attId
+  --chan <- client_init attId
   putStrLn $ "\n" ++ "Appraiser Sending: "++ show (Appraisal req) ++ "\n"
   send chan $ Appraisal req
-  return chan
+  return ()
   
 receiveResponse :: LibXenVChan -> IO Response
 receiveResponse chan =  do
