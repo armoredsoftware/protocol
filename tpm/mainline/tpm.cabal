@@ -30,6 +30,27 @@ executable              Project
   Main-is:              Main.hs
   ghc-options:          -O
 
+executable              tpmi
+  hs-source-dirs:       api, shell, src
+  build-depends:        base >= 4,
+                        shell >= 1.0,
+                        mtl,
+                        directory,
+                        containers,
+                        bytestring,
+                        binary,
+                        network,
+                        random,
+                        --network-bytestring,
+                        HsOpenSSL,
+                        SHA,
+                        RSA,
+                        parsec >= 3,
+                        filepath,
+                        VChanUtil
+  Main-is:              TpmiMain.hs
+  ghc-options:          -O
+
 
 executable              Attestation
   hs-source-dirs:       api, shell, src, shared, attestation

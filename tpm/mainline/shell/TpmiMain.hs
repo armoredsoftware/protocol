@@ -24,9 +24,9 @@ import Control.Exception (tryJust, catch, IOException, SomeException)
 import TPM
 import OpenSSL (withOpenSSL)
 import OpenSSL.EVP.Cipher
-import Appraiser
-import Attestation
-import Measurer
+--import Appraiser
+--import Attestation
+--import Measurer
 --import Demo3
 
 cmd_log :: (TPM t) => ShellCmd (State t)

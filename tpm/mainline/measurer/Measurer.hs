@@ -36,7 +36,7 @@ m0Val :: M0Rep
 m0Val = cons (bit 0) empty
 
 m1Val :: M1Rep
-m1Val = cons (bit 1) empty
+m1Val = cons (bit 0) empty
 
 m2Val :: M2Rep
 m2Val = cons (bit 2) empty

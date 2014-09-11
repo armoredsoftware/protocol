@@ -19,7 +19,7 @@ import Control.Exception
 import Prelude hiding (catch)
 import GHC
 import GHC.Paths ( libdir )
-import DynFlags ( defaultDynFlags, defaultFatalMessager )
+import DynFlags ( defaultDynFlags, defaultFatalMessager, defaultFlushOut )
 import Data.Typeable
 import GhcMonad
 
@@ -51,7 +51,7 @@ runShellCmd :: Typeable st => Shell st -> [String] -> IO ((),Shell st)
 runShellCmd sh cmd = runShellMonad (execShellCmd cmd) sh
 
 startShell :: Typeable st => StateT (Shell st) IO ()
-startShell = defaultErrorHandler defaultFatalMessager undefined $ do
+startShell = defaultErrorHandler defaultFatalMessager defaultFlushOut $ do
   runGhcT (Just libdir) $ do
     greet <- liftM greetMsg get
     hist  <- liftM historyFile get
@@ -66,7 +66,7 @@ startShell = defaultErrorHandler defaultFatalMessager undefined $ do
     where runInitCmds = liftM initCmds get >>= \c -> mapM_ process c
 
 execShellCmd :: Typeable st => [String] -> StateT (Shell st) IO ()
-execShellCmd cmd = defaultErrorHandler defaultFatalMessager undefined $ do
+execShellCmd cmd = defaultErrorHandler defaultFatalMessager defaultFlushOut $ do
   runGhcT (Just libdir) $ do
     shellLoadPlugins
     mapM_ process cmd

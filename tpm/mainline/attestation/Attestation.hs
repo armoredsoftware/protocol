@@ -148,13 +148,14 @@ mkResponse (desiredE, pcrSelect, nonce) sKeyHandle = do
   putStrLn "sigKey Loaded"
 -}
   
+  --badnonce <- nonce_create
   let evBlob = ePack eList nonce --concat and hash elist and nonce, then sign that blob with AIK(using tpm_sign)
       evBlobSha1 = bytestringDigest $ sha1 evBlob
   sigShn <- tpm_session_oiap tpm
   eSig <- tpm_sign tpm sigShn sKeyHandle sigPass evBlobSha1
   tpm_session_close tpm sigShn
   --putStrLn "evBlob signed"
-
+  
   let evPack = (eList, nonce, eSig)
   --quote = mkSignedTPMQuote desiredPCRs nonce --tpm_quote
       -- hash = doHash $ ePack eList nonce --replace w/ 3 lines above
