@@ -323,11 +323,13 @@ struct libxenvchan * txCtrl, char * msg, int size ) {
   int idx = 0;
   int n = 1;
 
+  /**
   printf("VCHAN C Sending: \n");  
   for (i=0; i < size; i++){
     printf("%c",msg[i]);
   }
   printf("\n");
+  **/
 
   //If this fails we need to change the header size to have more digits
   if ( size > 9999999){
@@ -630,7 +632,7 @@ char * readChunkedMessage(xentoollog_logger *xc_logger, struct libxenvchan *ctrl
      size = libxenvchan_read(ctrl,mesg,messageSize);
    }
      free(header);
-     printf("VCHAN C Receive\n");
+     /**printf("VCHAN C Receive\n");
      printf("Size Data: %d\n",messageSize);
 
      for (i = 0; i < messageSize; i++){
@@ -642,6 +644,7 @@ char * readChunkedMessage(xentoollog_logger *xc_logger, struct libxenvchan *ctrl
         printf("%2x ",mesg[i]);
      } 
      printf("\n");
+     **/
   return mesg;
 }
 

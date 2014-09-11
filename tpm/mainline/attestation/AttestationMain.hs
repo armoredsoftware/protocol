@@ -2,6 +2,7 @@ module Main where
 import Attestation
 import VChanUtil
 import Demo3Shared
+import TPM
 
 main :: IO ()
 main = do
