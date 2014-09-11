@@ -71,7 +71,7 @@ mkMeasureReq = map f
 sendRequest :: Request -> LibXenVChan -> IO ()
 sendRequest req chan = do
   --id <-getDomId
-  putStrLn $ "Appraiser Domain id: "++ show appId
+  --putStrLn $ "Appraiser Domain id: "++ show appId
   --other <- prompt
   --chan <- client_init attId
   putStrLn $ "\n" ++ "Appraiser Sending: "++ show (Appraisal req) ++ "\n"
@@ -102,7 +102,7 @@ evaluate :: Request -> Response -> PublicKey -> IO Demo3EvalResult
 evaluate (d, pcrSelect, nonce) 
   ( (eList, eNonce, eSig), tpmQuote@(pcrComposite, qSig) ) pubKey = do
   let blobEvidence :: ByteString
-      blobEvidence = encode (ePack eList eNonce)
+      blobEvidence = ePack eList eNonce
       evBlobSha1 =  bytestringDigest $ sha1 blobEvidence
       
       quoteInfo :: TPM_QUOTE_INFO

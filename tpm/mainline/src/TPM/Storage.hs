@@ -141,8 +141,8 @@ tpm_quote tpm shn@(OIAP ah en) key nonce pcrs pass = do
       (sig, rest2) = splitAt (fromIntegral sigSizeDecoded) dat'
       --sigDecoded = decode sig
   --putStrLn $ "Comp encoded length(in quote): " ++ (show $ length comp)
-  putStrLn $ "Sig length: " ++ (show $ length sig)    
-  putStrLn $ "Size of Output after sig: " ++ (show $ length rest2)
+  --putStrLn $ "Sig length: " ++ (show $ length sig)    
+  --putStrLn $ "Size of Output after sig: " ++ (show $ length rest2)
   
   return (newComp, sig )
   where tag = tpm_tag_rqu_auth1_command
@@ -204,8 +204,8 @@ tpm_sign tpm (OIAP ah en) key pass ud = do
   let (size,dat') = splitAt 4 dat
   let size' = ((decode size) :: UINT32)
   let (sig,rest) = splitAt (fromIntegral size') dat'
-  putStrLn $ "after sig length: " ++  (show $ fromIntegral $ {-Data.ByteString.Lazy.-}length rest)
-  putStrLn $ "rand length: " ++ (show datL)
+  --putStrLn $ "after sig length: " ++  (show $ fromIntegral $ {-Data.ByteString.Lazy.-}length rest)
+  --putStrLn $ "rand length: " ++ (show datL)
   return sig
   
 

@@ -101,13 +101,13 @@ createAndLoadKey = do
   sigKey <- tpm_make_signing tpm sigKeyShn tpm_kh_srk sigPass
   
   tpm_session_close tpm sigKeyShn
-  putStrLn "sig TPM_KEY created"
+  --putStrLn "sig TPM_KEY created"
   
   loadShn <- tpm_session_oiap tpm
   --iKeyHandle <- tpm_loadkey2 tpm loadShn tpm_kh_srk identKey sPass
   sKeyHandle <- tpm_loadkey2 tpm loadShn tpm_kh_srk sigKey sPass
   tpm_session_close tpm loadShn
-  putStrLn "sigKey Loaded"
+  --putStrLn "sigKey Loaded"
   return sKeyHandle
     
  where key = tpm_key_create_identity tpm_auth_priv_use_only
@@ -153,7 +153,7 @@ mkResponse (desiredE, pcrSelect, nonce) sKeyHandle = do
   sigShn <- tpm_session_oiap tpm
   eSig <- tpm_sign tpm sigShn sKeyHandle sigPass evBlobSha1
   tpm_session_close tpm sigShn
-  putStrLn "evBlob signed"
+  --putStrLn "evBlob signed"
 
   let evPack = (eList, nonce, eSig)
   --quote = mkSignedTPMQuote desiredPCRs nonce --tpm_quote
