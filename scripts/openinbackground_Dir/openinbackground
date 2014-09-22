@@ -48,7 +48,7 @@ set arg2 [lindex $argv 1]
 set timeout -1
 spawn $env(SHELL)
 match_max 100000
-expect -regexp ".*armored@compute.*\$"
+expect -regexp ".*\$"
 send -- "nohup $command1 $arg2\r"
 expect -regexp ".*nohup: ignoring input and appending output to .*\$"
 send "\x1A"
