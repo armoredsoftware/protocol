@@ -25,7 +25,7 @@ import System.IO
 import System.IO.Unsafe (unsafePerformIO)
 import qualified Data.Map.Lazy as M (fromList, lookup, empty)
 
-prompt:: IO (Int)
+prompt:: IO Int
 prompt= loop
       where loop = do putStrLn "Which Domain ID would you like to Appraise?"
                       input <- getLine
@@ -54,22 +54,31 @@ mkTPMRequest mask =
       (mask', (B.unpack (fst $ cprgGenerate 16 gen)) )
       
 mkMeasureReq :: [Int] -> DesiredEvidence
+<<<<<<< HEAD
 mkMeasureReq xs = DesiredEvidence (map f xs)
+=======
+mkMeasureReq = map f 
+>>>>>>> master
  where f :: Int -> EvidenceDescriptor
        f 0 = D0
        f 1 = D1
        f 2 = D2
 
-sendRequest :: Request -> IO (LibXenVChan)
+sendRequest :: Request -> IO LibXenVChan
 sendRequest req = do
   id <-getDomId
-  putStrLn $ "Appraiser Domain id: "++(show id)
+  putStrLn $ "Appraiser Domain id: "++ show id
   other <- prompt
   chan <- client_init other
+<<<<<<< HEAD
   putStrLn $ "\n" ++ "Appraiser Sending: "++(show $ req) ++ "\n"
   logger <- createLogger
   sendChunkedMessageByteString logger chan (LB.toStrict  (jsonEncode (RequestW req)))
   --send chan $ Appraisal req
+=======
+  putStrLn $ "\n" ++ "Appraiser Sending: "++ show (Appraisal req) ++ "\n"
+  send chan $ Appraisal req
+>>>>>>> master
   return chan
 
 receiveResponse :: LibXenVChan -> IO Response
@@ -80,10 +89,15 @@ receiveResponse chan =  do
   let res = Just ( getResponse ( fromJust ( (jsonDecode (LB.fromStrict bytes)) :: Maybe WrappedData)))
   --res :: Shared <- receive chan
   case res of 
+<<<<<<< HEAD
     Just response ->  do
       putStrLn $ "\n" ++ "Appraiser Received: " ++ (show res)++ "\n"
+=======
+    Attestation response ->  do
+      putStrLn $ "\n" ++ "Appraiser Received: " ++ show res ++ "\n"
+>>>>>>> master
       return response
-    otherwise ->  throw $ ErrorCall quoteReceiveError --TODO: error handling?
+    otherwise ->  error quoteReceiveError --TODO: error handling?
     
     
 -- Evaluation
@@ -92,6 +106,7 @@ type MeasureEval = (EvidenceDescriptor, Bool)
 type Demo2EvalResult = (Bool, Bool, Bool, Bool, Bool, Bool, Bool,[MeasureEval])
 
 evaluate :: Request -> Response -> Demo2EvalResult
+<<<<<<< HEAD
 evaluate request response = --(d, tReq, nonce) ((e, eNonce, eSig), (tpmQuote@((pcrsIn, qNonce), qSig), hashIn, qpSig))
   let pcrs' = pcrSelect (tpm_Request request)
       --quotePackage gets the quotepackage out of the response.
@@ -122,6 +137,27 @@ evaluate request response = --(d, tReq, nonce) ((e, eNonce, eSig), (tpmQuote@((p
                                             
 evaluateEvidence :: DesiredEvidence -> Evidence -> [MeasureEval]
 evaluateEvidence ds es = zipWith f (evidenceDescriptorList_DesiredEvidence ds) (evidencePieceList_Evidence es) 
+=======
+evaluate (d, tReq, nonce) 
+  ((e, eNonce, eSig), (tpmQuote@((pcrsIn, qNonce), qSig), hashIn, qpSig)) = 
+  let pcrs' = pcrSelect tReq
+      tpmBlob = tPack (pcrsIn, qNonce)
+      eBlob = ePack e eNonce
+      qBlob = qPack tpmQuote hashIn
+      r1 = verify md5 pub qBlob qpSig 
+      r2 = verify md5 pub eBlob eSig
+      r3 = verify md5 pub tpmBlob qSig 
+      r4 = pcrsIn == pcrs'
+      r5 = nonce == qNonce
+      r6 = doHash eBlob == hashIn
+      r7 = nonce == eNonce
+      ms =  evaluateEvidence d e in
+ (r1, r2, r3, r4, r5, r6, r7, ms)
+  
+                                            
+evaluateEvidence :: DesiredEvidence -> Evidence -> [MeasureEval]
+evaluateEvidence  = zipWith f 
+>>>>>>> master
  where 
    f :: EvidenceDescriptor -> EvidencePiece -> MeasureEval
    f ed ep = case ed of 
@@ -136,7 +172,7 @@ evaluateEvidence ds es = zipWith f (evidenceDescriptorList_DesiredEvidence ds) (
 check :: Int -> EvidencePiece -> Bool
 check id ep = let expected = M.lookup id goldenMap in
                           case expected of 
-                            Nothing -> throw $ ErrorCall (noGolden ++ show id)
+                            Nothing -> error (noGolden ++ show id)
                             Just goldEp -> goldEp == ep 
                          
                          
@@ -200,7 +236,7 @@ pcrsExpected = a --b
         a= map bit [0..7]
 
         b :: [PCR]
-        b = [(bit 3)] ++ (map bit [1..7])
+        b = bit 3 : map bit [1..7]
      
 
 pcrSelect :: TPMRequest -> [PCR]
@@ -225,10 +261,10 @@ apprKeysFileName :: String
 apprKeysFileName = "apprKeys.txt"
 
 getKeys :: (PrivateKey, PublicKey)
-getKeys = unsafePerformIO $ readKeys
+getKeys = unsafePerformIO readKeys
 
-getPriKey :: PrivateKey
-getPriKey = fst getKeys
+--getPriKey :: PrivateKey   --TODO:  Appraiser should not have access to pri key
+--getPriKey = fst getKeys
 
 getPubKey :: PublicKey
 getPubKey = snd getKeys

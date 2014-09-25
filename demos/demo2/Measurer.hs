@@ -18,7 +18,7 @@ import qualified Data.ByteString.Lazy as LB
 
 
 
-prompt:: IO (Int)
+prompt:: IO Int
 prompt= loop
       where loop = do putStrLn "Which Domain ID is the Attester?"
                       input <- getLine

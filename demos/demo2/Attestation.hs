@@ -25,7 +25,7 @@ import System.IO.Unsafe (unsafePerformIO)
 import Data.Maybe
 import qualified Data.Aeson as DA
 
-prompt:: IO (Int)
+prompt:: IO Int
 prompt= loop
       where loop = do putStrLn "Which Domain ID is the Appraiser?"
                       input <- getLine
@@ -35,7 +35,7 @@ prompt= loop
                                     loop
                                     
                                     
-measurePrompt :: IO (Int)
+measurePrompt :: IO Int
 measurePrompt = loop
       where loop = do putStrLn "Which Domain ID is the Measurer?"
                       input <- getLine
@@ -61,7 +61,6 @@ mkResponse r  = do
   chan <- client_init measurerID
   eList <- mapM (getEvidencePieceFromChan chan) (evidenceDescriptorList_DesiredEvidence
                                                         (desiredEvidence_Request r))
-  --close chan
   let nonce = nonce_Request r
       evPack = signEvidence (Evidence eList) nonce
       quote = mkSignedTPMQuote (tpm_Request r) nonce
@@ -93,9 +92,9 @@ receiveRequest chan = do
   --res :: Shared <- receive chan
   case res of
     Just req -> do
-      putStrLn $ "\n" ++ "Attester Received: " ++ (show res) ++ "\n"
+      putStrLn $ "\n" ++ "Attester Received: " ++ show res ++ "\n"
       return req
-    otherwise -> throw $ ErrorCall requestReceiveError
+    otherwise -> error requestReceiveError
       
 sendResponse :: LibXenVChan -> Response-> IO ()   
 sendResponse chan resp = do
@@ -108,14 +107,14 @@ sendResponse chan resp = do
 signQuote :: Quote -> Hash -> QuotePackage
 signQuote quote hash =
   case sign Nothing md5 pri res of
-         Left err -> throw . ErrorCall $ show err
+         Left err -> error $ show err
          Right signature -> QuotePackage quote hash (B.unpack signature)
  where res =  LB.toStrict $ (jsonEncode quote) `LB.append` (jsonEncode hash)
 
 signEvidence :: Evidence -> Nonce -> EvidencePackage
 signEvidence e n =
   case sign Nothing md5 pri res of
-         Left err -> throw . ErrorCall $ show err
+         Left err -> error $ show err
          Right signature -> EvidencePackage e n (B.unpack signature)
          
    where res = LB.toStrict $ (DA.encode e) `LB.append` (DA.encode n) --ePack e n
@@ -125,7 +124,7 @@ mkSignedTPMQuote mask nonce =
     let pcrs' = pcrSelect mask in
        -- quote = (pcrs', nonce) in
       case sign Nothing md5 pri $ LB.toStrict $ ((DA.encode pcrs') `LB.append` (DA.encode nonce)) of
-         Left err -> throw . ErrorCall $ show err
+         Left err -> error $ show err
          Right signature -> Quote pcrs' nonce (B.unpack signature) 
                  
                             
@@ -136,7 +135,7 @@ pcrsLocal = a --b
         a = map bit [0..7]
 
         b :: [PCR]
-        b = [(bit 3)] ++ (map bit [1..7])
+        b = bit 3 : map bit [1..7]
      
 
 pcrSelect :: TPMRequest -> [PCR]
@@ -156,7 +155,7 @@ attKeyFileName :: String
 attKeyFileName = "attKeys.txt"
 
 getKeys :: (PrivateKey, PublicKey)
-getKeys = unsafePerformIO $ readKeys
+getKeys = unsafePerformIO readKeys
 
 getPriKey :: PrivateKey
 getPriKey = fst getKeys
