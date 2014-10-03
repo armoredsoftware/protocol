@@ -168,7 +168,7 @@ mkResponse (desiredE, pcrSelect, nonce) sKeyHandle = do
   --return (evPack, quoPack)  
   
   --TODO:  EVICT SIGNING KEY HERE!!??
-  tpm_flushspecific tpm sKeyHandle tpm_rt_key
+  tpm_flushspecific tpm sKeyHandle tpm_rt_key  --Evict loaded key
   putStrLn "End of MkResponse"
   return (evPack, quote)
 
