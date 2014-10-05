@@ -45,34 +45,46 @@ sendPubKeyResponse chan pubKey = do
 
 
 
-takeInit :: IO ()
+takeInit :: IO TPM_PUBKEY
 takeInit = do 
-  hasOwner <- tpm_getcap_owner tpm
+  tpm_forceclear tpm
+  {-sOwner <- tpm_getcap_owner tpm
   when (hasOwner == False) $ do
-    (pubkey, _) <- tpm_key_pubek tpm
-    tkShn <- tpm_session_oiap tpm
-    tpm_takeownership tpm tkShn pubkey oPass sPass
-    tpm_session_close tpm tkShn
+-}
+  (pubkey, _) <- tpm_key_pubek tpm
+  tkShn <- tpm_session_oiap tpm
+  tpm_takeownership tpm tkShn pubkey oPass sPass
+  tpm_session_close tpm tkShn
+  return pubkey
  where oPass = tpm_digest_pass ownerPass
        sPass = tpm_digest_pass srkPass
        
-testA :: IO ()       
-testA = do
+testA :: TPM_PUBKEY -> IO ()
+testA ekPubKey = do
   iKeyHandle <- createAndLoadKey
+  putStrLn "After iKey Loaded"
   pubKeyShn <- tpm_session_oiap tpm
   iPubKey <- tpm_getpubkey tpm pubKeyShn iKeyHandle iPass
   tpm_session_close tpm pubKeyShn
+  putStrLn "After getting iPubKey"
+  
+
+  
+  
+  
   
   let iDigest = tpm_digest $ encode iPubKey
       asymContents = contents iDigest
       blob = encode asymContents
-      
+      encBlob =  tpm_rsa_pubencrypt ekPubKey blob
   
+  putStrLn $ "encblob: " ++ show encBlob
   iShn <- tpm_session_oiap tpm
   oShn <- tpm_session_oiap tpm
-  result <- tpm_activateidentity tpm iShn oShn iKeyHandle iPass oPass blob
+  putStrLn "Before activateID"
+  result <- tpm_activateidentity tpm iShn oShn iKeyHandle iPass oPass encBlob
   
-  putStrLn "After activateIdentity"
+  putStrLn "After activateID"
   putStrLn $ show result
   
   tpm_session_close tpm iShn
@@ -148,7 +160,7 @@ createAndLoadKey = do
   
   sShn <- tpm_session_oiap tpm
   oShn <- tpm_session_osap tpm oPass oKty ownerHandle
-  identKey <- tpm_makeidentity tpm sShn oShn key sPass oPass iPass
+  identKey <- tpm_makeidentity tpm sShn oShn key sPass iPass iPass
   tpm_session_close tpm sShn --Check True val here!!(use clo?)
   tpm_session_close tpm oShn
   
@@ -160,7 +172,7 @@ createAndLoadKey = do
   --return sKeyHandle
   return iKeyHandle
     
- where key = tpm_key_create_identity tpm_auth_priv_use_only
+ where key = tpm_key_create_identity tpm_auth_never
        oKty = tpm_et_xor_owner
        kty = tpm_et_xor_keyhandle
        ownerHandle = (0x40000001 :: Word32)

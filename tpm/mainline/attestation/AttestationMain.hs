@@ -7,9 +7,11 @@ import TPM
 main :: IO ()
 main = do
   putStrLn "START main of Attestation"
-  --testFun
-  takeInit
+  pubEk <- takeInit
   putStrLn "tpm ownership taken"
+  testA pubEk
+  return ()
+  {-
   chan <- server_init appId
   
   b <- receivePubKeyRequest chan
@@ -24,3 +26,4 @@ main = do
       putStrLn "END main of Attestation"
       return ()
     False -> putStrLn "Could not recognize protocol" -- TODO:  Error handling
+-}
