@@ -185,6 +185,32 @@ tpm_makeidentity tpm (OIAP sah sen) (OSAP oah oosn oen oesn oscr) key
                                         encode key]
                                 
 
+tpm_activateidentity :: TPM tpm => tpm -> Session -> Session 
+                                                     -> TPM_KEY_HANDLE -> TPM_DIGEST 
+                                                     -> TPM_DIGEST -> ByteString 
+                                                     -> IO TPM_SYMMETRIC_KEY
+tpm_activateidentity tpm (OIAP iah ien) (OIAP oah oen) idKey iPass oPass blob 
+  = do
+  on <- nonce_create
+  (rtag,size,resl,dat) <- tpm_transmit' tpm tag cod (dat on)
+  let symKey :: TPM_SYMMETRIC_KEY
+      symKey = runGet (get :: Get TPM_SYMMETRIC_KEY) dat
+  return symKey
+  
+ where tag = tpm_tag_rqu_auth2_command
+       cod = tpm_ord_activateidentity
+       dat on = concat [encode idKey, blobSize, blob, encode iah, encode on, 
+                                  encode False, encode(iath on), encode oah, encode on, 
+                                  encode False, encode(oath on)]
+       blobSize =  encode ((fromIntegral $ length blob) :: UINT32)
+       iath on = tpm_auth_hmac iPass ien on 0 $
+                               concat [ encode cod, blobSize, blob]
+       oath on = tpm_auth_hmac oPass oen on 0 $
+                               concat [ encode cod, blobSize, blob]
+  
+
+
+
 tpm_make_signing :: TPM tpm => tpm -> Session -> TPM_KEY_HANDLE 
                                                    -> TPM_DIGEST -> IO TPM_KEY
 tpm_make_signing tpm shn pHandle pass = do 

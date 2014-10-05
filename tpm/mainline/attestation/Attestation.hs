@@ -7,7 +7,7 @@ import VChanUtil
 import Demo3Shared
 
 import Data.Binary
-import Data.ByteString.Lazy(ByteString, append, empty)
+import Data.ByteString.Lazy(ByteString, append, empty, pack, length)
 import Data.Digest.Pure.SHA (bytestringDigest, sha1)
 import Control.Monad
 
@@ -56,7 +56,48 @@ takeInit = do
  where oPass = tpm_digest_pass ownerPass
        sPass = tpm_digest_pass srkPass
        
-       
+testA :: IO ()       
+testA = do
+  iKeyHandle <- createAndLoadKey
+  pubKeyShn <- tpm_session_oiap tpm
+  iPubKey <- tpm_getpubkey tpm pubKeyShn iKeyHandle iPass
+  tpm_session_close tpm pubKeyShn
+  
+  let iDigest = tpm_digest $ encode iPubKey
+      asymContents = contents iDigest
+      blob = encode asymContents
+      
+  
+  iShn <- tpm_session_oiap tpm
+  oShn <- tpm_session_oiap tpm
+  result <- tpm_activateidentity tpm iShn oShn iKeyHandle iPass oPass blob
+  
+  putStrLn "After activateIdentity"
+  putStrLn $ show result
+  
+  tpm_session_close tpm iShn
+  tpm_session_close tpm oShn
+  
+  
+  
+  
+  return ()
+  
+ where 
+   x:: Word8 
+   x = 1
+   key = (Data.ByteString.Lazy.pack $ replicate 16 x) 
+   symKey = 
+     TPM_SYMMETRIC_KEY 
+     (tpm_alg_aes128) 
+     (tpm_es_sym_ctr) 
+     ((fromIntegral $ Data.ByteString.Lazy.length key) :: UINT16) 
+     key
+     
+   contents dig = TPM_ASYM_CA_CONTENTS symKey dig
+   
+   iPass = tpm_digest_pass "i"
+   oPass = tpm_digest_pass ownerPass
 
 {-
 testFun :: IO ()
@@ -97,27 +138,36 @@ attGetPubKey handle = do
 
 createAndLoadKey :: IO TPM_KEY_HANDLE
 createAndLoadKey = do
+  {-
   sigKeyShn <- tpm_session_osap tpm sPass kty tpm_kh_srk
   sigKey <- tpm_make_signing tpm sigKeyShn tpm_kh_srk sigPass
   
   tpm_session_close tpm sigKeyShn
   --putStrLn "sig TPM_KEY created"
+-}
+  
+  sShn <- tpm_session_oiap tpm
+  oShn <- tpm_session_osap tpm oPass oKty ownerHandle
+  identKey <- tpm_makeidentity tpm sShn oShn key sPass oPass iPass
+  tpm_session_close tpm sShn --Check True val here!!(use clo?)
+  tpm_session_close tpm oShn
   
   loadShn <- tpm_session_oiap tpm
-  --iKeyHandle <- tpm_loadkey2 tpm loadShn tpm_kh_srk identKey sPass
-  sKeyHandle <- tpm_loadkey2 tpm loadShn tpm_kh_srk sigKey sPass
+  iKeyHandle <- tpm_loadkey2 tpm loadShn tpm_kh_srk identKey sPass
+  --sKeyHandle <- tpm_loadkey2 tpm loadShn tpm_kh_srk sigKey sPass
   tpm_session_close tpm loadShn
   --putStrLn "sigKey Loaded"
-  return sKeyHandle
+  --return sKeyHandle
+  return iKeyHandle
     
  where key = tpm_key_create_identity tpm_auth_priv_use_only
-        --oKty = tpm_et_xor_owner
+       oKty = tpm_et_xor_owner
        kty = tpm_et_xor_keyhandle
        ownerHandle = (0x40000001 :: Word32)
-       --oPass = tpm_digest_pass ownerPass
+       oPass = tpm_digest_pass ownerPass
        sPass = tpm_digest_pass srkPass
-       --iPass = tpm_digest_pass "i"
-       sigPass = tpm_digest_pass "s"
+       iPass = tpm_digest_pass "i"
+       --sigPass = tpm_digest_pass "s"
   
 
 

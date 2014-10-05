@@ -80,6 +80,21 @@ type TPM_TRANSHANDLE = UINT32
 type TPM_HANDLE = UINT32
 type TPM_FAMILY_OPERATION = UINT32
 
+
+data TPM_ASYM_CA_CONTENTS = TPM_ASYM_CA_CONTENTS {
+  sessKey :: TPM_SYMMETRIC_KEY,
+  idDigest :: TPM_DIGEST
+  }
+     deriving (Eq)
+
+instance Binary TPM_ASYM_CA_CONTENTS where
+  put(TPM_ASYM_CA_CONTENTS sym dig) = do
+    put sym
+    put dig
+  get = do
+    sym <- get
+    dig <- get
+    return $ TPM_ASYM_CA_CONTENTS sym dig
 -------------------------------------------------------------------------------
 -- TPM helper aliases as defined throughout the document:
 --  TPM Main: Part 2 - TPM Structures
@@ -853,8 +868,24 @@ data TPM_SYMMETRIC_KEY = TPM_SYMMETRIC_KEY {
     , tpmSymmetricScheme :: TPM_ENC_SCHEME
     , tpmSymmetricSize   :: UINT16
     , tpmSymmetricData   :: ByteString
-    } deriving (Show,Eq)
+    } deriving (Show, Eq)
 
+x :: Word32
+x = 0x3333
+
+instance Binary TPM_SYMMETRIC_KEY where
+  put(TPM_SYMMETRIC_KEY alg enc size dat) = do
+    put alg
+    put enc
+    put size
+    put dat
+  get = do
+    alg <- get
+    enc <- get
+    size <- get
+    dat <- get
+    return $ TPM_SYMMETRIC_KEY alg enc size dat 
+  
 -------------------------------------------------------------------------------
 -- TPM bound data structure as defined by section 9.5 of the document:
 --  TPM Main: Part 2 - TPM Structures
