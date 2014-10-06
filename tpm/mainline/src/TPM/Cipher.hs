@@ -43,6 +43,13 @@ instance TPMEncryptable (Maybe TPM_DIGEST) where
 instance TPMEncryptable TPM_DIGEST where
     tobs (TPM_DIGEST bs) = bs
     frombs bs = TPM_DIGEST bs
+    
+{-    
+instance TPMEncryptable TPM_ASYM_CA_CONTENTS where
+  tobs a@(TPM_ASYM_CA_CONTENTS sym dig) = encode a 
+  frombs bs = ((decode bs)::TPM_ASYM_CA_CONTENTS)
+-}
+
 
 tpm_rsa_pubencrypt :: TPMEncryptable enc => TPM_PUBKEY -> enc -> enc
 tpm_rsa_pubencrypt key dat = frombs ecbs

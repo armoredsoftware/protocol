@@ -11,7 +11,9 @@ main = do
   putStrLn "tpm ownership taken"
   testA pubEk
   return ()
-  {-
+
+  
+{-
   chan <- server_init appId
   
   b <- receivePubKeyRequest chan

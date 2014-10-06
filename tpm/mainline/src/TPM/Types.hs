@@ -866,7 +866,7 @@ data TPM_SEALED_DATA = TPM_SEALED_DATA {
 data TPM_SYMMETRIC_KEY = TPM_SYMMETRIC_KEY {
       tpmSymmetricAlg    :: TPM_ALGORITHM_ID
     , tpmSymmetricScheme :: TPM_ENC_SCHEME
-    , tpmSymmetricSize   :: UINT16
+    {-, tpmSymmetricSize   :: UINT16 -}
     , tpmSymmetricData   :: ByteString
     } deriving (Show, Eq)
 
@@ -874,17 +874,17 @@ x :: Word32
 x = 0x3333
 
 instance Binary TPM_SYMMETRIC_KEY where
-  put(TPM_SYMMETRIC_KEY alg enc size dat) = do
+  put(TPM_SYMMETRIC_KEY alg enc dat) = do
     put alg
     put enc
-    put size
-    put dat
+    put ((fromIntegral $ length dat) :: UINT16)
+    putLazyByteString dat
   get = do
     alg <- get
     enc <- get
-    size <- get
-    dat <- get
-    return $ TPM_SYMMETRIC_KEY alg enc size dat 
+    size <- (get :: Get UINT16)
+    dat <-  getLazyByteString (fromIntegral size)
+    return $ TPM_SYMMETRIC_KEY alg enc dat 
   
 -------------------------------------------------------------------------------
 -- TPM bound data structure as defined by section 9.5 of the document:

@@ -148,7 +148,7 @@ tpm_quote tpm shn@(OIAP ah en) key nonce pcrs pass = do
   where tag = tpm_tag_rqu_auth1_command
         cod = tpm_ord_quote
         dat on = concat [ encode key, encode nonce, encode pcrs, ah,
-                          encode on, encode False, encode (ath on) ]
+                          encode on, encode False, encode (ath on) ] 
         ath on = tpm_auth_hmac pass en on 0 $ concat [ encode cod, encode nonce,
                                                        encode pcrs]
   
@@ -162,9 +162,9 @@ tpm_makeidentity :: TPM tpm => tpm -> Session -> Session -> TPM_KEY ->
 tpm_makeidentity tpm (OIAP sah sen) (OSAP oah oosn oen oesn oscr) key
                  spass ipass privCA = do
   son <- nonce_create
-  putStrLn "BEFORE"
+  --putStrLn "BEFORE"
   (rtag,size,resl,dat) <- tpm_transmit' tpm tag cod (dat son)
-  putStrLn "hello"
+  --putStrLn "hello"
   let newKey :: TPM_KEY
       newKey = runGet (get :: Get TPM_KEY) dat
 
@@ -193,20 +193,24 @@ tpm_activateidentity tpm (OIAP iah ien) (OIAP oah oen) idKey iPass oPass blob
   = do
   on <- nonce_create
   (rtag,size,resl,dat) <- tpm_transmit' tpm tag cod (dat on)
+  --putStrLn "After tpm_transmit in activateid"
+  {-
   let symKey :: TPM_SYMMETRIC_KEY
       symKey = runGet (get :: Get TPM_SYMMETRIC_KEY) dat
   return symKey
+-}
+  return $ decode dat
   
  where tag = tpm_tag_rqu_auth2_command
        cod = tpm_ord_activateidentity
-       dat on = concat [encode idKey, blobSize, blob, encode iah, encode on, 
-                                  encode False, encode(iath on), encode oah, encode on, 
-                                  encode False, encode(oath on)]
-       blobSize =  encode ((fromIntegral $ length blob) :: UINT32)
+       dat on = concat [encode idKey, encode blobSize, blob, iah, encode on, 
+                                  encode False, encode(iath on), oah, encode on, 
+                                  encode False, encode(oath on)] 
+       blobSize =  ((fromIntegral $ length blob) :: UINT32)
        iath on = tpm_auth_hmac iPass ien on 0 $
-                               concat [ encode cod, blobSize, blob]
+                               concat [ encode cod, encode blobSize, blob]
        oath on = tpm_auth_hmac oPass oen on 0 $
-                               concat [ encode cod, blobSize, blob]
+                               concat [ encode cod, encode blobSize, blob]
   
 
 

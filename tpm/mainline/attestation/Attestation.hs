@@ -52,6 +52,7 @@ takeInit = do
   when (hasOwner == False) $ do
 -}
   (pubkey, _) <- tpm_key_pubek tpm
+  --putStrLn $ "Public EK: " ++ show pubkey
   tkShn <- tpm_session_oiap tpm
   tpm_takeownership tpm tkShn pubkey oPass sPass
   tpm_session_close tpm tkShn
@@ -62,11 +63,11 @@ takeInit = do
 testA :: TPM_PUBKEY -> IO ()
 testA ekPubKey = do
   iKeyHandle <- createAndLoadKey
-  putStrLn "After iKey Loaded"
+ -- putStrLn "After iKey Loaded"
   pubKeyShn <- tpm_session_oiap tpm
   iPubKey <- tpm_getpubkey tpm pubKeyShn iKeyHandle iPass
   tpm_session_close tpm pubKeyShn
-  putStrLn "After getting iPubKey"
+ -- putStrLn "After getting iPubKey"
   
 
   
@@ -78,13 +79,14 @@ testA ekPubKey = do
       blob = encode asymContents
       encBlob =  tpm_rsa_pubencrypt ekPubKey blob
   
-  putStrLn $ "encblob: " ++ show encBlob
+  --putStrLn $ "encblob: " ++ (show encBlob)
   iShn <- tpm_session_oiap tpm
   oShn <- tpm_session_oiap tpm
-  putStrLn "Before activateID"
+  --putStrLn "Before activateIDD"
+  --putStrLn $ show $ ((fromIntegral $ Data.ByteString.Lazy.length key) :: UINT32)
   result <- tpm_activateidentity tpm iShn oShn iKeyHandle iPass oPass encBlob
   
-  putStrLn "After activateID"
+  --putStrLn "After activateID"
   putStrLn $ show result
   
   tpm_session_close tpm iShn
@@ -98,12 +100,11 @@ testA ekPubKey = do
  where 
    x:: Word8 
    x = 1
-   key = (Data.ByteString.Lazy.pack $ replicate 16 x) 
+   key = (Data.ByteString.Lazy.pack $ replicate 17 x) 
    symKey = 
      TPM_SYMMETRIC_KEY 
      (tpm_alg_aes128) 
      (tpm_es_sym_ctr) 
-     ((fromIntegral $ Data.ByteString.Lazy.length key) :: UINT16) 
      key
      
    contents dig = TPM_ASYM_CA_CONTENTS symKey dig
@@ -150,6 +151,7 @@ attGetPubKey handle = do
 
 createAndLoadKey :: IO TPM_KEY_HANDLE
 createAndLoadKey = do
+  
   {-
   sigKeyShn <- tpm_session_osap tpm sPass kty tpm_kh_srk
   sigKey <- tpm_make_signing tpm sigKeyShn tpm_kh_srk sigPass
@@ -157,18 +159,22 @@ createAndLoadKey = do
   tpm_session_close tpm sigKeyShn
   --putStrLn "sig TPM_KEY created"
 -}
+
   
   sShn <- tpm_session_oiap tpm
   oShn <- tpm_session_osap tpm oPass oKty ownerHandle
   identKey <- tpm_makeidentity tpm sShn oShn key sPass iPass iPass
   tpm_session_close tpm sShn --Check True val here!!(use clo?)
   tpm_session_close tpm oShn
+
   
   loadShn <- tpm_session_oiap tpm
+  
   iKeyHandle <- tpm_loadkey2 tpm loadShn tpm_kh_srk identKey sPass
   --sKeyHandle <- tpm_loadkey2 tpm loadShn tpm_kh_srk sigKey sPass
   tpm_session_close tpm loadShn
   --putStrLn "sigKey Loaded"
+  
   --return sKeyHandle
   return iKeyHandle
     
