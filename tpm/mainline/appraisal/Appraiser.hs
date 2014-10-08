@@ -42,13 +42,13 @@ sendPubKeyRequest  b = do
   send chan $ b
   return chan
 
-receivePubKeyResponse :: LibXenVChan -> IO TPM_PUBKEY
+receivePubKeyResponse :: LibXenVChan -> IO PubKeyResponse
 receivePubKeyResponse chan = do
   ctrlWait chan
-  pubKey :: TPM_PUBKEY <- receive chan
+  resp :: PubKeyResponse <- receive chan
   putStrLn $ "\n" ++ "Appraiser Received: " ++ "Pubkey Response: " 
-                  ++ show pubKey ++ "\n"
-  return pubKey
+                  ++ show resp ++ "\n"
+  return resp
     --False ->  error quoteReceiveError --TODO: error handling?
 
 

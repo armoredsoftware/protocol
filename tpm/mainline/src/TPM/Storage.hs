@@ -131,20 +131,24 @@ tpm_quote tpm shn@(OIAP ah en) key nonce pcrs pass = do
       selectionSize =  (fromIntegral $ length pcb) :: Int
       pcrsSize = numPcrs * 20
       vSize = 4 -}
-      newComp :: TPM_PCR_COMPOSITE
-      newComp = runGet (get :: Get TPM_PCR_COMPOSITE) dat
+     -- (newComp, rest, compSize) :: (TPM_PCR_COMPOSITE, ByteString, Int64)
+      (newComp, rest, compSize) = runGetState 
+                                                  (get :: Get TPM_PCR_COMPOSITE) dat 0
+      {-
+       USE THIS IF RUNGETSTATE DOES NOT WORK!!
       compositeSize = (fromIntegral $ length (encode newComp)) :: Int --selectionSize + vSize + pcrsSize
       (_, rest) = splitAt (fromIntegral compositeSize)  dat
+     -}
       --compDecoded = decode comp
-      (sigSize, dat') = splitAt 4 rest
+      (sigSize, rest2) = splitAt 4 rest
       sigSizeDecoded = ((decode sigSize) :: UINT32)
-      (sig, rest2) = splitAt (fromIntegral sigSizeDecoded) dat'
+      (sig, rest3) = splitAt (fromIntegral sigSizeDecoded) rest2
       --sigDecoded = decode sig
-  --putStrLn $ "Comp encoded length(in quote): " ++ (show $ length comp)
+  --putStrLn $ "Comp encoded length(in quote): " ++ (show $ length newComp)
   --putStrLn $ "Sig length: " ++ (show $ length sig)    
-  --putStrLn $ "Size of Output after sig: " ++ (show $ length rest2)
+  --putStrLn $ "Size of Output after sig: " ++ (show $ length rest3)
   
-  return (newComp, sig )
+  return (newComp, sig)
   where tag = tpm_tag_rqu_auth1_command
         cod = tpm_ord_quote
         dat on = concat [ encode key, encode nonce, encode pcrs, ah,
@@ -157,7 +161,7 @@ tpm_quote tpm shn@(OIAP ah en) key nonce pcrs pass = do
 -- (OSAP ah osn en esn scr)
 tpm_makeidentity :: TPM tpm => tpm -> Session -> Session -> TPM_KEY ->
                                TPM_DIGEST -> TPM_DIGEST -> TPM_DIGEST ->
-                               IO TPM_KEY
+                               IO (TPM_KEY, ByteString) --CHANGED THIS!!!
 
 tpm_makeidentity tpm (OIAP sah sen) (OSAP oah oosn oen oesn oscr) key
                  spass ipass privCA = do
@@ -165,10 +169,12 @@ tpm_makeidentity tpm (OIAP sah sen) (OSAP oah oosn oen oesn oscr) key
   --putStrLn "BEFORE"
   (rtag,size,resl,dat) <- tpm_transmit' tpm tag cod (dat son)
   --putStrLn "hello"
-  let newKey :: TPM_KEY
-      newKey = runGet (get :: Get TPM_KEY) dat
-
-  return $ newKey
+  let --newKey :: TPM_KEY
+      (newKey, rest, keySize) = runGetState (get :: Get TPM_KEY) dat 0
+      (sigSize, rest2) = splitAt 4 rest
+      sigSizeDecoded = ((decode sigSize) :: UINT32)
+      (sig, _) = splitAt (fromIntegral sigSizeDecoded) rest2
+  return (newKey, sig)
 
  where tag = tpm_tag_rqu_auth2_command
        cod = tpm_ord_makeidentity

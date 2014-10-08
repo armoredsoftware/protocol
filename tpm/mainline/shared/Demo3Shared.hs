@@ -28,6 +28,9 @@ attId = 19
 meaId :: Int
 meaId = 7
 
+caId :: Int
+caId = 55
+
 ownerPass :: String
 ownerPass = "adam"
 
@@ -101,6 +104,11 @@ instance Show EvidenceDescriptor where
   show D2 = "Desired: Measurement #2"
    
 
+type PubKeyRequest = Bool
+type PubKeyResponse = TPM_PUBKEY
+
+
+
 --Response
 type Response = (EvidencePackage, Quote)
 type EvidencePackage = (Evidence, TPM_NONCE, Signature)
@@ -146,10 +154,19 @@ ePack'  = foldr f empty
         f (M2 x) y = x `append` y          
          
          
+type PlatformID = Int        
+type MakeIdResult = (TPM_IDENTITY_CONTENTS, Signature)  
+type CARequest = (PlatformID, MakeIdResult)    
+      
+
+type ActivateIdRequest = (ByteString, TPM_DIGEST)
+type CACertificate = (TPM_PUBKEY, Signature)
+type CAResponse = (ByteString, ByteString)  
+--type DecryptedCAResponse = (CACertificate, ActivateIdRequest)
+        
+        
 --type Hash = ByteString
 --type QuotePackage = (Quote, Hash, Signature)
-
-
 
 {-
 

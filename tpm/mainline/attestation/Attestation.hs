@@ -37,10 +37,10 @@ receivePubKeyRequest chan = do
   return b
 
 
-sendPubKeyResponse :: LibXenVChan -> TPM_PUBKEY -> IO ()
-sendPubKeyResponse chan pubKey = do
-  putStrLn $ "Attester Sending: " ++ show (pubKey) ++ "\n"
-  send chan pubKey
+sendPubKeyResponse :: LibXenVChan -> PubKeyResponse -> IO ()
+sendPubKeyResponse chan iPubKey = do
+  putStrLn $ "Attester Sending: " ++ show iPubKey++ "\n"
+  send chan iPubKey
   return () 
 
 
@@ -62,11 +62,14 @@ takeInit = do
        
 testA :: TPM_PUBKEY -> IO ()
 testA ekPubKey = do
-  iKeyHandle <- createAndLoadKey
+  (iKeyHandle, _) <- createAndLoadIdentKey
  -- putStrLn "After iKey Loaded"
+  {-
   pubKeyShn <- tpm_session_oiap tpm
   iPubKey <- tpm_getpubkey tpm pubKeyShn iKeyHandle iPass
   tpm_session_close tpm pubKeyShn
+-}
+  iPubKey <- attGetPubKey iKeyHandle iPass
  -- putStrLn "After getting iPubKey"
   
 
@@ -100,7 +103,7 @@ testA ekPubKey = do
  where 
    x:: Word8 
    x = 1
-   key = (Data.ByteString.Lazy.pack $ replicate 17 x) 
+   key = (Data.ByteString.Lazy.pack $ replicate 16 x) 
    symKey = 
      TPM_SYMMETRIC_KEY 
      (tpm_alg_aes128) 
@@ -140,17 +143,45 @@ testFun = withOpenSSL $ do
 -}
 
 
-attGetPubKey :: TPM_KEY_HANDLE -> IO TPM_PUBKEY
-attGetPubKey handle = do
+attGetPubKey :: TPM_KEY_HANDLE -> TPM_DIGEST -> IO TPM_PUBKEY
+attGetPubKey handle pass = do
   shn <- tpm_session_oiap tpm
-  pubKey <- tpm_getpubkey tpm shn handle sigPass
+  pubKey <- tpm_getpubkey tpm shn handle pass
   tpm_session_close tpm shn
   return pubKey
 
- where sigPass = tpm_digest_pass "s"
+ 
 
-createAndLoadKey :: IO TPM_KEY_HANDLE
-createAndLoadKey = do
+
+createAndLoadSigKey :: IO TPM_KEY_HANDLE
+createAndLoadSigKey = do
+  sigKeyShn <- tpm_session_osap tpm sPass kty tpm_kh_srk
+  sigKey <- tpm_make_signing tpm sigKeyShn tpm_kh_srk sigPass
+  
+  tpm_session_close tpm sigKeyShn
+  --putStrLn "sig TPM_KEY created"
+
+  loadShn <- tpm_session_oiap tpm
+  
+
+  sKeyHandle <- tpm_loadkey2 tpm loadShn tpm_kh_srk sigKey sPass
+  tpm_session_close tpm loadShn
+  --putStrLn "sigKey Loaded"
+  
+  return sKeyHandle
+
+    
+ where key = tpm_key_create_identity tpm_auth_never
+       --oKty = tpm_et_xor_owner
+       kty = tpm_et_xor_keyhandle
+       --ownerHandle = (0x40000001 :: Word32)
+       --oPass = tpm_digest_pass ownerPass
+       sPass = tpm_digest_pass srkPass
+      -- iPass = tpm_digest_pass "i"
+       sigPass = tpm_digest_pass "s"
+
+createAndLoadIdentKey :: IO (TPM_KEY_HANDLE, Signature)
+createAndLoadIdentKey = do
   
   {-
   sigKeyShn <- tpm_session_osap tpm sPass kty tpm_kh_srk
@@ -163,7 +194,7 @@ createAndLoadKey = do
   
   sShn <- tpm_session_oiap tpm
   oShn <- tpm_session_osap tpm oPass oKty ownerHandle
-  identKey <- tpm_makeidentity tpm sShn oShn key sPass iPass iPass
+  (identKey, iSig) <- tpm_makeidentity tpm sShn oShn key sPass iPass iPass
   tpm_session_close tpm sShn --Check True val here!!(use clo?)
   tpm_session_close tpm oShn
 
@@ -176,7 +207,7 @@ createAndLoadKey = do
   --putStrLn "sigKey Loaded"
   
   --return sKeyHandle
-  return iKeyHandle
+  return (iKeyHandle, iSig)
     
  where key = tpm_key_create_identity tpm_auth_never
        oKty = tpm_et_xor_owner
@@ -189,8 +220,8 @@ createAndLoadKey = do
   
 
 
-mkResponse :: Request -> TPM_KEY_HANDLE -> IO Response
-mkResponse (desiredE, pcrSelect, nonce) sKeyHandle = do
+mkResponse :: Request -> CAResponse -> TPM_KEY_HANDLE -> IO Response
+mkResponse (desiredE, pcrSelect, nonce) (caCert, actIdInput) iKeyHandle = do
   --measurerID <- measurePrompt
   chan <- client_init meaId
   eList <- mapM (getEvidencePiece chan) desiredE
@@ -219,24 +250,45 @@ mkResponse (desiredE, pcrSelect, nonce) sKeyHandle = do
   --badnonce <- nonce_create
   let evBlob = ePack eList nonce --concat and hash elist and nonce, then sign that blob with AIK(using tpm_sign)
       evBlobSha1 = bytestringDigest $ sha1 evBlob
+  
+  {-
   sigShn <- tpm_session_oiap tpm
   eSig <- tpm_sign tpm sigShn sKeyHandle sigPass evBlobSha1
   tpm_session_close tpm sigShn
   --putStrLn "evBlob signed"
+  CHANGE THIS WHEN READY TO DO REAL SIGN -}
+      
+  let eSig = empty --TEMPORARY
   
   let evPack = (eList, nonce, eSig)
+  
+
+  
+  --putStrLn $ "encblob: " ++ (show encBlob)
+  iShn <- tpm_session_oiap tpm
+  oShn <- tpm_session_oiap tpm
+  --putStrLn "Before activateIDD"
+  --putStrLn $ show $ ((fromIntegral $ Data.ByteString.Lazy.length key) :: UINT32)
+  sessionKey <- tpm_activateidentity tpm iShn oShn iKeyHandle iPass oPass 
+                                                      actIdInput
+  --putStrLn "After activateID"
+  putStrLn $ show sessionKey
+  tpm_session_close tpm iShn
+  tpm_session_close tpm oShn
+  
+  
   --quote = mkSignedTPMQuote desiredPCRs nonce --tpm_quote
       -- hash = doHash $ ePack eList nonce --replace w/ 3 lines above
       --quoPack = signQuote quote hash --tpm_quote does this
   quoteShn <- tpm_session_oiap tpm
-  quote <- tpm_quote tpm quoteShn sKeyHandle (TPM_NONCE evBlobSha1) pcrSelect sigPass 
+  quote <- tpm_quote tpm quoteShn iKeyHandle (TPM_NONCE evBlobSha1) pcrSelect sigPass 
   tpm_session_close tpm quoteShn    
   putStrLn "Quote generated"
   
   --return (evPack, quoPack)  
   
   --TODO:  EVICT SIGNING KEY HERE!!??
-  tpm_flushspecific tpm sKeyHandle tpm_rt_key  --Evict loaded key
+  tpm_flushspecific tpm iKeyHandle tpm_rt_key  --Evict loaded key
   putStrLn "End of MkResponse"
   return (evPack, quote)
 
@@ -280,7 +332,47 @@ sendResponse chan resp = do
   return () 
 
 
+mkCARequest :: TPM_DIGEST -> TPM_PUBKEY -> Signature -> CARequest
+mkCARequest privCALabel iPubKey iSig = {-do 
+  pubKeyShn <- tpm_session_oiap tpm
+  iPubKey <- tpm_getpubkey tpm pubKeyShn iKeyHandle iPass
+  tpm_session_close tpm pubKeyShn
+-}
+  let idContents = TPM_IDENTITY_CONTENTS privCALabel iPubKey in 
+  (caId, (idContents, iSig))
+  
+ where iPass = tpm_digest_pass "i"
+
+
+sendCARequest :: CARequest -> IO LibXenVChan
+sendCARequest req = do
+  --id <-getDomId
+  --putStrLn $ "Appraiser Domain id: "++ show appId
+  --other <- prompt
+  chan <- client_init caId
+  putStrLn $ "\n" ++ "Attestation Sending: "++ 
+                  "CA Request: " ++ (show req) ++ "\n"
+  send chan $ req
+  return chan
+
+
+receiveCAResponse :: LibXenVChan -> IO CAResponse
+receiveCAResponse chan =  do
+  ctrlWait chan
+  res :: CAResponse <- receive chan
+  return res
+  {-case res of 
+    CAResponse (_,_)  ->  do
+      putStrLn $ "\n" ++ "Attestation Received: " ++ show res ++ "\n"
+      return res
+    otherwise ->  error caReceiveError --TODO: error handling?
+-}
+
+
     
 --Error messages(only for debugging, at least for now)
 requestReceiveError :: String
 requestReceiveError = "Attester did not receive a Request as expected"
+
+caReceiveError :: String
+caReceiveError = "Attester did not receive a CAResponse as expected"

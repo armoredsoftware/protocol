@@ -95,6 +95,25 @@ instance Binary TPM_ASYM_CA_CONTENTS where
     sym <- get
     dig <- get
     return $ TPM_ASYM_CA_CONTENTS sym dig
+    
+
+data TPM_IDENTITY_CONTENTS = TPM_IDENTITY_CONTENTS {
+  labelPrivCADigest :: TPM_CHOSENID_HASH,
+  identityPubKey :: TPM_PUBKEY
+  }  deriving (Show)
+
+instance Binary TPM_IDENTITY_CONTENTS where
+  put(TPM_IDENTITY_CONTENTS label pubkey) = do
+    put tpm_struct_ver_default
+    put tpm_ord_makeidentity
+    put label
+    put pubkey
+  get = do
+    get :: (Get TPM_STRUCT_VER)
+    get :: (Get UINT32)
+    label <- get
+    pubkey <- get
+    return $ TPM_IDENTITY_CONTENTS label pubkey
 -------------------------------------------------------------------------------
 -- TPM helper aliases as defined throughout the document:
 --  TPM Main: Part 2 - TPM Structures
