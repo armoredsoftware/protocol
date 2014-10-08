@@ -33,6 +33,7 @@ import OpenSSL.EVP.Cipher
 import Appraiser
 import Attestation
 import Measurer
+import PrivacyCA
 import Provisioning
 import Demo3Shared
 

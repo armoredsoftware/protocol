@@ -8,6 +8,7 @@ main :: IO ()
 main = do
   putStrLn "START main of Attestation"
   pubEk <- takeInit
+  --Export pubEk to file here(and transmit to privacyCA)
   putStrLn "tpm ownership taken"
   --testA pubEk
   --return ()
