@@ -7,9 +7,11 @@ import VChanUtil
 import Demo3Shared
 
 import Data.Binary
-import Data.ByteString.Lazy(ByteString, append, empty, pack, length)
+import Data.ByteString.Lazy(ByteString, append, empty, pack, length, toStrict, fromStrict)
 import Data.Digest.Pure.SHA (bytestringDigest, sha1)
 import Control.Monad
+
+import Crypto.Cipher.AES
 
 import OpenSSL (withOpenSSL)
 --withOpenSSL 
@@ -109,6 +111,7 @@ testA ekPubKey = do
      (tpm_alg_aes128) 
      (tpm_es_sym_ctr) 
      key
+
      
    contents dig = TPM_ASYM_CA_CONTENTS symKey dig
    
@@ -271,8 +274,18 @@ mkResponse (desiredE, pcrSelect, nonce) (caCert, actIdInput) iKeyHandle = do
   --putStrLn $ show $ ((fromIntegral $ Data.ByteString.Lazy.length key) :: UINT32)
   sessionKey <- tpm_activateidentity tpm iShn oShn iKeyHandle iPass oPass 
                                                       actIdInput
+  
   --putStrLn "After activateID"
   putStrLn $ show sessionKey
+  
+  let keyBytes = tpmSymmetricData sessionKey
+      strictKey = toStrict keyBytes
+      aes = initAES strictKey
+      ctr = strictKey
+      
+      decryptedCertBytes = decryptCTR aes ctr (toStrict caCert)
+      lazy = fromStrict decryptedCertBytes
+      decodedCACert = (decode lazy) :: CACertificate
   tpm_session_close tpm iShn
   tpm_session_close tpm oShn
   
@@ -290,7 +303,7 @@ mkResponse (desiredE, pcrSelect, nonce) (caCert, actIdInput) iKeyHandle = do
   --TODO:  EVICT SIGNING KEY HERE!!??
   tpm_flushspecific tpm iKeyHandle tpm_rt_key  --Evict loaded key
   putStrLn "End of MkResponse"
-  return (evPack, quote)
+  return (evPack, decodedCACert, quote)
 
  where key = tpm_key_create_identity tpm_auth_priv_use_only
        oKty = tpm_et_xor_owner
@@ -339,7 +352,7 @@ mkCARequest privCALabel iPubKey iSig = {-do
   tpm_session_close tpm pubKeyShn
 -}
   let idContents = TPM_IDENTITY_CONTENTS privCALabel iPubKey in 
-  (caId, (idContents, iSig))
+  (attId, (idContents, iSig))
   
  where iPass = tpm_digest_pass "i"
 

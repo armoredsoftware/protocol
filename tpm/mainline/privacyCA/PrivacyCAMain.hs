@@ -9,7 +9,11 @@ main :: IO ()
 main = do 
   putStrLn "main of PrivacyCA"
   
-  {-chan <- server_init attId
-  forever $ process chan
--}
+  chan <- server_init attId
+  req <-receiveCARequest chan
+  putStrLn $ show req
+  resp <- mkCAResponse req
+  putStrLn $ show resp
+  sendCAResponse chan resp
+
   return ()

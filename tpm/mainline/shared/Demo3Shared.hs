@@ -2,7 +2,10 @@ module Demo3Shared where
 
 import TPM
 import Data.Binary
-import Data.ByteString.Lazy(ByteString, empty, append)
+import Data.ByteString.Lazy(ByteString, empty, append, pack, toStrict, fromStrict)
+import Codec.Crypto.RSA
+import System.Random
+import Crypto.Cipher.AES
 {-
 -- utility libraries
 import Data.Binary
@@ -29,7 +32,7 @@ meaId :: Int
 meaId = 7
 
 caId :: Int
-caId = 55
+caId = meaId
 
 ownerPass :: String
 ownerPass = "adam"
@@ -40,6 +43,21 @@ srkPass = ""
 
 
 exportEKFileName = "attEKPubKey.txt"
+
+
+generateCAKeyPair :: (PublicKey, PrivateKey)
+generateCAKeyPair = let gen = mkStdGen 3
+                        (pub, pri, _) = generateKeyPair gen 2048 in (pub, pri)
+
+
+
+
+
+
+
+
+
+
 
 
 data Shared = Appraisal Request
@@ -112,7 +130,7 @@ type PubKeyResponse = TPM_PUBKEY
 
 
 --Response
-type Response = (EvidencePackage, Quote)
+type Response = (EvidencePackage, CACertificate, Quote)
 type EvidencePackage = (Evidence, TPM_NONCE, Signature)
 type Evidence = [EvidencePiece]
 

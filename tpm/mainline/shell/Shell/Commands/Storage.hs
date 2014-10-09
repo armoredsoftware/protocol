@@ -147,7 +147,7 @@ cmd_key = ShellCmd ["key","k"]
 
             (shn2, clo2) <- retrieveOIAP tpm
             pubKey <- liftIO $ tpm_getpubkey tpm shn2 handle pass
-            publicKey <- liftIO $ tpm_get_rsa_PublicKey pubKey
+            let publicKey = tpm_get_rsa_PublicKey pubKey
             liftIO $ putStrLn (show publicKey)
             case (rsassa_pkcs1_v1_5_verify ha_SHA1 publicKey blobQuoteA sig) of
               True -> liftIO $ putStrLn "Verified Signature!!!!!!!!!"

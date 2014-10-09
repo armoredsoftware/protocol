@@ -922,15 +922,16 @@ data TPM_BOUND_DATA = TPM_BOUND_DATA {
 data TPM_KEY_PARMS_DATA = RSA_DATA TPM_RSA_KEY_PARMS
                         | AES_DATA TPM_SYMMETRIC_KEY_PARMS
                         | NO_DATA
-                        deriving (Eq, Read)
+                        deriving (Eq, Read, Show)
 
 data TPM_KEY_PARMS = TPM_KEY_PARMS {
       tpmKeyParamAlg  :: TPM_ALGORITHM_ID
     , tpmKeyParamEnc  :: TPM_ENC_SCHEME
     , tpmKeyParamSig  :: TPM_SIG_SCHEME
     , tpmKeyParamData :: TPM_KEY_PARMS_DATA
-    } deriving (Eq, Read)
+    } deriving (Eq, Read, Show)
 
+{-
 instance Show TPM_KEY_PARMS_DATA where
     show NO_DATA = "\nKey Data:    none"
     show (RSA_DATA rsa) = "\nKey Length:  " ++ show (tpmRsaKeyLength rsa) ++
@@ -939,13 +940,16 @@ instance Show TPM_KEY_PARMS_DATA where
     show (AES_DATA aes) = "\nKey Length:  " ++ show (tpmSymKeyLength aes) ++
                           "\nBlock Size:  " ++ show (tpmSymKeyBlockSize aes) ++
                           "\nInit Vector: " ++ bshex (tpmSymKeyIV aes)
+-}
 
+{-
 instance Show TPM_KEY_PARMS where
     show (TPM_KEY_PARMS alg enc sig dat) = 
         "Algorithm:   " ++ tpm_alg_getname alg ++
         "\nEnc. Scheme: " ++ tpm_es_getname enc ++
         "\nSig. Scheme: " ++ tpm_ss_getname sig ++
         (show dat)
+-}
 
 instance Binary TPM_KEY_PARMS where
     put(TPM_KEY_PARMS alg enc sig dat) = do 
@@ -1130,11 +1134,13 @@ instance Binary TPM_KEY12 where
 -- TPM store public key structure as defined by section 10.4 of the document:
 --  TPM Main: Part 2 - TPM Structures
 -------------------------------------------------------------------------------
-newtype TPM_STORE_PUBKEY = TPM_STORE_PUBKEY ByteString deriving (Eq, Read)
+newtype TPM_STORE_PUBKEY = TPM_STORE_PUBKEY ByteString deriving (Eq, Read, Show)
 
+{-
 instance Show TPM_STORE_PUBKEY where
     show (TPM_STORE_PUBKEY dat) = "Key:         " ++ blkwrap hdr 60 (bshex dat)
         where hdr = "             "
+-}
 
 instance Binary TPM_STORE_PUBKEY where
     put (TPM_STORE_PUBKEY dat) = do 
@@ -1152,12 +1158,14 @@ instance Binary TPM_STORE_PUBKEY where
 data TPM_PUBKEY = TPM_PUBKEY {
       tpmPubKeyParams :: TPM_KEY_PARMS
     , tpmPubKeyData   :: TPM_STORE_PUBKEY
-    } deriving (Eq, Read)
+    } deriving (Eq, Read, Show)
 
+{-
 instance Show TPM_PUBKEY where
     show (TPM_PUBKEY prms key) = 
         (show prms) ++ "\n" ++
         (show key)
+-}
 
 instance Binary TPM_PUBKEY where
     put (TPM_PUBKEY parms dat) = do 

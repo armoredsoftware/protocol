@@ -8,7 +8,8 @@ import VChanUtil
 
 import Data.Binary
 import Data.Bits
-import Data.ByteString.Lazy (ByteString, cons, empty, pack)
+import Data.ByteString.Lazy (ByteString, cons, empty, pack, toStrict, fromStrict)
+import qualified Data.ByteString as B
 import Codec.Crypto.RSA
 import System.Random
 import Crypto.Cipher.AES
@@ -44,27 +45,33 @@ mkCAResponse (id, (idContents, idSig)) = do
       blob = encode asymContents
       encBlob =  tpm_rsa_pubencrypt ekPubKey blob
       
-      caPriKey = undefined
+      
+      caPriKey = snd generateCAKeyPair
       signedAIK = rsassa_pkcs1_v1_5_sign ha_SHA1 caPriKey (encode iPubKey)
+      --strictKey = toStrict key
+      strictSignedAIK = toStrict signedAIK
+      encryptedSignedAIK = encryptCTR aes ctr strictSignedAIK
+      enc = fromStrict encryptedSignedAIK
       --encryptedSignedAIK = crypt' CTR symKey symKey Encrypt signedAIK  
       --TODO:  above line will compile if I get AES dependency the same as on my mac
-  return (empty, empty)
+  return (enc, encBlob)
  where 
-   x:: Word8 
-   x = 1
-   key = (Data.ByteString.Lazy.pack $ replicate 16 x) 
    symKey = 
      TPM_SYMMETRIC_KEY 
      (tpm_alg_aes128) 
      (tpm_es_sym_ctr) 
      key
+   
+   v:: Word8 
+   v = 1
+   key = (Data.ByteString.Lazy.pack $ replicate 16 v) 
+   strictKey = toStrict key
+   aes = initAES strictKey
+   ctr = strictKey
      
+
    contents dig = TPM_ASYM_CA_CONTENTS symKey dig
 
-
-generateCAKeyPair :: (PublicKey, PrivateKey)
-generateCAKeyPair = let gen = mkStdGen 3
-                        (pub, pri, _) = generateKeyPair gen 3 in (pub, pri)
 
 
 readPubEK :: IO TPM_PUBKEY
@@ -75,6 +82,14 @@ readPubEK = do
       pubKey = read pubKeyString
   hClose handle
   return pubKey
+  
+{-
+exportCAPub :: String -> PublicKey -> IO ()
+exportCAPub fileName pubKey = do
+  handle <- openFile fileName WriteMode
+  hPutStrLn handle $ show pubKey
+  hClose handle
+-}
 
 
 
