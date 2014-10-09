@@ -922,14 +922,14 @@ data TPM_BOUND_DATA = TPM_BOUND_DATA {
 data TPM_KEY_PARMS_DATA = RSA_DATA TPM_RSA_KEY_PARMS
                         | AES_DATA TPM_SYMMETRIC_KEY_PARMS
                         | NO_DATA
-                        deriving (Eq)
+                        deriving (Eq, Read)
 
 data TPM_KEY_PARMS = TPM_KEY_PARMS {
       tpmKeyParamAlg  :: TPM_ALGORITHM_ID
     , tpmKeyParamEnc  :: TPM_ENC_SCHEME
     , tpmKeyParamSig  :: TPM_SIG_SCHEME
     , tpmKeyParamData :: TPM_KEY_PARMS_DATA
-    } deriving (Eq)
+    } deriving (Eq, Read)
 
 instance Show TPM_KEY_PARMS_DATA where
     show NO_DATA = "\nKey Data:    none"
@@ -987,7 +987,7 @@ data TPM_RSA_KEY_PARMS = TPM_RSA_KEY_PARMS {
       tpmRsaKeyLength  :: UINT32
     , tpmRsaKeyPrimes  :: UINT32
     , tpmRsaKeyExp     :: ByteString
-    } deriving (Show,Eq)
+    } deriving (Show,Eq, Read)
 
 instance Binary TPM_RSA_KEY_PARMS where
     put (TPM_RSA_KEY_PARMS len prim exp) = do 
@@ -1010,7 +1010,7 @@ data TPM_SYMMETRIC_KEY_PARMS = TPM_SYMMETRIC_KEY_PARMS {
       tpmSymKeyLength    :: UINT32
     , tpmSymKeyBlockSize :: UINT32
     , tpmSymKeyIV        :: ByteString
-    } deriving (Show,Eq)
+    } deriving (Show,Eq, Read)
 
 instance Binary TPM_SYMMETRIC_KEY_PARMS where
     put (TPM_SYMMETRIC_KEY_PARMS kl bs iv) = do
@@ -1130,7 +1130,7 @@ instance Binary TPM_KEY12 where
 -- TPM store public key structure as defined by section 10.4 of the document:
 --  TPM Main: Part 2 - TPM Structures
 -------------------------------------------------------------------------------
-newtype TPM_STORE_PUBKEY = TPM_STORE_PUBKEY ByteString deriving (Eq)
+newtype TPM_STORE_PUBKEY = TPM_STORE_PUBKEY ByteString deriving (Eq, Read)
 
 instance Show TPM_STORE_PUBKEY where
     show (TPM_STORE_PUBKEY dat) = "Key:         " ++ blkwrap hdr 60 (bshex dat)
@@ -1152,7 +1152,7 @@ instance Binary TPM_STORE_PUBKEY where
 data TPM_PUBKEY = TPM_PUBKEY {
       tpmPubKeyParams :: TPM_KEY_PARMS
     , tpmPubKeyData   :: TPM_STORE_PUBKEY
-    } deriving (Eq)
+    } deriving (Eq, Read)
 
 instance Show TPM_PUBKEY where
     show (TPM_PUBKEY prms key) = 

@@ -1,0 +1,7 @@
+import System.IO
+
+doExport :: FileName -> TPM_PUBKEY -> IO ()
+doExport fileName pubKey = do
+  handle <- openFile fileName WriteMode
+  hPutStrLn handle $ show pubKey
+  hClose handle

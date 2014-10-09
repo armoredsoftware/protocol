@@ -10,9 +10,12 @@ import Data.Binary
 import Data.Bits
 import Data.ByteString.Lazy (ByteString, cons, empty, pack)
 import Codec.Crypto.RSA
+import System.Random
+import Crypto.Cipher.AES
 --import Codec.Crypto.AES
 --withOpenSSL
 
+import System.IO
 {-
 main :: IO ()
 main = do putStrLn "main of Measurer"
@@ -34,11 +37,12 @@ sendCAResponse chan resp = do
 
 mkCAResponse :: CARequest -> IO CAResponse
 mkCAResponse (id, (idContents, idSig)) = do
+  ekPubKey <- readPubEK
   let iPubKey = identityPubKey idContents
       iDigest = tpm_digest $ encode iPubKey
       asymContents = contents iDigest
       blob = encode asymContents
-      encBlob =  tpm_rsa_pubencrypt iPubKey{-ekPubKey-} blob --TODO get pubek
+      encBlob =  tpm_rsa_pubencrypt ekPubKey blob
       
       caPriKey = undefined
       signedAIK = rsassa_pkcs1_v1_5_sign ha_SHA1 caPriKey (encode iPubKey)
@@ -56,6 +60,25 @@ mkCAResponse (id, (idContents, idSig)) = do
      key
      
    contents dig = TPM_ASYM_CA_CONTENTS symKey dig
+
+
+generateCAKeyPair :: (PublicKey, PrivateKey)
+generateCAKeyPair = let gen = mkStdGen 3
+                        (pub, pri, _) = generateKeyPair gen 3 in (pub, pri)
+
+
+readPubEK :: IO TPM_PUBKEY
+readPubEK = do
+  handle <- openFile exportEKFileName ReadMode
+  pubKeyString <- hGetLine handle
+  let pubKey :: TPM_PUBKEY
+      pubKey = read pubKeyString
+  hClose handle
+  return pubKey
+
+
+
+
 
 {-
 process :: LibXenVChan -> IO ()

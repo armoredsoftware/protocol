@@ -39,6 +39,8 @@ srkPass = ""
 
 
 
+exportEKFileName = "attEKPubKey.txt"
+
 
 data Shared = Appraisal Request
               | Attestation Response

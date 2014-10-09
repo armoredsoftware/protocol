@@ -4,10 +4,13 @@ import VChanUtil
 import Demo3Shared
 import TPM
 
+import System.IO
+
 main :: IO ()
 main = do
   putStrLn "START main of Attestation"
   pubEk <- takeInit
+  doExport exportEKFileName pubEk
   --Export pubEk to file here(and transmit to privacyCA)
   putStrLn "tpm ownership taken"
   --testA pubEk
@@ -25,7 +28,7 @@ main = do
       pubKey <- attGetPubKey iKeyHandle iPass
       sendPubKeyResponse chan pubKey  
       -- TODO:  Maybe send signing pubkey here too
-      let caRequest = mkCARequest iPass iKeyHandle iSig
+      let caRequest = mkCARequest iPass pubKey iSig
       caChan <- sendCARequest caRequest
       caResponse <- receiveCAResponse caChan
       req <- receiveRequest chan
@@ -38,3 +41,11 @@ main = do
 
   where sigPass = tpm_digest_pass "s"
         iPass = tpm_digest_pass "i"
+        
+        
+        
+doExport :: String -> TPM_PUBKEY -> IO ()
+doExport fileName pubKey = do
+  handle <- openFile fileName WriteMode
+  hPutStrLn handle $ show pubKey
+  hClose handle

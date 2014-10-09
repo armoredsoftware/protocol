@@ -26,7 +26,8 @@ executable              Project
                         RSA,
                         parsec >= 3,
                         filepath,
-                        VChanUtil
+                        VChanUtil,
+                        cipher-aes
   Main-is:              Main.hs
   ghc-options:          -O
 
@@ -132,7 +133,8 @@ executable              PrivacyCA
                         RSA,
                         parsec >= 3,
                         filepath,
-                        VChanUtil
+                        VChanUtil,
+                        cipher-aes
   Main-is:              PrivacyCAMain.hs
   ghc-options:          -O
 
