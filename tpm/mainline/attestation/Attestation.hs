@@ -286,6 +286,11 @@ mkResponse (desiredE, pcrSelect, nonce) (caCert, actIdInput) iKeyHandle = do
       decryptedCertBytes = decryptCTR aes ctr (toStrict caCert)
       lazy = fromStrict decryptedCertBytes
       decodedCACert = (decode lazy) :: CACertificate
+      --putStrLn $ show keyBytes
+      --putStrLn $ show strictKey
+  --putStrLn $ show lazy
+  putStrLn $ show decodedCACert
+  
   tpm_session_close tpm iShn
   tpm_session_close tpm oShn
   
@@ -294,7 +299,7 @@ mkResponse (desiredE, pcrSelect, nonce) (caCert, actIdInput) iKeyHandle = do
       -- hash = doHash $ ePack eList nonce --replace w/ 3 lines above
       --quoPack = signQuote quote hash --tpm_quote does this
   quoteShn <- tpm_session_oiap tpm
-  quote <- tpm_quote tpm quoteShn iKeyHandle (TPM_NONCE evBlobSha1) pcrSelect sigPass 
+  quote <- tpm_quote tpm quoteShn iKeyHandle (TPM_NONCE evBlobSha1) pcrSelect iPass 
   tpm_session_close tpm quoteShn    
   putStrLn "Quote generated"
   
@@ -304,6 +309,7 @@ mkResponse (desiredE, pcrSelect, nonce) (caCert, actIdInput) iKeyHandle = do
   tpm_flushspecific tpm iKeyHandle tpm_rt_key  --Evict loaded key
   putStrLn "End of MkResponse"
   return (evPack, decodedCACert, quote)
+  
 
  where key = tpm_key_create_identity tpm_auth_priv_use_only
        oKty = tpm_et_xor_owner

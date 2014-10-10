@@ -48,10 +48,12 @@ mkCAResponse (id, (idContents, idSig)) = do
       
       caPriKey = snd generateCAKeyPair
       signedAIK = rsassa_pkcs1_v1_5_sign ha_SHA1 caPriKey (encode iPubKey)
+      caCert = (iPubKey, signedAIK)
+      certBytes = encode caCert
       --strictKey = toStrict key
-      strictSignedAIK = toStrict signedAIK
-      encryptedSignedAIK = encryptCTR aes ctr strictSignedAIK
-      enc = fromStrict encryptedSignedAIK
+      strictCert = toStrict certBytes
+      encryptedCert = encryptCTR aes ctr strictCert
+      enc = fromStrict encryptedCert
       --encryptedSignedAIK = crypt' CTR symKey symKey Encrypt signedAIK  
       --TODO:  above line will compile if I get AES dependency the same as on my mac
   return (enc, encBlob)
