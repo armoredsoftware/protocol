@@ -97,9 +97,9 @@ receiveResponse chan =  do
 
 --EVALUATION-------------------------------------
 
-evaluate :: Request -> Response -> PublicKey -> IO Demo3EvalResult
+evaluate :: Request -> Response -> IO Demo3EvalResult
 evaluate (d, pcrSelect, nonce) 
-  ( (eList, eNonce, eSig), _,  tpmQuote@(pcrComposite, qSig) ) pubKey = do
+  ((eList, eNonce, eSig), (pubKey, caSig),  tpmQuote@(pcrComposite, qSig)) = do
   let blobEvidence :: ByteString
       blobEvidence = ePack eList eNonce
       evBlobSha1 =  bytestringDigest $ sha1 blobEvidence
@@ -109,8 +109,10 @@ evaluate (d, pcrSelect, nonce)
       blobQuote :: ByteString
       blobQuote = encode quoteInfo
       
-      r1 = rsassa_pkcs1_v1_5_verify ha_SHA1 pubKey blobEvidence eSig
-      r2 = rsassa_pkcs1_v1_5_verify ha_SHA1 pubKey blobQuote qSig
+      publicKey = tpm_get_rsa_PublicKey pubKey
+      
+      r1 = rsassa_pkcs1_v1_5_verify ha_SHA1 publicKey blobEvidence eSig
+      r2 = rsassa_pkcs1_v1_5_verify ha_SHA1 publicKey blobQuote qSig
       r3 = nonce == eNonce
   goldenPcrComposite <- readComp
   let r4 = pcrComposite == goldenPcrComposite

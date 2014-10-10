@@ -17,9 +17,9 @@ main = do
   let mReq = mkMeasureReq [0..2]
       req = (mReq, pcrSelect, nonce)
   chan <- sendRequest req
-  response@(_, (pubKey, _), _) <- receiveResponse chan
-  let publicKey = tpm_get_rsa_PublicKey pubKey
-  result <- evaluate req response publicKey
+  response{-@(_, (pubKey, _), _)-} <- receiveResponse chan
+  --let publicKey = tpm_get_rsa_PublicKey pubKey
+  result <- evaluate req response
   showDemo3EvalResult result
   --TODO:  Evaluation -}
   putStrLn "END main of Appraiser"
