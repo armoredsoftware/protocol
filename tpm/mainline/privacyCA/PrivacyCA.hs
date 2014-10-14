@@ -23,6 +23,16 @@ main = do putStrLn "main of Measurer"
 -}
 
 
+caProcess :: LibXenVChan -> IO ()
+caProcess chan = do
+  ctrlWait chan
+  req :: CARequest <- receive chan
+  resp <- mkCAResponse req
+  putStrLn $ "CA Sending: " ++ show resp ++ "\n"
+  send chan resp
+  return () 
+
+
 receiveCARequest :: LibXenVChan -> IO CARequest
 receiveCARequest chan = do
   ctrlWait chan
@@ -36,7 +46,7 @@ sendCAResponse chan resp = do
   return () 
 
 
-mkCAResponse :: CARequest -> IO CAResponse
+mkCAResponse :: CARequest -> IO CAResponse --Need to check idSig!!!!
 mkCAResponse (id, (idContents, idSig)) = do
   ekPubKey <- readPubEK
   let iPubKey = identityPubKey idContents

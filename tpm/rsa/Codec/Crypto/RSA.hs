@@ -68,7 +68,7 @@ data PublicKey = PublicKey {
   , public_n    :: Integer -- ^The RSA modulus.
   , public_e    :: Integer -- ^The public exponent.
   }
- deriving (Show)
+ deriving (Show, Read)
 
 data PrivateKey = PrivateKey {
     private_size :: Int64   -- ^The size of the RSA modulus, in bytes.

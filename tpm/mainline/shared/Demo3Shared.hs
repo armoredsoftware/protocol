@@ -44,6 +44,8 @@ srkPass = ""
 
 exportEKFileName = "attEKPubKey.txt"
 
+exportCAPubFileName = "appCAPublicKey.txt"
+
 
 generateCAKeyPair :: (PublicKey, PrivateKey)
 generateCAKeyPair = let gen = mkStdGen 3
@@ -131,7 +133,7 @@ type PubKeyResponse = TPM_PUBKEY
 
 --Response
 type Response = (EvidencePackage, CACertificate, Quote)
-type EvidencePackage = (Evidence, TPM_NONCE, Signature)
+type EvidencePackage = (Evidence, TPM_NONCE, Signature) --Remove sig now?
 type Evidence = [EvidencePiece]
 
 
@@ -161,9 +163,12 @@ instance Binary EvidencePiece where
                     2 -> do res <- get
                             return (M2 res)
                          
-         
+       
 ePack :: Evidence -> TPM_NONCE -> ByteString
 ePack e (TPM_NONCE n) = ePack' e `append` n
+
+ePackSilly :: Evidence -> TPM_NONCE -> ByteString
+ePackSilly e (TPM_NONCE n) = n `append` ePack' e   
 
 --This is where we will need to convert measurement type to ByteString
 -- if it is something else.  see comment below

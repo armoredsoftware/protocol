@@ -185,19 +185,9 @@ createAndLoadSigKey = do
 
 createAndLoadIdentKey :: IO (TPM_KEY_HANDLE, Signature)
 createAndLoadIdentKey = do
-  
-  {-
-  sigKeyShn <- tpm_session_osap tpm sPass kty tpm_kh_srk
-  sigKey <- tpm_make_signing tpm sigKeyShn tpm_kh_srk sigPass
-  
-  tpm_session_close tpm sigKeyShn
-  --putStrLn "sig TPM_KEY created"
--}
-
-  
   sShn <- tpm_session_oiap tpm
   oShn <- tpm_session_osap tpm oPass oKty ownerHandle
-  (identKey, iSig) <- tpm_makeidentity tpm sShn oShn key sPass iPass iPass
+  (identKey, iSig) <- tpm_makeidentity tpm sShn oShn key sPass iPass iPass {-pass CALabelDigest here instead of iPass eventually?-}
   tpm_session_close tpm sShn --Check True val here!!(use clo?)
   tpm_session_close tpm oShn
 
@@ -205,11 +195,9 @@ createAndLoadIdentKey = do
   loadShn <- tpm_session_oiap tpm
   
   iKeyHandle <- tpm_loadkey2 tpm loadShn tpm_kh_srk identKey sPass
-  --sKeyHandle <- tpm_loadkey2 tpm loadShn tpm_kh_srk sigKey sPass
   tpm_session_close tpm loadShn
   --putStrLn "sigKey Loaded"
   
-  --return sKeyHandle
   return (iKeyHandle, iSig)
     
  where key = tpm_key_create_identity tpm_auth_never

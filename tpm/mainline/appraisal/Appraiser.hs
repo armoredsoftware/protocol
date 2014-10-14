@@ -15,6 +15,7 @@ import Data.Bits
 import Control.Monad
 import Data.Digest.Pure.SHA (bytestringDigest, sha1)
 import qualified Data.Map.Lazy as M (fromList, lookup, empty)
+import System.IO
 
 --withOpenSSL
 
@@ -100,6 +101,7 @@ receiveResponse chan =  do
 evaluate :: Request -> Response -> IO Demo3EvalResult
 evaluate (d, pcrSelect, nonce) 
   ((eList, eNonce, eSig), (pubKey, caSig),  tpmQuote@(pcrComposite, qSig)) = do
+  caPublicKey <- readPubCA
   let blobEvidence :: ByteString
       blobEvidence = ePack eList eNonce
       evBlobSha1 =  bytestringDigest $ sha1 blobEvidence
@@ -109,10 +111,11 @@ evaluate (d, pcrSelect, nonce)
       blobQuote :: ByteString
       blobQuote = encode quoteInfo
       
-      publicKey = tpm_get_rsa_PublicKey pubKey
+      aikPublicKey = tpm_get_rsa_PublicKey pubKey
       
-      r1 = rsassa_pkcs1_v1_5_verify ha_SHA1 publicKey blobEvidence eSig
-      r2 = rsassa_pkcs1_v1_5_verify ha_SHA1 publicKey blobQuote qSig
+      
+      r1 = rsassa_pkcs1_v1_5_verify ha_SHA1 caPublicKey (encode pubKey) caSig
+      r2 = rsassa_pkcs1_v1_5_verify ha_SHA1 aikPublicKey blobQuote qSig
       r3 = nonce == eNonce
   goldenPcrComposite <- readComp
   let r4 = pcrComposite == goldenPcrComposite
@@ -161,7 +164,7 @@ evalStrings :: [String]
 evalStrings = [e1, e2, e3, e4]
 
 e1 :: String
-e1 = "Evidence Package Signature: "
+e1 = "CACert Signature: "
 e2 :: String
 e2 = "Quote Package Signature: "  
 e3 :: String
@@ -216,6 +219,19 @@ expectedM2Val = cons (bit 2) empty
 goldenPcrComposite :: TPM_PCR_COMPOSITE
 goldenPcrComposite = undefined
 -}
+
+
+readPubCA :: IO PublicKey
+readPubCA = do
+  handle <- openFile exportCAPubFileName ReadMode
+  pubKeyString <- hGetLine handle
+  let pubKey :: PublicKey
+      pubKey = read pubKeyString
+  hClose handle
+  return pubKey
+
+
+
 
 --Error messages(only for debugging, at least for now)
 quoteReceiveError :: String
