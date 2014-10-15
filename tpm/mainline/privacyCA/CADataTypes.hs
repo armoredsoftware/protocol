@@ -11,7 +11,8 @@ import Data.Word
 import qualified Data.ByteString.Lazy as LB
 import qualified Data.ByteString.Lazy.Char8 as LBC
 import qualified Data.ByteString as B
-
+import qualified PrivacyCA.hs as CAHelper
+import qualified Demo3Shared as Shared
 type ID = Int
 type AIK_pub = [Word8]
 type AIK_pub_sig = [Word8]
@@ -32,6 +33,13 @@ data CAResponse_json = CAResp_json {
 
 $(deriveJSON defaultOptions ''CARequest_json)
 $(deriveJSON defaultOptions ''CAResponse_json)
+
+
+getSimpleRequest :: CARequest_json -> Shared.CARequest
+getSimpleRequest caReqJSON = (getID CAReq_json, 
+
+mkCAResponse_json :: Shared.CAResponse -> CAResponse_json
+
 
 example= CAReq_json 18 (toWord8s "key") (toWord8s "sig")
 

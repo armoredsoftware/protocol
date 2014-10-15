@@ -6,6 +6,7 @@ import Data.Monoid (mconcat)
 import qualified Data.Text.Lazy.Encoding as LazyEncoding
 import CADataTypes
 import qualified Demo3Shared as Adam
+import qualified PrivacyCA as CAHelper
 
 main = scotty 3000 $ do
   --  get "/" $ text "foobar"
