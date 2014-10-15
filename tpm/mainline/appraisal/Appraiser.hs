@@ -21,7 +21,7 @@ import System.IO
           
 mkTPMRequest :: [Word8] -> IO (TPM_PCR_SELECTION, TPM_NONCE)
 mkTPMRequest xs = do 
-  max  <- tpm_getcap_pcrs tpm
+  let max = 24  -- <- tpm_getcap_pcrs tpm  --Maybe add this to assumptions?(24)
   nonce <- nonce_create
   let selection = tpm_pcr_selection max xs
   return (selection, nonce)
