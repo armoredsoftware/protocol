@@ -10,6 +10,8 @@ import System.IO.Streams (InputStream, OutputStream, stdout)
 import qualified System.IO.Streams as Streams
 import qualified Data.Aeson as A
 import CADataTypes
+import qualified Demo3Shared as Adam
+
 --import qualified System.IO.Streams.Internal as StreamsI
 type ID = String
 main = do
