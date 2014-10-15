@@ -10,7 +10,7 @@ import Data.Binary
 import Data.Bits
 import Data.ByteString.Lazy (ByteString, cons, empty, pack, toStrict, fromStrict)
 import qualified Data.ByteString as B
-import Codec.Crypto.RSA
+--import Codec.Crypto.RSA hiding (sign)
 import System.Random
 import System.IO
 import Crypto.Cipher.AES
@@ -49,7 +49,7 @@ mkCAResponse (id, (idContents, idSig)) = do
       encBlob =  tpm_rsa_pubencrypt ekPubKey blob
       
       caPriKey = snd generateCAKeyPair
-      signedAIK = rsassa_pkcs1_v1_5_sign ha_SHA1 caPriKey (encode iPubKey)
+      signedAIK = sign caPriKey iPubKey --rsassa_pkcs1_v1_5_sign ha_SHA1 caPriKey (encode iPubKey)
       caCert = (iPubKey, signedAIK)
       certBytes = encode caCert
       strictCert = toStrict certBytes
@@ -83,13 +83,14 @@ readPubEK = do
   return pubKey
   
 
+{-
 --"One-time use" export function
 exportCAPub :: String -> PublicKey -> IO ()
 exportCAPub fileName pubKey = do
   handle <- openFile fileName WriteMode
   hPutStrLn handle $ show pubKey
   hClose handle
-
+-}
 
                         
 

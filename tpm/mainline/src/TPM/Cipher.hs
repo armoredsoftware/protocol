@@ -12,7 +12,7 @@ import Data.ByteString.Lazy
 import qualified Data.ByteString.Lazy.Char8 as CHAR
 import qualified Data.ByteString as BS
 import qualified Data.ByteString.Char8 as BSC
-import Codec.Crypto.RSA
+import Codec.Crypto.RSA hiding (sign, verify)
 import Control.Exception
 import Control.Monad
 import Data.Maybe
@@ -44,6 +44,21 @@ instance TPMEncryptable TPM_DIGEST where
     tobs (TPM_DIGEST bs) = bs
     frombs bs = TPM_DIGEST bs
     
+{-class Binary a => Signable a where
+  sign :: a -> PrivateKey -> ByteString
+  verify :: a -> PublicKey -> ByteString -> P.Bool
+-}
+
+sign :: Binary a => PrivateKey -> a -> ByteString
+sign priKey a = rsassa_pkcs1_v1_5_sign ha_SHA1 priKey (encode a)
+
+verify :: Binary a => PublicKey -> a -> ByteString -> P.Bool
+verify pubKey a sig = rsassa_pkcs1_v1_5_verify ha_SHA1 pubKey (encode a) 
+                                                                          sig
+  
+--instance Signable TPM_PUBKEY
+  
+  
 {-    
 instance TPMEncryptable TPM_ASYM_CA_CONTENTS where
   tobs a@(TPM_ASYM_CA_CONTENTS sym dig) = encode a 

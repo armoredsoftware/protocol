@@ -9,7 +9,7 @@ import Provisioning
 
 import Data.Word
 import Data.Binary
-import Codec.Crypto.RSA
+import Codec.Crypto.RSA(PublicKey)
 import Data.ByteString.Lazy (ByteString, pack, append, empty, cons)
 import Data.Bits
 import Control.Monad
@@ -64,14 +64,14 @@ evaluate (d, pcrSelect, nonce)
       
       quoteInfo :: TPM_QUOTE_INFO
       quoteInfo = TPM_QUOTE_INFO (tpm_pcr_composite_hash $ pcrComposite)                                                        (TPM_NONCE evBlobSha1) 
-      blobQuote :: ByteString
+     {- blobQuote :: ByteString
       blobQuote = encode quoteInfo
+-}
       
       aikPublicKey = tpm_get_rsa_PublicKey pubKey
       
-      r1 = rsassa_pkcs1_v1_5_verify ha_SHA1 caPublicKey 
-                                                    (encode pubKey) caSig
-      r2 = rsassa_pkcs1_v1_5_verify ha_SHA1 aikPublicKey blobQuote qSig
+      r1 = verify caPublicKey pubKey caSig
+      r2 = verify aikPublicKey quoteInfo qSig
       r3 = nonce == eNonce
   goldenPcrComposite <- readComp
   let r4 = pcrComposite == goldenPcrComposite

@@ -16,7 +16,7 @@ import Data.Digest.Pure.SHA (hmacSha1,bytestringDigest, sha1)
 import Data.ByteString.Lazy hiding (putStrLn, map, elem, zip)
 import Data.Binary
 import Data.Bits
-import Codec.Crypto.RSA
+--import Codec.Crypto.RSA
 import Prelude hiding (catch)
 import qualified Data.ByteString.Lazy.Char8 as CHAR
 import TPM.SignTest
@@ -149,7 +149,7 @@ cmd_key = ShellCmd ["key","k"]
             pubKey <- liftIO $ tpm_getpubkey tpm shn2 handle pass
             let publicKey = tpm_get_rsa_PublicKey pubKey
             liftIO $ putStrLn (show publicKey)
-            case (rsassa_pkcs1_v1_5_verify ha_SHA1 publicKey blobQuoteA sig) of
+            case (verify publicKey quoteInfoA sig) of
               True -> liftIO $ putStrLn "Verified Signature!!!!!!!!!"
               False -> liftIO $ putStrLn "NOT Verified" 
 
@@ -160,10 +160,10 @@ cmd_key = ShellCmd ["key","k"]
             
             qi <- liftIO $ makeQuoteInfo tpm
             let qiBlob = encode (blob)
-                qiSig = rsassa_pkcs1_v1_5_sign ha_SHA1 pri qiBlob
+                qiSig = sign pri blob --rsassa_pkcs1_v1_5_sign ha_SHA1 pri qiBlob
             liftIO $ putStrLn "Signed..."
             liftIO $ putStrLn $ "sigLength: " ++ (show $ Data.ByteString.Lazy.length qiSig)
-            case rsassa_pkcs1_v1_5_verify ha_SHA1 pub qiBlob qiSig of
+            case verify pub blob qiSig of
               True -> liftIO $ putStrLn "VERIFIED!!!"
               False -> liftIO $ putStrLn "NOT Verified!!!!"
 -}

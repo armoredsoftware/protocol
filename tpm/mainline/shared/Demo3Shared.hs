@@ -1,3 +1,5 @@
+{-# LANGUAGE TypeSynonymInstances, FlexibleInstances, OverlappingInstances #-}
+
 module Demo3Shared where
 
 import TPM
@@ -70,7 +72,15 @@ instance Binary Shared where
 
 -- Primitive types
 type Signature = ByteString
-type Quote = (TPM_PCR_COMPOSITE, Signature)
+type Signed a = (a, Signature)
+
+{-
+instance Binary (Signed a) where
+  put = undefined
+  get = undefined
+-}
+  
+type Quote = Signed TPM_PCR_COMPOSITE
 
 --Request
 type Request = (DesiredEvidence, TPM_PCR_SELECTION, TPM_NONCE)
@@ -143,13 +153,22 @@ ePack'  = foldr f empty
         f (M2 x) y = x `append` y          
          
          
-type PlatformID = Int        
-type MakeIdResult = (TPM_IDENTITY_CONTENTS, Signature)  
-type CARequest = (PlatformID, MakeIdResult)    
       
-type ActivateIdRequest = (ByteString, TPM_DIGEST)
-type CACertificate = (TPM_PUBKEY, Signature)
-type CAResponse = (ByteString, ByteString)  
+type MakeIdResult = Signed TPM_IDENTITY_CONTENTS --(TPM_IDENTITY_CONTENTS, Signature)  
+
+type PlatformID = Int  
+type SessionKey = ByteString --Is this helpful?
+type Encrypted = ByteString --Is this helpful?
+type CARequest = (PlatformID, MakeIdResult)    
+type CAResponse = (Encrypted, Encrypted) --Make type Encrypted = ByteString?
+type CACertificate = Signed TPM_PUBKEY --(TPM_PUBKEY, Signature)      
+type ActivateIdRequest = (SessionKey, TPM_DIGEST)                  
+                     
+
+
+
+
+
 --type DecryptedCAResponse = (CACertificate, ActivateIdRequest)
         
         
