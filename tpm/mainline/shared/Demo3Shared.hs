@@ -6,18 +6,7 @@ import Data.ByteString.Lazy(ByteString, empty, append, pack, toStrict, fromStric
 import Codec.Crypto.RSA
 import System.Random
 import Crypto.Cipher.AES
-{-
--- utility libraries
-import Data.Binary
-import Data.ByteString (ByteString, pack, append, empty)
-import qualified Data.ByteString as B
-import System.IO
-import System.IO.Unsafe (unsafePerformIO)
 
--- crypto libraries
-import Crypto.PubKey.RSA
-import Crypto.Hash.MD5(hash)
--}
 
 tpm :: TPMSocket
 tpm = tpm_socket "/var/run/tpm/tpmd_socket:0"
@@ -40,8 +29,6 @@ ownerPass = "adam"
 srkPass :: String
 srkPass = ""
 
-
-
 exportEKFileName = "attEKPubKey.txt"
 
 exportCAPubFileName = "appCAPublicKey.txt"
@@ -53,20 +40,9 @@ generateCAKeyPair = let gen = mkStdGen 3
 
 
 
-
-
-
-
-
-
-
-
-
 data Shared = Appraisal Request
               | Attestation Response
               | Result Bool
-
-
 
 instance Show Shared where
     show (Appraisal app) = "Appraisal: " ++ show app
@@ -92,15 +68,8 @@ instance Binary Shared where
                      return (Result res)
                      
 
-
-
-
 -- Primitive types
---type PCR = Word8 --TPM_PCRVALUE
---type Nonce = ByteString --TPM_NONCE
 type Signature = ByteString
---type TPMRequest = Word8 --TPM_PCR_SELECTION
---type Quote = (([PCR], Nonce), Signature)--simulates TPM
 type Quote = (TPM_PCR_COMPOSITE, Signature)
 
 --Request
@@ -119,25 +88,20 @@ instance Binary EvidenceDescriptor where
                1 -> return D1
                2 -> return D2
                     
-
 instance Show EvidenceDescriptor where
   show D0 = "Desired: Measurement #0"
   show D1 = "Desired: Measurement #1"
   show D2 = "Desired: Measurement #2"
    
 
-type PubKeyRequest = Bool
-type PubKeyResponse = TPM_PUBKEY
-
-
+--type PubKeyRequest = Bool
+--type PubKeyResponse = TPM_PUBKEY
 
 --Response
 type Response = (EvidencePackage, CACertificate, Quote)
 type EvidencePackage = (Evidence, TPM_NONCE, Signature) --Remove sig now?
 type Evidence = [EvidencePiece]
 
-
- 
 data EvidencePiece = M0 M0Rep 
                    | M1 M1Rep
                    | M2 M2Rep deriving (Eq, Ord, Show)
@@ -183,36 +147,15 @@ type PlatformID = Int
 type MakeIdResult = (TPM_IDENTITY_CONTENTS, Signature)  
 type CARequest = (PlatformID, MakeIdResult)    
       
-
 type ActivateIdRequest = (ByteString, TPM_DIGEST)
 type CACertificate = (TPM_PUBKEY, Signature)
 type CAResponse = (ByteString, ByteString)  
 --type DecryptedCAResponse = (CACertificate, ActivateIdRequest)
         
         
+{-                  
 --type Hash = ByteString
 --type QuotePackage = (Quote, Hash, Signature)
-
-{-
-
-ePack :: Evidence -> Nonce -> ByteString
-ePack e n = ePack' e `append` n
-
---This is where we will need to convert measurement type to ByteString
--- if it is something else.  see comment below
-ePack' :: Evidence -> ByteString
-ePack'  = foldr f empty 
-  where f (M0 x) y = x `append` y -- (i.e. (toByteString x) `append` y )
-        f (M1 x) y = x `append` y
-        f (M2 x) y = x `append` y
-
-qPack :: Quote -> Hash -> ByteString
-qPack q@((pcrsIn, nonce), sig) hash = 
-  tPack (pcrsIn, nonce) `append` sig `append` hash
-  
-tPack :: ([PCR], Nonce) -> ByteString
-tPack (pcrs, nonce) = pack pcrs `append` nonce
-
 
 doHash :: ByteString -> ByteString
 doHash = hash

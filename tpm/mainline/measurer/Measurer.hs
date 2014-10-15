@@ -10,10 +10,6 @@ import Data.Bits
 import Data.ByteString.Lazy (ByteString, cons, empty)
 --withOpenSSL
 
-{-
-main :: IO ()
-main = do putStrLn "main of Measurer"
--}
 
 process :: LibXenVChan -> IO ()
 process chan = do
@@ -23,15 +19,13 @@ process chan = do
   send chan ep
   return ()
 
-
 measure :: EvidenceDescriptor -> EvidencePiece
 measure ed = case ed of 
   D0 -> M0 m0Val
   D1 -> M1 m1Val
   D2 -> M2 m2Val
                         
-
-
+  
 m0Val :: M0Rep
 m0Val = cons (bit 0) empty
 

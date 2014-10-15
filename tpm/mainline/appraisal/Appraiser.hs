@@ -18,49 +18,14 @@ import qualified Data.Map.Lazy as M (fromList, lookup, empty)
 import System.IO
 
 --withOpenSSL
-
-{-
-main :: IO ()
-main = do {-do 
-  (pcrSelect, nonce) <- mkTPMRequest ([0..23]::[Word8])
-  let mReq = mkMeasureReq [0..2]
-      req = (mReq, pcrSelect, nonce)
-  chan <- sendRequest req
-  response <- receiveResponse chan
-  --TODO:  Evaluation -}
-  putStrLn "main of Appraiser"
-  return () 
--}
           
-sendPubKeyRequest :: Bool -> IO LibXenVChan
-sendPubKeyRequest  b = do
-  --id <-getDomId
-  putStrLn $ "Appraiser Domain id: "++ show appId
-  --other <- prompt
-  chan <- client_init attId
-  putStrLn $ "\n" ++ "Appraiser Sending: "++ 
-                  "PubKey Request: " ++ (show b) ++ "\n"
-  send chan $ b
-  return chan
-
-receivePubKeyResponse :: LibXenVChan -> IO PubKeyResponse
-receivePubKeyResponse chan = do
-  ctrlWait chan
-  resp :: PubKeyResponse <- receive chan
-  putStrLn $ "\n" ++ "Appraiser Received: " ++ "Pubkey Response: " 
-                  ++ show resp ++ "\n"
-  return resp
-    --False ->  error quoteReceiveError --TODO: error handling?
-
-
 mkTPMRequest :: [Word8] -> IO (TPM_PCR_SELECTION, TPM_NONCE)
 mkTPMRequest xs = do 
-  let max = 24 --max  <- tpm_getcap_pcrs tpm
+  max  <- tpm_getcap_pcrs tpm
   nonce <- nonce_create
   let selection = tpm_pcr_selection max xs
   return (selection, nonce)
                          
-    
 mkMeasureReq :: [Int] -> DesiredEvidence
 mkMeasureReq = map f 
  where f :: Int -> EvidenceDescriptor
@@ -68,10 +33,8 @@ mkMeasureReq = map f
        f 1 = D1
        f 2 = D2
        
-       
 sendRequest :: Request -> IO LibXenVChan
 sendRequest req = do
-
   putStrLn $ "Appraiser Domain id: "++ show appId
   chan <- client_init attId
   putStrLn $ "\n" ++ "Appraiser Sending: "++ show (Appraisal req) ++ "\n"
@@ -87,13 +50,6 @@ receiveResponse chan =  do
       putStrLn $ "\n" ++ "Appraiser Received: " ++ show res ++ "\n"
       return response
     otherwise ->  error quoteReceiveError --TODO: error handling?
-
-
-
-
-
-
-
 
 
 --EVALUATION-------------------------------------
@@ -113,38 +69,17 @@ evaluate (d, pcrSelect, nonce)
       
       aikPublicKey = tpm_get_rsa_PublicKey pubKey
       
-      
-      r1 = rsassa_pkcs1_v1_5_verify ha_SHA1 caPublicKey (encode pubKey) caSig
+      r1 = rsassa_pkcs1_v1_5_verify ha_SHA1 caPublicKey 
+                                                    (encode pubKey) caSig
       r2 = rsassa_pkcs1_v1_5_verify ha_SHA1 aikPublicKey blobQuote qSig
       r3 = nonce == eNonce
   goldenPcrComposite <- readComp
   let r4 = pcrComposite == goldenPcrComposite
       ms = evaluateEvidence d eList 
   return (r1, r2, r3, r4, ms)
-                                                                    {-
-  let pcrs' = pcrSelect tReq
-      tpmBlob = tPack (pcrsIn, qNonce)
-      eBlob = ePack e eNonce
-      qBlob = qPack tpmQuote hashIn
-      r1 = verify md5 pub qBlob qpSig 
-      r2 = verify md5 pub eBlob eSig
-      r3 = verify md5 pub tpmBlob qSig 
-      r4 = pcrsIn == pcrs'
-      r5 = nonce == qNonce
-      r6 = doHash eBlob == hashIn
-      r7 = nonce == eNonce
-      ms =  evaluateEvidence d e in
- (r1, r2, r3, r4, r5, r6, r7, ms)
--}
-
-
-
-
-
-
-
+  
+  
 type Demo3EvalResult = (Bool, Bool, Bool, Bool, [MeasureEval])
-
 
 showDemo3EvalResult :: Demo3EvalResult -> IO ()
 showDemo3EvalResult (r1, r2, r3, r4, ms) = 
@@ -171,11 +106,6 @@ e3 :: String
 e3 = "Nonce: "  
 e4 :: String
 e4 = "PCR values: "
-
-
-
-
-
 
 
 type MeasureEval = (EvidenceDescriptor, Bool) 
@@ -215,11 +145,6 @@ expectedM1Val = cons (bit 0) empty
 expectedM2Val :: M2Rep
 expectedM2Val = cons (bit 2) empty
 
-{-
-goldenPcrComposite :: TPM_PCR_COMPOSITE
-goldenPcrComposite = undefined
--}
-
 
 readPubCA :: IO PublicKey
 readPubCA = do
@@ -230,6 +155,28 @@ readPubCA = do
   hClose handle
   return pubKey
 
+
+
+{-
+sendPubKeyRequest :: Bool -> IO LibXenVChan
+sendPubKeyRequest  b = do
+  putStrLn $ "Appraiser Domain id: "++ show appId
+  chan <- client_init attId
+  putStrLn $ "\n" ++ "Appraiser Sending: "++ 
+                  "PubKey Request: " ++ (show b) ++ "\n"
+  send chan $ b
+  return chan
+-}
+
+{-
+receivePubKeyResponse :: LibXenVChan -> IO PubKeyResponse
+receivePubKeyResponse chan = do
+  ctrlWait chan
+  resp :: PubKeyResponse <- receive chan --TODO: error handling?
+  putStrLn $ "\n" ++ "Appraiser Received: " ++ "Pubkey Response: " 
+                  ++ show resp ++ "\n"
+  return resp
+-}
 
 
 

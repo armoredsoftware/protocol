@@ -10,13 +10,8 @@ main :: IO ()
 main = do
   putStrLn "START main of Attestation"
   pubEk <- takeInit
-  --exportEK exportEKFileName pubEk
-  --Export pubEk to file here(and transmit to privacyCA)
+  --exportEK exportEKFileName pubEk --Export pubEk (for now, manually transmit)
   putStrLn "tpm ownership taken"
-  --testA pubEk
-  --return ()
-  
-  
   chan <- server_init appId
   
   {-
@@ -25,11 +20,8 @@ main = do
     True -> do 
 -}
   (iKeyHandle, iSig) <- createAndLoadIdentKey
-  --sigKeyHandle <- createAndLoadSigKey --Maybe have CA send key
   pubKey <- attGetPubKey iKeyHandle iPass
-  --sendPubKeyResponse chan pubKey  
-
-    -- TODO:  Maybe send signing pubkey here too
+  --sendPubKeyResponse chan pubKey -- TODO:  Maybe send signing pubkey too
   let caRequest = mkCARequest iPass pubKey iSig
   caChan <- sendCARequest caRequest
   caResponse <- receiveCAResponse caChan
@@ -42,16 +34,13 @@ main = do
   {-
       False -> putStrLn "Could not recognize protocol" -- TODO:  Error handling
 -}
-
-
+  
   where sigPass = tpm_digest_pass "s"
         iPass = tpm_digest_pass "i"
 
    
-
-
         
-        
+-- "One-time use" function to export public EK
 exportEK :: String -> TPM_PUBKEY -> IO ()
 exportEK fileName pubKey = do
   handle <- openFile fileName WriteMode

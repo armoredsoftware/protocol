@@ -12,15 +12,10 @@ import Data.ByteString.Lazy (ByteString, cons, empty, pack, toStrict, fromStrict
 import qualified Data.ByteString as B
 import Codec.Crypto.RSA
 import System.Random
+import System.IO
 import Crypto.Cipher.AES
 --import Codec.Crypto.AES
 --withOpenSSL
-
-import System.IO
-{-
-main :: IO ()
-main = do putStrLn "main of Measurer"
--}
 
 
 caProcess :: LibXenVChan -> IO ()
@@ -31,7 +26,6 @@ caProcess chan = do
   putStrLn $ "CA Sending: " ++ show resp ++ "\n"
   send chan resp
   return () 
-
 
 receiveCARequest :: LibXenVChan -> IO CARequest
 receiveCARequest chan = do
@@ -45,7 +39,6 @@ sendCAResponse chan resp = do
   send chan resp
   return () 
 
-
 mkCAResponse :: CARequest -> IO CAResponse --Need to check idSig!!!!
 mkCAResponse (id, (idContents, idSig)) = do
   ekPubKey <- readPubEK
@@ -55,17 +48,14 @@ mkCAResponse (id, (idContents, idSig)) = do
       blob = encode asymContents
       encBlob =  tpm_rsa_pubencrypt ekPubKey blob
       
-      
       caPriKey = snd generateCAKeyPair
       signedAIK = rsassa_pkcs1_v1_5_sign ha_SHA1 caPriKey (encode iPubKey)
       caCert = (iPubKey, signedAIK)
       certBytes = encode caCert
-      --strictKey = toStrict key
       strictCert = toStrict certBytes
       encryptedCert = encryptCTR aes ctr strictCert
       enc = fromStrict encryptedCert
       --encryptedSignedAIK = crypt' CTR symKey symKey Encrypt signedAIK  
-      --TODO:  above line will compile if I get AES dependency the same as on my mac
   return (enc, encBlob)
  where 
    symKey = 
@@ -80,10 +70,7 @@ mkCAResponse (id, (idContents, idSig)) = do
    strictKey = toStrict key
    aes = initAES strictKey
    ctr = strictKey
-     
-
    contents dig = TPM_ASYM_CA_CONTENTS symKey dig
-
 
 
 readPubEK :: IO TPM_PUBKEY
@@ -95,34 +82,15 @@ readPubEK = do
   hClose handle
   return pubKey
   
-{-
+
+--"One-time use" export function
 exportCAPub :: String -> PublicKey -> IO ()
 exportCAPub fileName pubKey = do
   handle <- openFile fileName WriteMode
   hPutStrLn handle $ show pubKey
   hClose handle
--}
 
 
-
-
-
-{-
-process :: LibXenVChan -> IO ()
-process chan = do
-  ctrlWait chan
-  ed :: EvidenceDescriptor <- receive chan
-  let ep = measure ed
-  send chan ep
-  return ()
-
-
-measure :: EvidenceDescriptor -> EvidencePiece
-measure ed = case ed of 
-  D0 -> M0 m0Val
-  D1 -> M1 m1Val
-  D2 -> M2 m2Val
--}
                         
 
 

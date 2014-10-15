@@ -126,28 +126,11 @@ tpm_quote :: TPM tpm => tpm -> Session -> TPM_KEY_HANDLE -> TPM_NONCE ->
 tpm_quote tpm shn@(OIAP ah en) key nonce pcrs pass = do
   on <- nonce_create
   (rtag,size,resl,dat) <- tpm_transmit' tpm tag cod (dat on)
-  let {-numPcrs = P.length $ tpm_pcr_unselection pcrs
-      pcb = encode pcrs
-      selectionSize =  (fromIntegral $ length pcb) :: Int
-      pcrsSize = numPcrs * 20
-      vSize = 4 -}
-     -- (newComp, rest, compSize) :: (TPM_PCR_COMPOSITE, ByteString, Int64)
-      (newComp, rest, compSize) = runGetState 
+  let (newComp, rest, compSize) = runGetState 
                                                   (get :: Get TPM_PCR_COMPOSITE) dat 0
-      {-
-       USE THIS IF RUNGETSTATE DOES NOT WORK!!
-      compositeSize = (fromIntegral $ length (encode newComp)) :: Int --selectionSize + vSize + pcrsSize
-      (_, rest) = splitAt (fromIntegral compositeSize)  dat
-     -}
-      --compDecoded = decode comp
       (sigSize, rest2) = splitAt 4 rest
       sigSizeDecoded = ((decode sigSize) :: UINT32)
       (sig, rest3) = splitAt (fromIntegral sigSizeDecoded) rest2
-      --sigDecoded = decode sig
-  --putStrLn $ "Comp encoded length(in quote): " ++ (show $ length newComp)
-  --putStrLn $ "Sig length: " ++ (show $ length sig)    
-  --putStrLn $ "Size of Output after sig: " ++ (show $ length rest3)
-  
   return (newComp, sig)
   where tag = tpm_tag_rqu_auth1_command
         cod = tpm_ord_quote
@@ -157,20 +140,15 @@ tpm_quote tpm shn@(OIAP ah en) key nonce pcrs pass = do
                                                        encode pcrs]
   
 
-
--- (OSAP ah osn en esn scr)
 tpm_makeidentity :: TPM tpm => tpm -> Session -> Session -> TPM_KEY ->
                                TPM_DIGEST -> TPM_DIGEST -> TPM_DIGEST ->
-                               IO (TPM_KEY, ByteString) --CHANGED THIS!!!
+                               IO (TPM_KEY, ByteString)
 
 tpm_makeidentity tpm (OIAP sah sen) (OSAP oah oosn oen oesn oscr) key
                  spass ipass privCA = do
   son <- nonce_create
-  --putStrLn "BEFORE"
   (rtag,size,resl,dat) <- tpm_transmit' tpm tag cod (dat son)
-  --putStrLn "hello"
-  let --newKey :: TPM_KEY
-      (newKey, rest, keySize) = runGetState (get :: Get TPM_KEY) dat 0
+  let (newKey, rest, keySize) = runGetState (get :: Get TPM_KEY) dat 0
       (sigSize, rest2) = splitAt 4 rest
       sigSizeDecoded = ((decode sigSize) :: UINT32)
       (sig, _) = splitAt (fromIntegral sigSizeDecoded) rest2
@@ -178,7 +156,6 @@ tpm_makeidentity tpm (OIAP sah sen) (OSAP oah oosn oen oesn oscr) key
 
  where tag = tpm_tag_rqu_auth2_command
        cod = tpm_ord_makeidentity
-     --privCA = TPM_DIGEST $ Data.ByteString.Lazy.replicate 20 ((bit 1)::Word8)
        dat son = concat [ encode kah, encode privCA, encode key, sah,
                               encode son, encode False, encode(sath son),
                               oah, encode oosn,encode False, encode(oath oosn)]
@@ -199,12 +176,6 @@ tpm_activateidentity tpm (OIAP iah ien) (OIAP oah oen) idKey iPass oPass blob
   = do
   on <- nonce_create
   (rtag,size,resl,dat) <- tpm_transmit' tpm tag cod (dat on)
-  --putStrLn "After tpm_transmit in activateid"
-  {-
-  let symKey :: TPM_SYMMETRIC_KEY
-      symKey = runGet (get :: Get TPM_SYMMETRIC_KEY) dat
-  return symKey
--}
   return $ decode dat
   
  where tag = tpm_tag_rqu_auth2_command
@@ -219,8 +190,6 @@ tpm_activateidentity tpm (OIAP iah ien) (OIAP oah oen) idKey iPass oPass blob
                                concat [ encode cod, encode blobSize, blob]
   
 
-
-
 tpm_make_signing :: TPM tpm => tpm -> Session -> TPM_KEY_HANDLE 
                                                    -> TPM_DIGEST -> IO TPM_KEY
 tpm_make_signing tpm shn pHandle pass = do 
@@ -228,8 +197,6 @@ tpm_make_signing tpm shn pHandle pass = do
   return key'
 
  where key = tpm_key_create_signing tpm_auth_always
-
-
 
 
 tpm_sign :: TPM tpm => tpm -> Session -> TPM_KEY_HANDLE 
@@ -240,21 +207,14 @@ tpm_sign tpm (OIAP ah en) key pass ud = do
   let (size,dat') = splitAt 4 dat
   let size' = ((decode size) :: UINT32)
   let (sig,rest) = splitAt (fromIntegral size') dat'
-  --putStrLn $ "after sig length: " ++  (show $ fromIntegral $ {-Data.ByteString.Lazy.-}length rest)
-  --putStrLn $ "rand length: " ++ (show datL)
   return sig
   
-
  where tag = tpm_tag_rqu_auth1_command
        cod = tpm_ord_sign
        dat on = concat [ encode key, encode datL, ud, ah, encode on, encode False,                                 encode(ath on) ]
        ath on = tpm_auth_hmac pass en on 0 $ concat [encode cod, encode datL, 
                                                                               ud]
        datL = ((fromIntegral $ length ud) :: UINT32)
-
-
-
-
   
 tpm_sealx = undefined
 
