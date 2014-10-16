@@ -49,12 +49,7 @@ instance TPMEncryptable TPM_DIGEST where
   verify :: a -> PublicKey -> ByteString -> P.Bool
 -}
 
-sign :: Binary a => PrivateKey -> a -> ByteString
-sign priKey a = rsassa_pkcs1_v1_5_sign ha_SHA1 priKey (encode a)
 
-verify :: Binary a => PublicKey -> a -> ByteString -> P.Bool
-verify pubKey a sig = rsassa_pkcs1_v1_5_verify ha_SHA1 pubKey (encode a) 
-                                                                          sig
   
 --instance Signable TPM_PUBKEY
   

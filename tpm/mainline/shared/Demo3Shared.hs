@@ -5,7 +5,7 @@ module Demo3Shared where
 import TPM
 import Data.Binary
 import Data.ByteString.Lazy(ByteString, empty, append, pack, toStrict, fromStrict)
-import Codec.Crypto.RSA
+import Codec.Crypto.RSA hiding (sign, verify)
 import System.Random
 import Crypto.Cipher.AES
 
@@ -42,6 +42,20 @@ generateCAKeyPair = let gen = mkStdGen 3
 
 
 
+sign :: Binary a => PrivateKey -> a -> ByteString
+sign priKey a = rsassa_pkcs1_v1_5_sign ha_SHA1 priKey (encode a)
+
+verify :: Binary a => PublicKey -> a -> ByteString -> Bool
+verify pubKey a sig = rsassa_pkcs1_v1_5_verify ha_SHA1 pubKey (encode a) 
+                                                                          sig
+  
+                      
+signPack :: Binary a => PrivateKey -> a -> Signed a
+signPack priKey x = Signed x sig
+  where sig = sign priKey x
+
+
+
 data Shared = Appraisal Request
               | Attestation Response
               | Result Bool
@@ -72,18 +86,20 @@ instance Binary Shared where
 
 -- Primitive types
 type Signature = ByteString
-type Signed a = (a, Signature)
 
-{-
-instance Binary (Signed a) where
-  put = undefined
-  get = undefined
--}
-  
-type Quote = Signed TPM_PCR_COMPOSITE
+--Abstract datatype for signed payloads
+data Signed a = Signed {
+  x :: a, 
+  y :: Signature
+  } deriving Show
 
 --Request
-type Request = (DesiredEvidence, TPM_PCR_SELECTION, TPM_NONCE)
+data Request = Request {
+  desiredE :: DesiredEvidence,
+  pcrSelect :: TPM_PCR_SELECTION,
+  nonce :: TPM_NONCE
+  } deriving (Show)
+             
 type DesiredEvidence = [EvidenceDescriptor]
 data EvidenceDescriptor = D0 | D1 | D2 deriving(Eq, Ord) --for now
 
@@ -102,14 +118,25 @@ instance Show EvidenceDescriptor where
   show D0 = "Desired: Measurement #0"
   show D1 = "Desired: Measurement #1"
   show D2 = "Desired: Measurement #2"
-   
 
---type PubKeyRequest = Bool
---type PubKeyResponse = TPM_PUBKEY
+
+type Quote = Signed TPM_PCR_COMPOSITE
 
 --Response
-type Response = (EvidencePackage, CACertificate, Quote)
-type EvidencePackage = (Evidence, TPM_NONCE, Signature) --Remove sig now?
+data Response = Response {
+  evPack :: EvidencePackage, 
+  caCert :: CACertificate,
+  quote :: Quote
+  } deriving (Show)
+             
+data EvidencePackage = EvidencePackage {
+  evList :: Evidence, 
+  eNonce :: TPM_NONCE,
+  eSig :: Signature
+  } deriving (Show)
+             
+
+    
 type Evidence = [EvidencePiece]
 
 data EvidencePiece = M0 M0Rep 
@@ -154,24 +181,30 @@ ePack'  = foldr f empty
          
          
       
-type MakeIdResult = Signed TPM_IDENTITY_CONTENTS --(TPM_IDENTITY_CONTENTS, Signature)  
+type MakeIdResult = Signed TPM_IDENTITY_CONTENTS
 
 type PlatformID = Int  
 type SessionKey = ByteString --Is this helpful?
 type Encrypted = ByteString --Is this helpful?
-type CARequest = (PlatformID, MakeIdResult)    
-type CAResponse = (Encrypted, Encrypted) --Make type Encrypted = ByteString?
-type CACertificate = Signed TPM_PUBKEY --(TPM_PUBKEY, Signature)      
-type ActivateIdRequest = (SessionKey, TPM_DIGEST)                  
+
+data CARequest = CARequest {
+  pId :: PlatformID, 
+  mkIdResult :: MakeIdResult
+  } deriving (Show)
+             
+data CAResponse = CAResponse {
+  encCACert :: Encrypted, 
+  encActIdInput :: Encrypted
+  } deriving (Show)
+
+type CACertificate = Signed TPM_PUBKEY   
+
+data ActivateIdRequest = ActivateIdRequest {
+  sessKey :: SessionKey, 
+  aikDigest :: TPM_DIGEST
+  } deriving (Show)
                      
 
-
-
-
-
---type DecryptedCAResponse = (CACertificate, ActivateIdRequest)
-        
-        
 {-                  
 --type Hash = ByteString
 --type QuotePackage = (Quote, Hash, Signature)
@@ -180,3 +213,94 @@ doHash :: ByteString -> ByteString
 doHash = hash
 
 -}
+
+
+--Boilerplate Binary instances(remove if there is an easier way to generate)--
+instance Binary Quote where
+  put(Signed a b) = do
+    put a
+    put b
+  get = do
+    a <- get
+    b <- get
+    return (Signed a b)
+    
+instance Binary MakeIdResult where
+  put(Signed a b) = do
+    put a
+    put b
+  get = do
+    a <- get
+    b <- get
+    return (Signed a b)
+    
+instance Binary CACertificate where
+  put(Signed a b) = do
+    put a
+    put b
+  get = do
+    a <- get
+    b <- get
+    return (Signed a b)
+    
+    
+instance Binary Request where
+  put(Request a b c) = do
+    put a
+    put b
+    put c
+  get = do
+    a <- get
+    b <- get
+    c <- get
+    return $ Request a b c
+    
+instance Binary Response where
+  put(Response a b c) = do
+    put a
+    put b
+    put c
+  get = do
+    a <- get
+    b <- get
+    c <- get
+    return $ Response a b c
+    
+instance Binary EvidencePackage where
+  put(EvidencePackage a b c) = do
+    put a
+    put b
+    put c
+  get = do
+    a <- get
+    b <- get
+    c <- get
+    return $ EvidencePackage a b c
+    
+             
+instance Binary  CARequest where
+  put(CARequest a b ) = do
+    put a
+    put b
+  get = do
+    a <- get
+    b <- get
+    return $ CARequest a b 
+             
+instance Binary  CAResponse where
+  put(CAResponse a b ) = do
+    put a
+    put b
+  get = do
+    a <- get
+    b <- get
+    return $ CAResponse a b 
+    
+instance Binary ActivateIdRequest where
+  put(ActivateIdRequest a b ) = do
+    put a
+    put b
+  get = do
+    a <- get
+    b <- get
+    return $ ActivateIdRequest a b 

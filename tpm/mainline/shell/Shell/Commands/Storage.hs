@@ -20,6 +20,7 @@ import Data.Bits
 import Prelude hiding (catch)
 import qualified Data.ByteString.Lazy.Char8 as CHAR
 import TPM.SignTest
+import Demo3Shared -- Can remove this if we dont care about sign/verify abstraction here
 
 -------------------------------------------------------------------------------
 -------------------------------------------------------------------------------

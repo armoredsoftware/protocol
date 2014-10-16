@@ -81,7 +81,7 @@ createAndLoadIdentKey = do
        iPass = tpm_digest_pass "i"
 
 mkResponse :: Request -> CAResponse -> TPM_KEY_HANDLE -> IO Response
-mkResponse (desiredE, pcrSelect, nonce) (caCert, actIdInput) iKeyHandle = do
+mkResponse (Request desiredE pcrSelect nonce) (CAResponse caCert actIdInput) iKeyHandle = do
   --measurerID <- measurePrompt
   chan <- client_init meaId
   eList <- mapM (getEvidencePiece chan) desiredE
@@ -96,7 +96,7 @@ mkResponse (desiredE, pcrSelect, nonce) (caCert, actIdInput) iKeyHandle = do
   --putStrLn "evBlob signed"
   CHANGE THIS WHEN READY TO DO REAL SIGN -}
   let eSig = empty --TEMPORARY
-  let evPack = (eList, nonce, eSig)
+  let evPack = (EvidencePackage eList nonce eSig)
   
   iShn <- tpm_session_oiap tpm
   oShn <- tpm_session_oiap tpm
@@ -116,13 +116,14 @@ mkResponse (desiredE, pcrSelect, nonce) (caCert, actIdInput) iKeyHandle = do
   tpm_session_close tpm oShn
   
   quoteShn <- tpm_session_oiap tpm
-  quote <- tpm_quote tpm quoteShn iKeyHandle (TPM_NONCE evBlobSha1) 
+  (pcrComp, sig) <- tpm_quote tpm quoteShn iKeyHandle (TPM_NONCE evBlobSha1) 
                                pcrSelect iPass 
+  let quote' = Signed pcrComp sig
   tpm_session_close tpm quoteShn    
   putStrLn "Quote generated"
   tpm_flushspecific tpm iKeyHandle tpm_rt_key  --Evict loaded key
   putStrLn "End of MkResponse"
-  return (evPack, decodedCACert, quote)
+  return (Response evPack decodedCACert quote')
   
  where key = tpm_key_create_identity tpm_auth_priv_use_only
        oKty = tpm_et_xor_owner
@@ -161,7 +162,7 @@ sendResponse chan resp = do
 mkCARequest :: TPM_DIGEST -> TPM_PUBKEY -> Signature -> CARequest
 mkCARequest privCALabel iPubKey iSig = 
   let idContents = TPM_IDENTITY_CONTENTS privCALabel iPubKey in 
-  (attId, (idContents, iSig))
+  (CARequest attId (Signed idContents iSig))
   
 sendCARequest :: CARequest -> IO LibXenVChan
 sendCARequest req = do

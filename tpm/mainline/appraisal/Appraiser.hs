@@ -55,8 +55,8 @@ receiveResponse chan =  do
 --EVALUATION-------------------------------------
 
 evaluate :: Request -> Response -> IO Demo3EvalResult
-evaluate (d, pcrSelect, nonce) 
-  ((eList, eNonce, eSig), (pubKey, caSig),  tpmQuote@(pcrComposite, qSig)) = do
+evaluate (Request d pcrSelect nonce) 
+  (Response (EvidencePackage eList eNonce eSig) (Signed pubKey caSig)  tpmQuote@(Signed pcrComposite qSig)) = do
   caPublicKey <- readPubCA
   let blobEvidence :: ByteString
       blobEvidence = ePack eList eNonce

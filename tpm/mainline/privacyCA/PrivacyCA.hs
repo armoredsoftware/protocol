@@ -40,7 +40,7 @@ sendCAResponse chan resp = do
   return () 
 
 mkCAResponse :: CARequest -> IO CAResponse --Need to check idSig!!!!
-mkCAResponse (id, (idContents, idSig)) = do
+mkCAResponse (CARequest id (Signed idContents idSig)) = do
   ekPubKey <- readPubEK
   let iPubKey = identityPubKey idContents
       iDigest = tpm_digest $ encode iPubKey
@@ -56,7 +56,7 @@ mkCAResponse (id, (idContents, idSig)) = do
       encryptedCert = encryptCTR aes ctr strictCert
       enc = fromStrict encryptedCert
       --encryptedSignedAIK = crypt' CTR symKey symKey Encrypt signedAIK  
-  return (enc, encBlob)
+  return (CAResponse enc encBlob)
  where 
    symKey = 
      TPM_SYMMETRIC_KEY 

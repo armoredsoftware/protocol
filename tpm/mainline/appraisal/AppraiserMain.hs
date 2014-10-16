@@ -11,7 +11,7 @@ main = do
   putStrLn "START main of Appraiser"
   (pcrSelect, nonce) <- mkTPMRequest ([0..23]::[Word8])
   let mReq = mkMeasureReq [0..2]
-      req = (mReq, pcrSelect, nonce)
+      req = (Request mReq pcrSelect nonce)
   chan <- sendRequest req
   response <- receiveResponse chan
   result <- evaluate req response
