@@ -144,6 +144,9 @@ getEvidencePiece chan ed = do
   return evidence
   
 receiveRequest :: LibXenVChan -> IO Request
+receiveRequest = receiveM attName
+{-
+receiveRequest :: LibXenVChan -> IO Request
 receiveRequest chan = do
   ctrlWait chan
   res :: Shared <- receive chan
@@ -152,18 +155,28 @@ receiveRequest chan = do
       putStrLn $ "\n" ++ "Attester Received: " ++ show res ++ "\n"
       return req
     otherwise -> error requestReceiveError 
+-}
     
+sendResponse :: LibXenVChan -> Response-> IO ()   
+sendResponse = sendM attName
+{-
 sendResponse :: LibXenVChan -> Response-> IO ()   
 sendResponse chan resp = do
   putStrLn $ "Attester Sending: " ++ show (Attestation resp) ++ "\n"
   send chan $ Attestation resp
   return () 
+-}
 
 mkCARequest :: TPM_DIGEST -> TPM_PUBKEY -> Signature -> CARequest
 mkCARequest privCALabel iPubKey iSig = 
   let idContents = TPM_IDENTITY_CONTENTS privCALabel iPubKey in 
   (CARequest attId (Signed idContents iSig))
   
+  
+sendCARequest :: CARequest -> IO LibXenVChan 
+sendCARequest = sendR caId attName
+
+{-
 sendCARequest :: CARequest -> IO LibXenVChan
 sendCARequest req = do
   chan <- client_init caId
@@ -171,12 +184,21 @@ sendCARequest req = do
                   "CA Request: " ++ (show req) ++ "\n"
   send chan $ req
   return chan
+-}
 
+
+receiveCAResponse :: LibXenVChan -> IO CAResponse
+receiveCAResponse = receiveM attName
+
+{-
 receiveCAResponse :: LibXenVChan -> IO CAResponse
 receiveCAResponse chan =  do
   ctrlWait chan
   res :: CAResponse <- receive chan --TODO: error handling?
+  putStrLn $ "\n" ++ "Attestation Received: "++ (show res) ++ "\n"
   return res
+-}
+
 
 
 {-

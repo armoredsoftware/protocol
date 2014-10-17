@@ -9,5 +9,5 @@ main :: IO ()
 main = do 
   putStrLn "main of Measurer"
   chan <- server_init attId
-  forever $ process chan
+  forever $ meaProcess chan
   return ()

@@ -3,6 +3,7 @@ import Attestation
 import VChanUtil
 import Demo3Shared
 import TPM
+import qualified Data.ByteString.Lazy as L
 
 import System.IO
 
@@ -10,6 +11,9 @@ main :: IO ()
 main = do
   putStrLn "START main of Attestation"
   pubEk <- takeInit
+  --putStrLn $ show pubEk
+  let fileName = "pubEkBytes.txt"
+  exportEKBytes fileName pubEk
   --exportEK exportEKFileName pubEk --Export pubEk (for now, manually transmit)
   putStrLn "tpm ownership taken"
   chan <- server_init appId
@@ -39,6 +43,11 @@ main = do
         iPass = tpm_digest_pass "i"
 
    
+        
+exportEKBytes :: String -> TPM_PUBKEY -> IO ()
+exportEKBytes fileName pubKey = do
+  let (TPM_STORE_PUBKEY bs) = tpmPubKeyData pubKey
+  L.writeFile fileName bs
         
 -- "One-time use" function to export public EK
 exportEK :: String -> TPM_PUBKEY -> IO ()

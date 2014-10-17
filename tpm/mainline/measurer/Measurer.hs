@@ -11,19 +11,34 @@ import Data.ByteString.Lazy (ByteString, cons, empty)
 --withOpenSSL
 
 
-process :: LibXenVChan -> IO ()
-process chan = do
+meaProcess = process receiveMeaRequest sendMeaResponse measure
+
+{-
+meaProcess :: LibXenVChan -> IO ()
+meaProcess chan = do
   ctrlWait chan
   ed :: EvidenceDescriptor <- receive chan
-  let ep = measure ed
+  ep <- measure ed
   send chan ep
   return ()
+-}
 
-measure :: EvidenceDescriptor -> EvidencePiece
-measure ed = case ed of 
-  D0 -> M0 m0Val
-  D1 -> M1 m1Val
-  D2 -> M2 m2Val
+
+receiveMeaRequest :: LibXenVChan -> IO EvidenceDescriptor
+receiveMeaRequest = receiveM meaName
+
+sendMeaResponse :: LibXenVChan -> EvidencePiece -> IO ()
+sendMeaResponse = sendM meaName
+
+
+
+measure :: EvidenceDescriptor -> IO EvidencePiece
+measure ed = do 
+  putStrLn ""
+  case ed of 
+                    D0 -> return $ M0 m0Val
+                    D1 -> return $ M1 m1Val
+                    D2 -> return $ M2 m2Val
                         
   
 m0Val :: M0Rep

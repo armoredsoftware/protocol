@@ -14,6 +14,9 @@ main = do
   exportCAPub exportCAPubFileName publicKey
   -}
   chan <- server_init attId
+  --req <- receiveCARequest chan
+  --resp <- mkCAResponse req
+  --sendCAResponse chan resp
   forever $ caProcess chan
   {-req <-receiveCARequest chan
   putStrLn $ show req

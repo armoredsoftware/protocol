@@ -3,6 +3,7 @@
 module Demo3Shared where
 
 import TPM
+import VChanUtil
 import Data.Binary
 import Data.ByteString.Lazy(ByteString, empty, append, pack, toStrict, fromStrict)
 import Codec.Crypto.RSA hiding (sign, verify)
@@ -16,14 +17,26 @@ tpm = tpm_socket "/var/run/tpm/tpmd_socket:0"
 appId :: Int
 appId = 20
 
+appName :: String
+appName = "Appraiser"
+
 attId :: Int
 attId = 19
+
+attName :: String
+attName = "Attester"
 
 meaId :: Int
 meaId = 7
 
+meaName :: String
+meaName = "Measurer"
+
 caId :: Int
 caId = 21
+
+caName :: String
+caName = "CA"
 
 ownerPass :: String
 ownerPass = "adam"
@@ -55,6 +68,36 @@ signPack priKey x = Signed x sig
   where sig = sign priKey x
 
 
+sendM :: (Binary a, Show a) => String -> LibXenVChan ->  a -> IO ()
+sendM descrip chan m = do
+  putStrLn $ descrip ++ "Sending: " ++ show m ++ "\n"
+  send chan $ m
+  return () 
+
+
+sendR :: (Binary a, Show a) => PlatformID -> String -> a -> IO LibXenVChan
+sendR dest descrip req = do
+    chan <- client_init dest
+    putStrLn $ descrip ++ "Sending: " ++ show req ++ "\n"
+    send chan $ req
+    return chan
+
+receiveM :: (Binary a, Show a) => String -> LibXenVChan -> IO a
+receiveM descrip chan = do
+  ctrlWait chan
+  res <- receive chan
+  putStrLn $ descrip ++ "Received: " ++ show res ++ "\n"
+  return res
+
+
+process :: (Binary a, Show a, Binary b, Show b) => (LibXenVChan -> IO a) 
+                -> (LibXenVChan -> b -> IO ()) -> (a -> IO b) -> LibXenVChan -> IO ()
+process recA sendB mk chan = do
+  --ctrlWait chan
+  req <- recA chan
+  resp <- mk req
+  sendB chan resp
+  return ()
 
 data Shared = Appraisal Request
               | Attestation Response

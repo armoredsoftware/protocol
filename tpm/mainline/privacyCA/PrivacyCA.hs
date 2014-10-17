@@ -19,25 +19,45 @@ import Crypto.Cipher.AES
 
 
 caProcess :: LibXenVChan -> IO ()
-caProcess chan = do
-  ctrlWait chan
-  req :: CARequest <- receive chan
-  resp <- mkCAResponse req
-  putStrLn $ "CA Sending: " ++ show resp ++ "\n"
-  send chan resp
-  return () 
+caProcess = process receiveCARequest sendCAResponse mkCAResponse
 
+{-
+caProcess :: LibXenVChan -> IO ()
+caProcess chan = do
+  --ctrlWait chan
+  req <- receiveCARequest chan
+  resp <- mkCAResponse req
+  sendCAResponse chan resp
+  return () 
+-}
+
+
+receiveCARequest :: LibXenVChan -> IO CARequest
+receiveCARequest = receiveM caName
+
+
+{-
 receiveCARequest :: LibXenVChan -> IO CARequest
 receiveCARequest chan = do
   ctrlWait chan
   req :: CARequest <- receive chan
+  putStrLn $ "\n" ++ "CA Received: "++ (show req) ++ "\n"                   
   return req
+-}
+
   
+                  
+sendCAResponse :: LibXenVChan -> CAResponse -> IO ()
+sendCAResponse = sendM caName
+
+{-
 sendCAResponse :: LibXenVChan -> CAResponse -> IO ()
 sendCAResponse chan resp = do
   putStrLn $ "CA Sending: " ++ show resp ++ "\n"
   send chan resp
   return () 
+-}
+
 
 mkCAResponse :: CARequest -> IO CAResponse --Need to check idSig!!!!
 mkCAResponse (CARequest id (Signed idContents idSig)) = do

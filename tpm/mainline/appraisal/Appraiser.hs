@@ -33,6 +33,9 @@ mkMeasureReq = map f
        f 1 = D1
        f 2 = D2
        
+sendRequest :: Request -> IO LibXenVChan    
+sendRequest = sendR attId appName
+{-
 sendRequest :: Request -> IO LibXenVChan
 sendRequest req = do
   putStrLn $ "Appraiser Domain id: "++ show appId
@@ -40,7 +43,12 @@ sendRequest req = do
   putStrLn $ "\n" ++ "Appraiser Sending: "++ show (Appraisal req) ++ "\n"
   send chan $ Appraisal req
   return chan
+-}
   
+              
+receiveResponse :: LibXenVChan -> IO Response
+receiveResponse = receiveM appName
+{-
 receiveResponse :: LibXenVChan -> IO Response
 receiveResponse chan =  do
   ctrlWait chan
@@ -50,7 +58,7 @@ receiveResponse chan =  do
       putStrLn $ "\n" ++ "Appraiser Received: " ++ show res ++ "\n"
       return response
     otherwise ->  error quoteReceiveError --TODO: error handling?
-
+-}
 
 --EVALUATION-------------------------------------
 
