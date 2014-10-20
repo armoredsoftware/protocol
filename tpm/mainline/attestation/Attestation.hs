@@ -81,7 +81,7 @@ createAndLoadIdentKey = do
        iPass = tpm_digest_pass "i"
 
 mkResponse :: Request -> CAResponse -> TPM_KEY_HANDLE -> IO Response
-mkResponse (Request desiredE pcrSelect nonce) (CAResponse caCert actIdInput) iKeyHandle = do
+mkResponse (Request desiredE pcrSelect nonce) (CAResponse caCertBytes actIdInput) iKeyHandle = do
   --measurerID <- measurePrompt
   chan <- client_init meaId
   eList <- mapM (getEvidencePiece chan) desiredE
@@ -109,16 +109,17 @@ mkResponse (Request desiredE pcrSelect nonce) (CAResponse caCert actIdInput) iKe
       aes = initAES strictKey
       ctr = strictKey
       
-      decryptedCertBytes = decryptCTR aes ctr (toStrict caCert)
-      lazy = fromStrict decryptedCertBytes
-      decodedCACert = (decode lazy) :: CACertificate
+      
+      decryptedCertBytes = {-decrypt keyBytes caCertBytes-} decryptCTR aes ctr (toStrict caCertBytes)
+      lazy = fromStrict decryptedCertBytes 
+      decodedCACert = (decode lazy {-decryptedCertBytes-}) :: CACertificate
   tpm_session_close tpm iShn
   tpm_session_close tpm oShn
   
   quoteShn <- tpm_session_oiap tpm
   (pcrComp, sig) <- tpm_quote tpm quoteShn iKeyHandle (TPM_NONCE evBlobSha1) 
                                pcrSelect iPass 
-  let quote' = Signed pcrComp sig
+  let quote' = (Quote pcrComp sig)
   tpm_session_close tpm quoteShn    
   putStrLn "Quote generated"
   tpm_flushspecific tpm iKeyHandle tpm_rt_key  --Evict loaded key

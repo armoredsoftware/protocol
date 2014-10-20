@@ -150,7 +150,7 @@ cmd_key = ShellCmd ["key","k"]
             pubKey <- liftIO $ tpm_getpubkey tpm shn2 handle pass
             let publicKey = tpm_get_rsa_PublicKey pubKey
             liftIO $ putStrLn (show publicKey)
-            case (verify publicKey quoteInfoA sig) of
+            case (False{-verify publicKey quoteInfoA sig-}) of
               True -> liftIO $ putStrLn "Verified Signature!!!!!!!!!"
               False -> liftIO $ putStrLn "NOT Verified" 
 

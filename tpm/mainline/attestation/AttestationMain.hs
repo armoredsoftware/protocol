@@ -32,6 +32,7 @@ main = do
 
   req <- receiveRequest chan
   resp <- mkResponse req caResponse iKeyHandle  --Maybe pass sig key handle
+  putStrLn "After MkResponse"
   sendResponse chan resp
   putStrLn "END main of Attestation"
   return ()

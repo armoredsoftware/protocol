@@ -6,6 +6,7 @@ import TPM
 import VChanUtil
 import Data.Binary
 import Data.ByteString.Lazy(ByteString, empty, append, pack, toStrict, fromStrict)
+import qualified Data.ByteString as B (ByteString)
 import Codec.Crypto.RSA hiding (sign, verify)
 import System.Random
 import Crypto.Cipher.AES
@@ -49,21 +50,45 @@ exportEKFileName = "attEKPubKey.txt"
 exportCAPubFileName = "appCAPublicKey.txt"
 
 
-generateCAKeyPair :: (PublicKey, PrivateKey)
+type PubKey = Codec.Crypto.RSA.PublicKey
+type PriKey = Codec.Crypto.RSA.PrivateKey
+
+type SymKey = B.ByteString
+
+generateCAKeyPair :: (PubKey, PriKey)
 generateCAKeyPair = let gen = mkStdGen 3
                         (pub, pri, _) = generateKeyPair gen 2048 in (pub, pri)
 
+encrypt :: Binary a => SymKey -> a -> ByteString
+encrypt key m = (fromStrict encryptedStrictM)
 
+ where encodedM = encode m
+       strictM = toStrict encodedM
+       --strictKey = toStrict lazyKey
+       aes = initAES key
+       ctr = key
+       encryptedStrictM = encryptCTR aes ctr strictM
+       --lazyEncryptedStrictM = fromStrict encryptedStrictM
 
-sign :: Binary a => PrivateKey -> a -> ByteString
-sign priKey a = rsassa_pkcs1_v1_5_sign ha_SHA1 priKey (encode a)
+decrypt :: SymKey -> ByteString -> ByteString
+decrypt key encryptedM = (fromStrict strictDecryptedM)
 
-verify :: Binary a => PublicKey -> a -> ByteString -> Bool
-verify pubKey a sig = rsassa_pkcs1_v1_5_verify ha_SHA1 pubKey (encode a) 
-                                                                          sig
+ where strictEncryptedM = toStrict encryptedM
+       aes = initAES key
+       ctr = key
+       strictDecryptedM = decryptCTR aes ctr strictEncryptedM
+
+sign :: (Binary a{-, Signable a-}) => PriKey -> a -> ByteString
+sign priKey a = rsassa_pkcs1_v1_5_sign ha_SHA1 priKey ({-toBits-} encode a)
+
+verify :: (Binary a{-, Signable a-})=> PubKey -> Signed a -> Bool
+verify pubKey signed = rsassa_pkcs1_v1_5_verify ha_SHA1 
+                                                                          pubKey 
+                                                                          ({-toBits-}encode $ dat signed) 
+                                                                          (sig signed)
   
                       
-signPack :: Binary a => PrivateKey -> a -> Signed a
+signPack :: (Binary a{-, Signable a-}) => PriKey -> a -> Signed a
 signPack priKey x = Signed x sig
   where sig = sign priKey x
 
@@ -99,6 +124,17 @@ process recA sendB mk chan = do
   sendB chan resp
   return ()
 
+
+{-
+class Signable a where
+  toBits :: Binary a => a -> ByteString
+  toBits = encode
+-}
+
+--instance Signable TPM_QUOTE_INFO
+
+
+
 data Shared = Appraisal Request
               | Attestation Response
               | Result Bool
@@ -132,8 +168,8 @@ type Signature = ByteString
 
 --Abstract datatype for signed payloads
 data Signed a = Signed {
-  x :: a, 
-  y :: Signature
+  dat :: a, 
+  sig :: Signature
   } deriving Show
 
 --Request
@@ -163,7 +199,15 @@ instance Show EvidenceDescriptor where
   show D2 = "Desired: Measurement #2"
 
 
-type Quote = Signed TPM_PCR_COMPOSITE
+--type Quote = (TPM_PCR_COMPOSITE, Signature)
+--type Quote = Signed TPM_PCR_COMPOSITE
+
+data Quote = Quote {
+  pcrComposite :: TPM_PCR_COMPOSITE,
+  qSig :: Signature
+  } deriving (Show)
+
+--instance Signable TPM_PUBKEY
 
 --Response
 data Response = Response {
@@ -259,14 +303,16 @@ doHash = hash
 
 
 --Boilerplate Binary instances(remove if there is an easier way to generate)--
+
 instance Binary Quote where
-  put(Signed a b) = do
+  put(Quote a b) = do
     put a
     put b
   get = do
     a <- get
     b <- get
-    return (Signed a b)
+    return (Quote a b)
+
     
 instance Binary MakeIdResult where
   put(Signed a b) = do

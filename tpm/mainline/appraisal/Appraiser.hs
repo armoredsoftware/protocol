@@ -9,7 +9,7 @@ import Provisioning
 
 import Data.Word
 import Data.Binary
-import Codec.Crypto.RSA(PublicKey)
+--import Codec.Crypto.RSA(PublicKey)
 import Data.ByteString.Lazy (ByteString, pack, append, empty, cons)
 import Data.Bits
 import Control.Monad
@@ -64,7 +64,7 @@ receiveResponse chan =  do
 
 evaluate :: Request -> Response -> IO Demo3EvalResult
 evaluate (Request d pcrSelect nonce) 
-  (Response (EvidencePackage eList eNonce eSig) (Signed pubKey caSig)  tpmQuote@(Signed pcrComposite qSig)) = do
+  (Response (EvidencePackage eList eNonce eSig) caCert@(Signed pubKey caSig)  tpmQuote@(Quote pcrComposite qSig)) = do
   caPublicKey <- readPubCA
   let blobEvidence :: ByteString
       blobEvidence = ePack eList eNonce
@@ -78,8 +78,9 @@ evaluate (Request d pcrSelect nonce)
       
       aikPublicKey = tpm_get_rsa_PublicKey pubKey
       
-      r1 = verify caPublicKey pubKey caSig
-      r2 = verify aikPublicKey quoteInfo qSig
+      r1 = verify caPublicKey caCert
+      signedQuoteInfo = Signed quoteInfo qSig
+      r2 =  verify aikPublicKey signedQuoteInfo
       r3 = nonce == eNonce
   goldenPcrComposite <- readComp
   let r4 = pcrComposite == goldenPcrComposite
@@ -154,11 +155,11 @@ expectedM2Val :: M2Rep
 expectedM2Val = cons (bit 2) empty
 
 
-readPubCA :: IO PublicKey
+readPubCA :: IO PubKey
 readPubCA = do
   handle <- openFile exportCAPubFileName ReadMode
   pubKeyString <- hGetLine handle
-  let pubKey :: PublicKey
+  let pubKey :: PubKey
       pubKey = read pubKeyString
   hClose handle
   return pubKey

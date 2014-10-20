@@ -9,7 +9,7 @@ import VChanUtil
 import Data.Binary
 import Data.Bits
 import Data.ByteString.Lazy (ByteString, cons, empty, pack, toStrict, fromStrict)
-import qualified Data.ByteString as B
+import qualified Data.ByteString as B (ByteString, pack)
 --import Codec.Crypto.RSA hiding (sign)
 import System.Random
 import System.IO
@@ -69,13 +69,15 @@ mkCAResponse (CARequest id (Signed idContents idSig)) = do
       encBlob =  tpm_rsa_pubencrypt ekPubKey blob
       
       caPriKey = snd generateCAKeyPair
-      signedAIK = sign caPriKey iPubKey --rsassa_pkcs1_v1_5_sign ha_SHA1 caPriKey (encode iPubKey)
-      caCert = (iPubKey, signedAIK)
+      caCert = signPack caPriKey iPubKey
       certBytes = encode caCert
+      
       strictCert = toStrict certBytes
       encryptedCert = encryptCTR aes ctr strictCert
       enc = fromStrict encryptedCert
       --encryptedSignedAIK = crypt' CTR symKey symKey Encrypt signedAIK  
+
+      --enc = encrypt key certBytes
   return (CAResponse enc encBlob)
  where 
    symKey = 
@@ -86,10 +88,10 @@ mkCAResponse (CARequest id (Signed idContents idSig)) = do
    
    v:: Word8 
    v = 1
-   key = (Data.ByteString.Lazy.pack $ replicate 16 v) 
-   strictKey = toStrict key
-   aes = initAES strictKey
-   ctr = strictKey
+   key = ({-B.-}Data.ByteString.Lazy.pack $ replicate 16 v) 
+   --strictKey = toStrict key
+   aes = initAES $ toStrict key
+   ctr = toStrict key
    contents dig = TPM_ASYM_CA_CONTENTS symKey dig
 
 
@@ -105,7 +107,7 @@ readPubEK = do
 
 {-
 --"One-time use" export function
-exportCAPub :: String -> PublicKey -> IO ()
+exportCAPub :: String -> PubKey -> IO ()
 exportCAPub fileName pubKey = do
   handle <- openFile fileName WriteMode
   hPutStrLn handle $ show pubKey

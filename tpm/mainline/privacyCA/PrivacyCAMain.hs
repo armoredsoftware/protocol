@@ -29,7 +29,7 @@ main = do
 
   
   
-exportCAPub :: String -> PublicKey -> IO ()
+exportCAPub :: String -> PubKey -> IO ()
 exportCAPub fileName pubKey = do
   handle <- openFile fileName WriteMode
   hPutStrLn handle $ show pubKey

@@ -10,6 +10,7 @@ import Data.Binary
 import Data.Binary.Get
 import Data.Binary.Put
 import Data.ByteString.Lazy hiding (putStrLn,map,reverse)
+import qualified Data.ByteString as B (ByteString)
 import qualified Data.ByteString.Lazy.Char8 as C (pack)
 import Control.Monad
 import Control.Exception
@@ -450,7 +451,7 @@ instance Binary TPM_QUOTE_INFO where
         put d
     get = do
         t  <- (get :: Get TPM_STRUCT_VER)
-        f  <- (get :: Get ByteString)
+        f  <- getLazyByteString (fromIntegral 4)
         c <- get
         d <- get
         return $ TPM_QUOTE_INFO c d
@@ -869,7 +870,7 @@ data TPM_SYMMETRIC_KEY = TPM_SYMMETRIC_KEY {
       tpmSymmetricAlg    :: TPM_ALGORITHM_ID
     , tpmSymmetricScheme :: TPM_ENC_SCHEME
     {-, tpmSymmetricSize   :: UINT16 -}
-    , tpmSymmetricData   :: ByteString
+    , tpmSymmetricData   :: {-B.-}ByteString  --Made strict here for cooperation with encryption library, but encoded lazy(see binary instance below) for transmission advantages.  
     } deriving (Show, Eq)
 
 x :: Word32
@@ -879,14 +880,14 @@ instance Binary TPM_SYMMETRIC_KEY where
   put(TPM_SYMMETRIC_KEY alg enc dat) = do
     put alg
     put enc
-    put ((fromIntegral $ length dat) :: UINT16)
-    putLazyByteString dat
+    put ((fromIntegral $ length ({-fromStrict-} dat)) :: UINT16)
+    putLazyByteString ({-fromStrict-} dat)
   get = do
     alg <- get
     enc <- get
     size <- (get :: Get UINT16)
     dat <-  getLazyByteString (fromIntegral size)
-    return $ TPM_SYMMETRIC_KEY alg enc dat 
+    return $ TPM_SYMMETRIC_KEY alg enc ({-toStrict-} dat) 
   
 -------------------------------------------------------------------------------
 -- TPM bound data structure as defined by section 9.5 of the document:
