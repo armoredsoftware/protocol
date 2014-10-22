@@ -1,4 +1,4 @@
-{-# LANGUAGE TypeSynonymInstances, FlexibleInstances, OverlappingInstances #-}
+{-# LANGUAGE TypeSynonymInstances, FlexibleInstances, OverlappingInstances, OverloadedStrings #-}
 
 module Demo3Shared where
 
@@ -10,7 +10,7 @@ import qualified Data.ByteString as B (ByteString)
 import Codec.Crypto.RSA hiding (sign, verify)
 import System.Random
 import Crypto.Cipher.AES
-
+import qualified Data.Aeson as DA
 
 tpm :: TPMSocket
 tpm = tpm_socket "/var/run/tpm/tpmd_socket:0"
@@ -393,3 +393,19 @@ instance Binary ActivateIdRequest where
     a <- get
     b <- get
     return $ ActivateIdRequest a b 
+    
+    
+    
+    {-
+-- JSON stuff!
+
+--Request Things first
+   --toJSON
+instance ToJSON Request where
+  toJSON Request desiredE pcrSelect nonce = DA.object [ "DesiredEvidence" .= desiredE
+						      , "TPM_PCR_SELECTION" .= pcrSelect
+			  
+
+instance ToJSON TPM_NONCE where
+  TPM_NONCE n 
+  -}
