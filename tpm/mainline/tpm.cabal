@@ -27,12 +27,16 @@ executable              Project
                         parsec >= 3,
                         filepath,
                         VChanUtil,
-                        cipher-aes
+                        cipher-aes,
+                        base64-bytestring,
+                        text,
+                        aeson,
+                        unordered-containers
   Main-is:              Main.hs
   ghc-options:          -O
 
 executable              tpmi
-  hs-source-dirs:       api, shell, src
+  hs-source-dirs:       api, shell, src, shared
   build-depends:        base >= 4,
                         shell >= 1.0,
                         mtl,

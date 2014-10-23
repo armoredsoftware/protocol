@@ -1,4 +1,4 @@
-{-# LANGUAGE TypeSynonymInstances, FlexibleInstances, OverlappingInstances, OverloadedStrings #-}
+{-# LANGUAGE TypeSynonymInstances, FlexibleInstances, OverlappingInstances, OverloadedStrings, RecordWildCards  #-}
 
 module Demo3Shared where
 
@@ -10,8 +10,15 @@ import qualified Data.ByteString as B (ByteString)
 import Codec.Crypto.RSA hiding (sign, verify)
 import System.Random
 import Crypto.Cipher.AES
-import qualified Data.Aeson as DA
 
+import Data.Aeson (toJSON, parseJSON, ToJSON,FromJSON, object , (.=), (.:) )
+import qualified Data.Aeson as DA (Value(..))
+import qualified Data.Text.Encoding as TE
+import qualified Data.ByteString.Base64 as Base64
+import qualified Data.Text as T
+import Control.Applicative ( (<$>), (<*>), pure )
+import qualified Data.HashMap.Strict as HM (member, lookup)
+import Data.Maybe
 tpm :: TPMSocket
 tpm = tpm_socket "/var/run/tpm/tpmd_socket:0"
 
@@ -252,9 +259,8 @@ instance Binary EvidencePiece where
                             return (M2 res)
                          
        
-ePack :: Evidence -> TPM_NONCE -> TPM_PUBKEY -> ByteString
-ePack e (TPM_NONCE n) pubKey = ePack' e `append` (encode pubKey) 
-                                                                    `append` n
+ePack :: Evidence -> TPM_NONCE -> ByteString
+ePack e (TPM_NONCE n) = ePack' e `append` n
 
 ePackSilly :: Evidence -> TPM_NONCE -> ByteString
 ePackSilly e (TPM_NONCE n) = n `append` ePack' e   
@@ -397,16 +403,237 @@ instance Binary ActivateIdRequest where
     
     
     
-    {-
+    
 -- JSON stuff!
 
 --Request Things first
    --toJSON
 instance ToJSON Request where
-  toJSON Request desiredE pcrSelect nonce = DA.object [ "DesiredEvidence" .= desiredE
-						      , "TPM_PCR_SELECTION" .= pcrSelect
-			  
+  toJSON (Request {..}) = object [ "DesiredEvidence"    .= toJSON desiredE
+						      , "TPM_PCR_SELECTION" .= toJSON pcrSelect
+			  			      , "TPM_NONCE" .= toJSON nonce
+						      ]
+instance FromJSON Request where
+  parseJSON (DA.Object o) = Request <$> o .: "DesiredEvidence"
+  				 <*> o .: "TPM_PCR_SELECTION"
+  				 <*> o .: "TPM_NONCE"
+instance ToJSON EvidenceDescriptor where
+	toJSON D0 = DA.String "D0"
+	toJSON D1 = DA.String "D1"
+	toJSON D2 = DA.String "D2"
+instance FromJSON EvidenceDescriptor where
+	parseJSON (DA.String "D0") = pure D0
+	parseJSON (DA.String "D1") = pure D1
+	parseJSON (DA.String "D2") = pure D2
 
+instance ToJSON TPM_PCR_SELECTION where
+	toJSON (TPM_PCR_SELECTION bs) = object [ "TPM_PCR_SELECTION" .= encodeToText (toStrict bs) ]
+instance FromJSON TPM_PCR_SELECTION where
+	parseJSON (DA.Object o) = TPM_PCR_SELECTION <$> ((o .: "TPM_PCR_SELECTION") >>= decodeFromTextL) 
+		
 instance ToJSON TPM_NONCE where
-  TPM_NONCE n 
-  -}
+  toJSON (TPM_NONCE n) = object ["TPM_NONCE" .= encodeToText (toStrict n)]
+instance FromJSON TPM_NONCE where
+	parseJSON (DA.Object o) = TPM_NONCE <$> ((o .: "TPM_NONCE") >>= decodeFromTextL) 
+ 
+--Reponse stuff
+instance ToJSON Response where
+	toJSON (Response {..} ) = object [ "EvidencePackage"    .= toJSON evPack
+						      , "CACertificate" .= toJSON caCert
+			  			      , "Quote" .= toJSON quote
+						      ]  
+instance FromJSON Response where
+	parseJSON (DA.Object o) = Response <$> o .: "EvidencePackage"
+				           <*> o .: "CACertificate"
+					   <*> o .: "Quote"
+instance ToJSON Quote where
+	toJSON (Quote {..}) = object [ "TPM_PCR_COMPOSITE" .= toJSON pcrComposite
+				     , "Signature" .= encodeToText (toStrict qSig)
+				     ]	
+instance FromJSON Quote where 
+	parseJSON (DA.Object o) = Quote <$> o .: "PM_PCR_COMPOSITE"
+					<*> ((o .: "Signature") >>= decodeFromTextL)	
+instance ToJSON TPM_PCR_COMPOSITE where
+	toJSON (TPM_PCR_COMPOSITE {..}) = object [ "TPM_PCR_SELECTION" .= toJSON tpmPcrCompositeSelection
+						 , "TPM_PCRVALUEs" .= toJSON tpmPcrCompositePcrs
+						 ]
+instance FromJSON TPM_PCR_COMPOSITE where
+	parseJSON (DA.Object o) = TPM_PCR_COMPOSITE <$> o .: "TPM_PCR_SELECTION"
+						    <*> o .: "TPM_PCRVALUEs"						 
+						 
+--instance ToJSON TPM_PCRVALUE where TPM_PCRVALUE is a synonym for TPM_DIGEST
+instance ToJSON TPM_DIGEST where
+	toJSON (TPM_DIGEST bs) = object [ "TPM_DIGEST" .= encodeToText (toStrict bs) ]
+instance FromJSON TPM_DIGEST where
+	parseJSON (DA.Object o) = TPM_DIGEST <$> ((o .: "TPM_DIGEST") >>= decodeFromTextL)	
+{-
+data TPM_PCR_COMPOSITE = TPM_PCR_COMPOSITE {
+      tpmPcrCompositeSelection :: TPM_PCR_SELECTION
+    , tpmPcrCompositePcrs      :: [TPM_PCRVALUE]
+    } deriving (Show,Eq, Read)-}					     			      
+instance ToJSON EvidencePackage where
+	toJSON (EvidencePackage {..}) = object [ "Evidence"    .= toJSON evList
+					       , "TPM_NONCE" .= toJSON  eNonce
+			  		       , "Signature" .= encodeToText  (toStrict eSig)
+					       ]
+instance FromJSON EvidencePackage where
+	parseJSON (DA.Object o) = EvidencePackage <$> o .: "Evidence"
+						  <*> o .: "TPM_NONCE"
+						  <*> ((o .: "Signature") >>= decodeFromTextL)					       
+instance ToJSON EvidencePiece where
+	toJSON (M0 rep0) = object [ "M0" .= encodeToText (toStrict rep0) ]
+	toJSON (M1 rep1) = object [ "M1" .= encodeToText (toStrict rep1) ]
+	toJSON (M2 rep2) = object [ "M2" .= encodeToText (toStrict rep2) ]
+instance FromJSON EvidencePiece where
+	parseJSON (DA.Object o) | HM.member "M0" o = M0 <$> ((o .: "M0") >>= decodeFromTextL)
+				| HM.member "M1" o = M1 <$> ((o .: "M1") >>= decodeFromTextL)
+				| HM.member "M2" o = M2 <$> ((o .: "M2") >>= decodeFromTextL)
+	
+--instance ToJSON CACertificate where just a type synonym. of Signed TPM_PUB_KEY
+instance (ToJSON a)=> ToJSON (Signed a) where
+	toJSON (Signed {..}) = object [ "Signed" .= toJSON dat
+				      , "Signature" .= encodeToText (toStrict sig)
+				      ]
+instance (FromJSON a) => FromJSON (Signed a) where
+	parseJSON (DA.Object o) = Signed <$> o .: "Signed"
+					 <*> ((o .: "Signature") >>= decodeFromTextL)				      
+instance ToJSON TPM_PUBKEY where
+	toJSON (TPM_PUBKEY {..}) = object [ "TPM_KEY_PARMS" .= toJSON tpmPubKeyParams
+					  , "TPM_STORE_PUBKEY" .= toJSON tpmPubKeyData
+					  ]
+instance FromJSON TPM_PUBKEY where
+	parseJSON (DA.Object o) = TPM_PUBKEY <$> o .: "TPM_KEY_PARMS"
+					     <*> o .: "TPM_STORE_PUBKEY" 					  
+instance ToJSON TPM_KEY_PARMS where
+	toJSON TPM_KEY_PARMS {..} = object [ "TPM_ALGORITHM_ID" .= toJSON tpmKeyParamAlg --word32
+					   , "TPM_ENC_SCHEME" .= toJSON tpmKeyParamEnc --word16
+					   , "TPM_SIG_SCHEME" .= toJSON tpmKeyParamSig  --word16
+					   , "TPM_KEY_PARMS_DATA" .= toJSON tpmKeyParamData
+					   ]
+instance FromJSON TPM_KEY_PARMS where
+	parseJSON (DA.Object o) = TPM_KEY_PARMS <$> o .: "TPM_ALGORITHM_ID"
+						<*> o .: "TPM_ENC_SCHEME"
+						<*> o .: "TPM_SIG_SCHEME"
+						<*> o .: "TPM_KEY_PARMS_DATA"			   
+{-
+data TPM_KEY_PARMS_DATA = RSA_DATA TPM_RSA_KEY_PARMS
+                        | AES_DATA TPM_SYMMETRIC_KEY_PARMS
+                        | NO_DATA 
+                        deriving (Eq, Read, Show)					    -}
+instance ToJSON TPM_KEY_PARMS_DATA where
+	toJSON (RSA_DATA tpm_RSA_KEY_PARMS) = object [ "RSA_DATA" .= toJSON tpm_RSA_KEY_PARMS ]						     
+	toJSON (AES_DATA tpm_SYMMETRIC_KEY_PARMS) = object [ "AES_DATA" .= toJSON tpm_SYMMETRIC_KEY_PARMS ] 
+	toJSON (NO_DATA) = DA.String "NO_DATA"
+instance FromJSON TPM_KEY_PARMS_DATA where
+	parseJSON (DA.Object o)	| HM.member "RSA_DATA" o = RSA_DATA  <$> o .: "RSA_DATA"
+				| HM.member "AES_DATA" o = AES_DATA <$> o .: "AES_DATA"
+				| HM.member "NO_DATA" o = pure NO_DATA
+	
+--DA.Object = HaskMap Text Value
+	
+	
+	
+instance ToJSON TPM_RSA_KEY_PARMS where
+	toJSON (TPM_RSA_KEY_PARMS {..}) = object [ "tpmRsaKeyLength" .= toJSON tpmRsaKeyLength
+						 , "tpmRsaKeyPrimes" .= toJSON tpmRsaKeyPrimes
+						 , "tpmRsaKeyExp" .= encodeToText (toStrict tpmRsaKeyExp)
+						 ]
+instance FromJSON TPM_RSA_KEY_PARMS where
+	parseJSON (DA.Object o) = TPM_RSA_KEY_PARMS <$> o .: "tpmRsaKeyLength"
+						    <*> o .: "tpmRsaKeyPrimes"
+						    <*> ((o .: "tpmRsaKeyExp") >>= decodeFromTextL)			 
+instance ToJSON TPM_SYMMETRIC_KEY_PARMS where
+	toJSON (TPM_SYMMETRIC_KEY_PARMS {..}) = object [ "tpmSymKeyLength" .= toJSON tpmSymKeyLength
+					 	       , "tpmSymKeyBlockSize" .= toJSON tpmSymKeyBlockSize
+					 	       , "tpmSymKeyIV" .= encodeToText (toStrict tpmSymKeyIV)
+					 	       ]
+instance FromJSON TPM_SYMMETRIC_KEY_PARMS where
+	parseJSON (DA.Object o) = TPM_SYMMETRIC_KEY_PARMS <$>  o .: "tpmSymKeyLength"
+							  <*> o .:  "tpmSymKeyBlockSize"
+							  <*> ((o .: "tpmSymKeyIV") >>= decodeFromTextL)
+	
+	{-<$> o .: "DesiredEvidence"
+  				 <*> o .: "TPM_PCR_SELECTION"
+  				 <*> o .: "TPM_NONCE" -}				 	       
+instance ToJSON TPM_STORE_PUBKEY where
+	toJSON (TPM_STORE_PUBKEY bs) = object [ "TPM_STORE_PUBKEY" .= encodeToText (toStrict bs) ]
+instance FromJSON TPM_STORE_PUBKEY where
+	parseJSON (DA.Object o) = TPM_STORE_PUBKEY <$> ((o .: "TPM_STORE_PUBKEY") >>= decodeFromTextL) 
+--34 instances to this point
+{-
+type PlatformID = Int  
+type SessionKey = ByteString --Is this helpful?
+type Encrypted = ByteString --Is this helpful?
+
+data CARequest = CARequest {
+  pId :: PlatformID, 
+  mkIdResult :: MakeIdResult
+  } deriving (Show)
+data CARequest = CARequest {
+  pId :: PlatformID, 
+  mkIdResult :: MakeIdResult
+  } deriving (Show)
+             
+data CAResponse = CAResponse {
+  encCACert :: Encrypted, 
+  encActIdInput :: Encrypted
+  } deriving (Show)
+
+type CACertificate = Signed TPM_PUBKEY 
+
+-}
+--CA Data types
+instance ToJSON CARequest where
+	toJSON (CARequest{..}) = object [ "PlatformID" .= toJSON pId
+					, "MakeIdResult" .= toJSON mkIdResult
+				        ]
+instance FromJSON CARequest where
+	parseJSON (DA.Object o) = CARequest <$> o .: "PlatformID"
+					    <*> o .: "MakeIdResult"
+
+instance ToJSON TPM_IDENTITY_CONTENTS where
+	toJSON (TPM_IDENTITY_CONTENTS {..}) = object [ "labelPrivCADigest" .= toJSON labelPrivCADigest --this is just TPM_Digest again
+						     , "identityPubKey" .= toJSON identityPubKey   --did this one too.
+						     ]
+instance FromJSON TPM_IDENTITY_CONTENTS where
+	parseJSON (DA.Object o) = TPM_IDENTITY_CONTENTS <$> o .: "labelPrivCADigest"
+							<*> o .: "identityPubKey"
+--instance ToJSON 
+	
+--type MakeIdResult = Signed TPM_IDENTITY_CONTENTS
+{-data TPM_IDENTITY_CONTENTS = TPM_IDENTITY_CONTENTS {
+  labelPrivCADigest :: TPM_CHOSENID_HASH,
+  identityPubKey :: TPM_PUBKEY
+  }  deriving (Show)
+ -}
+
+instance ToJSON CAResponse where
+	toJSON (CAResponse {..}) = object [ "encCACert" .= encodeToText (toStrict encCACert)
+					 , "encActIdInput" .= encodeToText (toStrict encActIdInput)
+ 		 	       		 ]
+instance FromJSON CAResponse where
+	parseJSON (DA.Object o) = CAResponse <$> ((o .: "encCACert") >>= decodeFromTextL) 
+					     <*> ((o .: "encActIdInput") >>= decodeFromTextL) 
+	{-
+ata TPM_SYMMETRIC_KEY_PARMS = TPM_SYMMETRIC_KEY_PARMS {
+      tpmSymKeyLength    :: UINT32
+    , tpmSymKeyBlockSize :: UINT32
+    , tpmSymKeyIV        :: ByteString
+    } deriving (Show,Eq, Read) -}						   
+{-data TPM_RSA_KEY_PARMS = TPM_RSA_KEY_PARMS {
+      tpmRsaKeyLength  :: UINT32
+    , tpmRsaKeyPrimes  :: UINT32
+    , tpmRsaKeyExp     :: ByteString
+    } deriving (Show,Eq, Read)-}
+    
+    				          
+encodeToText :: B.ByteString -> T.Text
+encodeToText = TE.decodeUtf8 . Base64.encode
+
+decodeFromText :: (Monad m) => T.Text -> m B.ByteString
+decodeFromText = either fail return . Base64.decode . TE.encodeUtf8
+
+decodeFromTextL :: (Monad m) => T.Text -> m ByteString
+decodeFromTextL x = do bs <- decodeFromText x
+		       return (fromStrict bs)  
+
