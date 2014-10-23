@@ -82,21 +82,7 @@ createAndLoadIdentKey = do
 
 mkResponse :: Request -> CAResponse -> TPM_KEY_HANDLE -> IO Response
 mkResponse (Request desiredE pcrSelect nonce) (CAResponse caCertBytes actIdInput) iKeyHandle = do
-  --measurerID <- measurePrompt
-  chan <- client_init meaId
-  eList <- mapM (getEvidencePiece chan) desiredE
 
-  --badnonce <- nonce_create
-  let evBlob = ePack eList nonce 
-      evBlobSha1 = bytestringDigest $ sha1 evBlob
-  {-
-  sigShn <- tpm_session_oiap tpm
-  eSig <- tpm_sign tpm sigShn sKeyHandle sigPass evBlobSha1
-  tpm_session_close tpm sigShn
-  --putStrLn "evBlob signed"
-  CHANGE THIS WHEN READY TO DO REAL SIGN -}
-  let eSig = empty --TEMPORARY
-  let evPack = (EvidencePackage eList nonce eSig)
   
   iShn <- tpm_session_oiap tpm
   oShn <- tpm_session_oiap tpm
@@ -115,6 +101,24 @@ mkResponse (Request desiredE pcrSelect nonce) (CAResponse caCertBytes actIdInput
       decodedCACert = (decode lazy {-decryptedCertBytes-}) :: CACertificate
   tpm_session_close tpm iShn
   tpm_session_close tpm oShn
+  
+    --measurerID <- measurePrompt
+  chan <- client_init meaId
+  eList <- mapM (getEvidencePiece chan) desiredE
+
+  --badnonce <- nonce_create
+  let aikPubKey = dat decodedCACert
+      evBlob = ePack eList nonce aikPubKey
+      evBlobSha1 = bytestringDigest $ sha1 evBlob
+  {-
+  sigShn <- tpm_session_oiap tpm
+  eSig <- tpm_sign tpm sigShn sKeyHandle sigPass evBlobSha1
+  tpm_session_close tpm sigShn
+  --putStrLn "evBlob signed"
+  CHANGE THIS WHEN READY TO DO REAL SIGN -}
+  let eSig = empty --TEMPORARY
+  let evPack = (EvidencePackage eList nonce eSig)
+  
   
   quoteShn <- tpm_session_oiap tpm
   (pcrComp, sig) <- tpm_quote tpm quoteShn iKeyHandle (TPM_NONCE evBlobSha1) 

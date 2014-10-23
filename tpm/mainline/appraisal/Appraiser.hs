@@ -67,7 +67,7 @@ evaluate (Request d pcrSelect nonce)
   (Response (EvidencePackage eList eNonce eSig) caCert@(Signed pubKey caSig)  tpmQuote@(Quote pcrComposite qSig)) = do
   caPublicKey <- readPubCA
   let blobEvidence :: ByteString
-      blobEvidence = ePack eList eNonce
+      blobEvidence = ePack eList eNonce pubKey
       evBlobSha1 =  bytestringDigest $ sha1 blobEvidence
       
       quoteInfo :: TPM_QUOTE_INFO
@@ -195,3 +195,63 @@ quoteReceiveError = "Appraiser did not receive a Quote as expected"
 
 noGolden :: String
 noGolden = "No Golden Value for measurement #"
+
+
+
+
+
+
+
+testRequest :: IO Request
+testRequest = do 
+  (pcrSelect, nonce) <- mkTPMRequest ([0..23]::[Word8])
+  let mReq = mkMeasureReq [0..2]
+  return (Request mReq pcrSelect nonce)
+
+testResponse :: IO Response
+testResponse = do 
+  pubKey <- readPubEK
+  comp <- readComp
+  let caCert = Signed pubKey m1Val
+      quote = Quote comp m0Val
+  
+  return $ Response evPack caCert quote
+
+ where evPack = EvidencePackage [M0 m0Val, M1 m1Val] (TPM_NONCE m1Val)                                                     m1Val
+
+
+
+m0Val :: M0Rep
+m0Val = cons (bit 0) empty
+
+m1Val :: M1Rep
+m1Val = cons (bit 1) empty
+
+
+readPubEK :: IO TPM_PUBKEY
+readPubEK = do
+  handle <- openFile exportEKFileName ReadMode
+  pubKeyString <- hGetLine handle
+  let pubKey :: TPM_PUBKEY
+      pubKey = read pubKeyString
+  hClose handle
+  return pubKey
+  
+{-  
+goldenFileName :: String 
+goldenFileName= "goldenPcrComosite.txt"
+
+exportEKFileName = "attEKPubKey.txt"
+-}
+
+
+{-
+readComp :: IO TPM_PCR_COMPOSITE
+readComp = do
+  handle <- openFile goldenFileName ReadMode
+  compString <- hGetLine handle
+  let comp :: TPM_PCR_COMPOSITE
+      comp = read compString
+  hClose handle
+  return comp
+-}

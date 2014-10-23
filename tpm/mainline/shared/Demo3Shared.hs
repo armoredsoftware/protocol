@@ -252,8 +252,9 @@ instance Binary EvidencePiece where
                             return (M2 res)
                          
        
-ePack :: Evidence -> TPM_NONCE -> ByteString
-ePack e (TPM_NONCE n) = ePack' e `append` n
+ePack :: Evidence -> TPM_NONCE -> TPM_PUBKEY -> ByteString
+ePack e (TPM_NONCE n) pubKey = ePack' e `append` (encode pubKey) 
+                                                                    `append` n
 
 ePackSilly :: Evidence -> TPM_NONCE -> ByteString
 ePackSilly e (TPM_NONCE n) = n `append` ePack' e   
