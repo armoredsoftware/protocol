@@ -12,13 +12,14 @@ import System.Random
 import Crypto.Cipher.AES
 
 import Data.Aeson (toJSON, parseJSON, ToJSON,FromJSON, object , (.=), (.:) )
-import qualified Data.Aeson as DA (Value(..))
+import qualified Data.Aeson as DA (Value(..), encode, decode)
 import qualified Data.Text.Encoding as TE
 import qualified Data.ByteString.Base64 as Base64
 import qualified Data.Text as T
 import Control.Applicative ( (<$>), (<*>), pure )
 import qualified Data.HashMap.Strict as HM (member, lookup)
 import Data.Maybe
+import qualified Data.ByteString.Char8 as Char8
 tpm :: TPMSocket
 tpm = tpm_socket "/var/run/tpm/tpmd_socket:0"
 
@@ -408,10 +409,16 @@ instance Binary ActivateIdRequest where
 
 --Request Things first
    --toJSON
+jsonEncode :: (ToJSON a) => a -> ByteString
+jsonEncode = DA.encode
+
+jsonDecode :: (FromJSON a) => ByteString -> Maybe a
+jsonDecode= DA.decode
 instance ToJSON Request where
   toJSON (Request {..}) = object [ "DesiredEvidence"    .= toJSON desiredE
 						      , "TPM_PCR_SELECTION" .= toJSON pcrSelect
-			  			      , "TPM_NONCE" .= toJSON nonce
+			  		
+	      , "TPM_NONCE" .= toJSON nonce
 						      ]
 instance FromJSON Request where
   parseJSON (DA.Object o) = Request <$> o .: "DesiredEvidence"
@@ -557,6 +564,7 @@ instance FromJSON TPM_SYMMETRIC_KEY_PARMS where
   				 <*> o .: "TPM_NONCE" -}				 	       
 instance ToJSON TPM_STORE_PUBKEY where
 	toJSON (TPM_STORE_PUBKEY bs) = object [ "TPM_STORE_PUBKEY" .= encodeToText (toStrict bs) ]
+testpubkey = TPM_STORE_PUBKEY $ fromStrict $ Char8.pack "3434"
 instance FromJSON TPM_STORE_PUBKEY where
 	parseJSON (DA.Object o) = TPM_STORE_PUBKEY <$> ((o .: "TPM_STORE_PUBKEY") >>= decodeFromTextL) 
 --34 instances to this point
@@ -626,7 +634,19 @@ ata TPM_SYMMETRIC_KEY_PARMS = TPM_SYMMETRIC_KEY_PARMS {
     , tpmRsaKeyExp     :: ByteString
     } deriving (Show,Eq, Read)-}
     
-    				          
+    	{-data Shared = Appraisal Request
+              | Attestation Response
+              | Result Bool-}
+
+instance ToJSON Shared where
+	toJSON (Appraisal req) = object [ "Appraisal" .= toJSON req]
+	toJSON (Attestation resp) = object [ "Attestation" .= toJSON resp ]
+	toJSON (Result bool) = object [ "Result" .= toJSON bool]
+instance FromJSON Shared where
+	parseJSON (DA.Object o) | HM.member "Appraisal" o = Appraisal <$> o .: "Appraisal"
+				| HM.member "Attestation" o = Attestation <$> o .: "Attestation"
+				| HM.member "Result" o = Result <$> o .: "Result"
+ 		          
 encodeToText :: B.ByteString -> T.Text
 encodeToText = TE.decodeUtf8 . Base64.encode
 
@@ -637,3 +657,32 @@ decodeFromTextL :: (Monad m) => T.Text -> m ByteString
 decodeFromTextL x = do bs <- decodeFromText x
 		       return (fromStrict bs)  
 
+
+sendJSON :: Shared ->
+{-
+sendRequest :: Request -> IO (LibXenVChan)
+sendRequest req = do
+  id <-getDomId
+  putStrLn $ "Appraiser Domain id: "++(show id)
+  other <- prompt
+  chan <- client_init other
+  putStrLn $ "\n" ++ "Appraiser Sending: "++(show $ req) ++ "\n"
+  logger <- createLogger
+  sendChunkedMessageByteString logger chan (LB.toStrict  (jsonEncode (RequestW req)))
+  --send chan $ Appraisal req
+  return chan
+
+receiveResponse :: LibXenVChan -> IO Response
+receiveResponse chan =  do
+  ctrlWait chan
+  logger <- createLogger
+  bytes <- readChunkedMessageByteString logger chan
+  let res = Just ( getResponse ( fromJust ( (jsonDecode (LB.fromStrict bytes)) :: Maybe WrappedData)))
+  --res :: Shared <- receive chan
+  case res of 
+    Just response ->  do
+      putStrLn $ "\n" ++ "Appraiser Received: " ++ (show res)++ "\n"
+      return response
+    otherwise ->  throw $ ErrorCall quoteReceiveError --TODO: error handling?
+    
+-}
