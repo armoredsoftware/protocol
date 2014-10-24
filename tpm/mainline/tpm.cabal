@@ -31,7 +31,8 @@ executable              Project
                         base64-bytestring,
                         text,
                         aeson,
-                        unordered-containers
+                        unordered-containers,
+                        scotty
   Main-is:              Main.hs
   ghc-options:          -O
 
