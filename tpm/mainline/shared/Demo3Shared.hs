@@ -656,9 +656,19 @@ decodeFromText = either fail return . Base64.decode . TE.encodeUtf8
 decodeFromTextL :: (Monad m) => T.Text -> m ByteString
 decodeFromTextL x = do bs <- decodeFromText x
 		       return (fromStrict bs)  
+{-
+sendShared :: Shared -> IO LibXenVChan
+sendShared shared id = do
+			logger <- createLogger
+			chan <- client_init id
+			sendChunkedMessageByteString logger chan (toStrict (jsonEncode shared))
+			return chan
 
 
+receiveShared :: LibXenVChan IO -> Either String Shared
+receiveShared chan = do
 --sendJSON :: Shared ->
+-}
 {-
 sendRequest :: Request -> IO (LibXenVChan)
 sendRequest req = do

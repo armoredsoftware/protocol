@@ -5,8 +5,8 @@ import qualified Data.Text.Lazy as LazyText
 import Data.Monoid (mconcat)
 import qualified Data.Text.Lazy.Encoding as LazyEncoding
 import CADataTypes
-import qualified Demo3Shared as Adam
-import qualified PrivacyCA as CAHelper
+import qualified Demo3Shared as AD  --ArmoredData
+
 
 main = scotty 3000 $ do
   --  get "/" $ text "foobar"
@@ -24,13 +24,13 @@ main = scotty 3000 $ do
       a <- (param "request") :: ActionM LazyText.Text
       
       html a
-      let jj = (jsonDecode (LazyEncoding.encodeUtf8 a) :: Maybe CARequest_json)
+      let jj = (jsonDecode (LazyEncoding.encodeUtf8 a) :: Maybe AD.CARequest)
       case jj of
 	   Nothing -> text "you suck"
-	   Just caReq_json -> json (handleCAReq_json caReq_json)
+	   Just caReq -> json (handleCAReq caReq)
       --return ()
       --text "posted!"
    --     text (LazyText.pack (L.unpack bod))
    
-handleCAReq_json :: CARequest_json -> CAResponse_json
-handleCAReq_json
+handleCAReq :: CARequest -> CAResponse
+handleCAReq
