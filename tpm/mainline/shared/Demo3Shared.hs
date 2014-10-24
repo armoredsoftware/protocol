@@ -458,7 +458,7 @@ instance ToJSON Quote where
 				     , "Signature" .= encodeToText (toStrict qSig)
 				     ]	
 instance FromJSON Quote where 
-	parseJSON (DA.Object o) = Quote <$> o .: "PM_PCR_COMPOSITE"
+	parseJSON (DA.Object o) = Quote <$> o .: "TPM_PCR_COMPOSITE"
 					<*> ((o .: "Signature") >>= decodeFromTextL)	
 instance ToJSON TPM_PCR_COMPOSITE where
 	toJSON (TPM_PCR_COMPOSITE {..}) = object [ "TPM_PCR_SELECTION" .= toJSON tpmPcrCompositeSelection
