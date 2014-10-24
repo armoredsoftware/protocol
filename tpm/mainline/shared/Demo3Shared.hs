@@ -260,8 +260,8 @@ instance Binary EvidencePiece where
                             return (M2 res)
                          
        
-ePack :: Evidence -> TPM_NONCE -> ByteString
-ePack e (TPM_NONCE n) = ePack' e `append` n
+ePack :: Evidence -> TPM_NONCE -> TPM_PUBKEY -> ByteString
+ePack e (TPM_NONCE n) pubKey = ePack' e `append` (encode pubKey) 
 
 ePackSilly :: Evidence -> TPM_NONCE -> ByteString
 ePackSilly e (TPM_NONCE n) = n `append` ePack' e   
@@ -658,7 +658,7 @@ decodeFromTextL x = do bs <- decodeFromText x
 		       return (fromStrict bs)  
 
 
-sendJSON :: Shared ->
+--sendJSON :: Shared ->
 {-
 sendRequest :: Request -> IO (LibXenVChan)
 sendRequest req = do
