@@ -10,11 +10,12 @@ import Provisioning
 import Data.Word
 import Data.Binary
 --import Codec.Crypto.RSA(PublicKey)
-import Data.ByteString.Lazy (ByteString, pack, append, empty, cons)
+import Data.ByteString.Lazy (ByteString, pack, append, empty, cons, fromStrict)
 import Data.Bits
 import Control.Monad
 import Data.Digest.Pure.SHA (bytestringDigest, sha1)
 import qualified Data.Map.Lazy as M (fromList, lookup, empty)
+import qualified Data.ByteString.Char8 as Char8 (pack) --just for testing.
 import System.IO
 
 --withOpenSSL
@@ -212,8 +213,9 @@ testResponse :: IO Response
 testResponse = do 
   pubKey <- readPubEK
   comp <- readComp
+  putStrLn $ show comp
   let caCert = Signed pubKey m1Val
-      quote = Quote comp m0Val
+      quote = Quote comp (fromStrict (Char8.pack "hello")) --m0Val
   
   return $ Response evPack caCert quote
 

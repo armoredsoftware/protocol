@@ -10,6 +10,10 @@ import qualified Data.ByteString as B (ByteString)
 import Codec.Crypto.RSA hiding (sign, verify)
 import System.Random
 import Crypto.Cipher.AES
+<<<<<<< HEAD
+--import qualified Data.Aeson as DA
+=======
+>>>>>>> 9099b4bc3198142dd84d8610ebe7c7b9a3a349d9
 
 import Data.Aeson (toJSON, parseJSON, ToJSON,FromJSON, object , (.=), (.:) )
 import qualified Data.Aeson as DA (Value(..), encode, decode)
@@ -696,4 +700,3 @@ receiveResponse chan =  do
     otherwise ->  throw $ ErrorCall quoteReceiveError --TODO: error handling?
     
 -}
-
