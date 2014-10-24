@@ -35,7 +35,9 @@ mkMeasureReq = map f
        f 2 = D2
        
 sendRequest :: Request -> IO LibXenVChan    
-sendRequest = sendR attId appName
+sendRequest req = sendShared attId (WRequest req)
+
+--sendRequest = sendR attId appName 
 {-
 sendRequest :: Request -> IO LibXenVChan
 sendRequest req = do
@@ -47,8 +49,15 @@ sendRequest req = do
 -}
   
               
-receiveResponse :: LibXenVChan -> IO Response
-receiveResponse = receiveM appName
+receiveResponse :: LibXenVChan -> IO (Either String Response)--Response
+receiveResponse chan = do 
+		   eithershared <- receiveShared chan
+		   case (eithershared) of
+			(Left err) -> return (Left err)
+			(Right (WResponse resp)) -> return (Right resp)
+			(Right x) -> return (Left ("Received unexpected type. I expected a 'Response' but here is what I received instead: " ++ (show x)))
+			 
+--receiveResponse = receiveM appName
 {-
 receiveResponse :: LibXenVChan -> IO Response
 receiveResponse chan =  do

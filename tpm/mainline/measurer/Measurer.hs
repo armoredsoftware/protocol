@@ -11,7 +11,7 @@ import Data.ByteString.Lazy (ByteString, cons, empty)
 --withOpenSSL
 
 
-meaProcess = process receiveMeaRequest sendMeaResponse measure
+meaProcess = process receiveMeaRequest sendMeaResponse measure'
 
 {-
 meaProcess :: LibXenVChan -> IO ()
@@ -24,13 +24,28 @@ meaProcess chan = do
 -}
 
 
-receiveMeaRequest :: LibXenVChan -> IO EvidenceDescriptor
-receiveMeaRequest = receiveM meaName
+receiveMeaRequest :: LibXenVChan -> IO (Either String EvidenceDescriptor)
+receiveMeaRequest chan = do
+			  eitherShared <- receiveShared chan
+			  case (eitherShared) of
+			   (Left err) -> return (Left err)
+			   (Right (WEvidenceDescriptor evdes)) -> return (Right evdes)
+			   (Right x) -> return (Left ("I wasn't supposed to get this!. I expected an 'EvidenceDescriptor' but I received this: " ++ (show x)))
+--receiveMeaRequest = receiveM meaName
 
 sendMeaResponse :: LibXenVChan -> EvidencePiece -> IO ()
-sendMeaResponse = sendM meaName
+sendMeaResponse chan evpiece = do
+				sendShared' chan (WEvidencePiece evpiece)
+				return ()
+--sendMeaResponse = sendM meaName
 
-
+measure' :: Either String EvidenceDescriptor -> IO EvidencePiece
+--measure' (Left err) = do
+--			printStrLn "Error: " ++  ("Crap was passed to measure'. Error was: " ++ err)
+--			return 
+measure' (Right evdes) = do
+			    res <- measure evdes
+			    return res
 
 measure :: EvidenceDescriptor -> IO EvidencePiece
 measure ed = do 

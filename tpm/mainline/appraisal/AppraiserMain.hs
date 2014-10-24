@@ -13,8 +13,12 @@ main = do
   let mReq = mkMeasureReq [0..2]
       req = (Request mReq pcrSelect nonce)
   chan <- sendRequest req
-  response <- receiveResponse chan
-  result <- evaluate req response
-  showDemo3EvalResult result
-  putStrLn "END main of Appraiser"
+  result <- receiveResponse chan
+  case (result) of
+	(Left err) -> putStrLn ("Error getting response. Error was: " ++ err)
+	(Right response) -> do
+				result <- evaluate req response
+  				showDemo3EvalResult result
+				putStrLn "END main of Appraiser"
+  
   return () 

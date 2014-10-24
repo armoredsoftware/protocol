@@ -148,8 +148,15 @@ getEvidencePiece chan ed = do
   putStrLn $ "Received: " ++ show evidence
   return evidence
   
-receiveRequest :: LibXenVChan -> IO Request
-receiveRequest = receiveM attName
+--receiveRequest :: LibXenVChan -> IO Request
+receiveRequest :: LibXenVChan -> IO (Either String Request)
+receiveRequest chan = do
+		   eithershared <- receiveShared chan
+		   case (eithershared) of
+			(Left err) -> return (Left err)
+			(Right (WRequest r)) -> return (Right r)
+			(Right x) -> return (Left ("Received correctly, but was an unexpected type. I expected a 'Response' but here is what I received instead: " ++ (show x)))
+--receiveRequest = receiveM attName
 {-
 receiveRequest :: LibXenVChan -> IO Request
 receiveRequest chan = do
@@ -163,7 +170,10 @@ receiveRequest chan = do
 -}
     
 sendResponse :: LibXenVChan -> Response-> IO ()   
-sendResponse = sendM attName
+sendResponse chan response = do
+				sendShared' chan (WResponse response) 
+				return ()
+--sendResponse = sendM attName
 {-
 sendResponse :: LibXenVChan -> Response-> IO ()   
 sendResponse chan resp = do
@@ -179,7 +189,8 @@ mkCARequest privCALabel iPubKey iSig =
   
   
 sendCARequest :: CARequest -> IO LibXenVChan 
-sendCARequest = sendR caId attName
+sendCARequest careq = sendShared caId (WCARequest careq) 
+--sendCARequest = sendR caId attName
 
 {-
 sendCARequest :: CARequest -> IO LibXenVChan
@@ -192,8 +203,15 @@ sendCARequest req = do
 -}
 
 
-receiveCAResponse :: LibXenVChan -> IO CAResponse
-receiveCAResponse = receiveM attName
+--receiveCAResponse :: LibXenVChan -> IO CAResponse
+receiveCAResponse :: LibXenVChan -> IO (Either String CAResponse)
+receiveCAResponse chan = do
+			eithershared <- receiveShared chan
+		   	case (eithershared) of
+				(Left err) 			-> return (Left err)
+				(Right (WCAResponse caresp)) 	-> return (Right caresp)
+				(Right x) 			-> return (Left ("Received unexpected type. I expected a 'CAResponse' but here is what I received instead: " ++ (show x)))
+--receiveCAResponse = receiveM attName
 
 {-
 receiveCAResponse :: LibXenVChan -> IO CAResponse

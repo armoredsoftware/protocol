@@ -12,7 +12,7 @@ import System.Random
 import Crypto.Cipher.AES
 
 import Data.Aeson (toJSON, parseJSON, ToJSON,FromJSON, object , (.=), (.:) )
-import qualified Data.Aeson as DA (Value(..), encode, decode)
+import qualified Data.Aeson as DA (Value(..), encode, decode, eitherDecode)
 import qualified Data.Text.Encoding as TE
 import qualified Data.ByteString.Base64 as Base64
 import qualified Data.Text as T
@@ -133,6 +133,7 @@ process recA sendB mk chan = do
   return ()
 
 
+
 {-
 class Signable a where
   toBits :: Binary a => a -> ByteString
@@ -143,20 +144,26 @@ class Signable a where
 
 
 
-data Shared = Appraisal Request
-              | Attestation Response
+data Shared   = WRequest Request
+              | WResponse Response
+	      | WEvidenceDescriptor EvidenceDescriptor
+	      | WEvidencePiece EvidencePiece
+	      | WCARequest CARequest
+	      | WCAResponse CAResponse
               | Result Bool
 
 instance Show Shared where
-    show (Appraisal app) = "Appraisal: " ++ show app
-    show (Attestation att) = "Attestation: " ++ show att
+    show (WRequest app) = "Appraisal: " ++ show app
+    show (WResponse att) = "Attestation: " ++ show att
+    show (WEvidenceDescriptor evdes) = "EvidenceDescriptor: " ++ (show evdes)
+    show (WEvidencePiece evPiece) = "EvidencePiece: " ++ (show evPiece) 
     show (Result True) = "Appraisal succeeded."
     show (Result False) = "Appraisal failed."
     
 instance Binary Shared where
-  put (Appraisal app)             = do put (0::Word8)
+  put (WRequest app)             = do  put (0::Word8)
                                        put app
-  put (Attestation att)           = do put (1::Word8)
+  put (WResponse att)           = do   put (1::Word8)
                                        put att
   put (Result res)                = do put(2::Word8)
                                        put res
@@ -164,9 +171,9 @@ instance Binary Shared where
   get = do t<- get :: Get Word8
            case t of
              0 -> do app <- get
-                     return (Appraisal app)
+                     return (WRequest app)
              1 -> do att <- get
-                     return (Attestation att)
+                     return (WResponse att)
              2 -> do res <- get
                      return (Result res)
                      
@@ -412,6 +419,9 @@ instance Binary ActivateIdRequest where
 jsonEncode :: (ToJSON a) => a -> ByteString
 jsonEncode = DA.encode
 
+jsonEitherDecode :: (FromJSON a) => ByteString -> Either String a
+jsonEitherDecode = DA.eitherDecode
+
 jsonDecode :: (FromJSON a) => ByteString -> Maybe a
 jsonDecode= DA.decode
 instance ToJSON Request where
@@ -639,13 +649,22 @@ ata TPM_SYMMETRIC_KEY_PARMS = TPM_SYMMETRIC_KEY_PARMS {
               | Result Bool-}
 
 instance ToJSON Shared where
-	toJSON (Appraisal req) = object [ "Appraisal" .= toJSON req]
-	toJSON (Attestation resp) = object [ "Attestation" .= toJSON resp ]
+	toJSON (WRequest req) = object [ "WRequest" .= toJSON req]
+	toJSON (WResponse resp) = object [ "WResponse" .= toJSON resp ]
 	toJSON (Result bool) = object [ "Result" .= toJSON bool]
+	toJSON (WEvidenceDescriptor evdes) = object [ "WEvidenceDescriptor" .= toJSON evdes ]
+	toJSON (WEvidencePiece evPiece) = object ["WEvidencePiece" .= toJSON evPiece]
+	toJSON (WCARequest caRequest) = object [ "WCARequest" .= toJSON caRequest ]
+	toJSON (WCAResponse caResponse) = object [ "WCAResponse" .= toJSON caResponse]
+
 instance FromJSON Shared where
-	parseJSON (DA.Object o) | HM.member "Appraisal" o = Appraisal <$> o .: "Appraisal"
-				| HM.member "Attestation" o = Attestation <$> o .: "Attestation"
+	parseJSON (DA.Object o) | HM.member "WRequest" o = WRequest <$> o .: "WRequest"
+				| HM.member "WResponse" o = WResponse <$> o .: "WResponse"
 				| HM.member "Result" o = Result <$> o .: "Result"
+				| HM.member "WEvidenceDescriptor" o = WEvidenceDescriptor <$> o .: "WEvidenceDescriptor"
+				| HM.member "WEvidencePiece" o = WEvidencePiece <$> o .: "WEvidencePiece"
+				| HM.member "WCARequest" o = WCARequest <$> o .: "WCARequest"
+				| HM.member "WCAResponse" o = WCAResponse <$> o .: "WCAResponse"
  		          
 encodeToText :: B.ByteString -> T.Text
 encodeToText = TE.decodeUtf8 . Base64.encode
@@ -656,19 +675,32 @@ decodeFromText = either fail return . Base64.decode . TE.encodeUtf8
 decodeFromTextL :: (Monad m) => T.Text -> m ByteString
 decodeFromTextL x = do bs <- decodeFromText x
 		       return (fromStrict bs)  
-{-
-sendShared :: Shared -> IO LibXenVChan
-sendShared shared id = do
-			logger <- createLogger
+
+
+-- {-
+
+sendShared :: Int -> Shared -> IO LibXenVChan
+sendShared id shared = do
 			chan <- client_init id
-			sendChunkedMessageByteString logger chan (toStrict (jsonEncode shared))
-			return chan
+			sendShared' chan shared
 
+sendShared' :: LibXenVChan -> Shared -> IO LibXenVChan
+sendShared' chan shared = do
+			   logger <- createLogger
+			   sendChunkedMessageByteString logger chan (toStrict (jsonEncode shared))
+			   return chan
 
-receiveShared :: LibXenVChan IO -> Either String Shared
+receiveShared :: LibXenVChan -> IO (Either String Shared)
 receiveShared chan = do
+			ctrlWait chan
+			logger <- createLogger
+			bytes <- readChunkedMessageByteString logger chan
+			let shared =  jsonEitherDecode (fromStrict bytes) :: Either String Shared
+			return shared
+
+
 --sendJSON :: Shared ->
--}
+-- -}
 {-
 sendRequest :: Request -> IO (LibXenVChan)
 sendRequest req = do

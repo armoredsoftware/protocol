@@ -28,13 +28,18 @@ main = do
   --sendPubKeyResponse chan pubKey -- TODO:  Maybe send signing pubkey too
   let caRequest = mkCARequest iPass pubKey iSig
   caChan <- sendCARequest caRequest
-  caResponse <- receiveCAResponse caChan
-
-  req <- receiveRequest chan
-  resp <- mkResponse req caResponse iKeyHandle  --Maybe pass sig key handle
-  putStrLn "After MkResponse"
-  sendResponse chan resp
-  putStrLn "END main of Attestation"
+  eitherCAResponse <- receiveCAResponse caChan
+  case (eitherCAResponse) of
+   (Left err) -> putStrLn ("Failed to receive CAResponse. Error was: " ++ (show err))
+   (Right caresp) -> do
+  				eitherReq <- receiveRequest chan
+	  			case (eitherReq) of
+    				 (Left err) -> putStrLn ("Failure to receiving request. Failure was: " ++ err)
+				 (Right req) -> do
+					resp <- mkResponse req caresp iKeyHandle  --Maybe pass sig key handle
+  					putStrLn "After MkResponse"
+  					sendResponse chan resp
+  					putStrLn "END main of Attestation. Attestation Successful!"
   return ()
   {-
       False -> putStrLn "Could not recognize protocol" -- TODO:  Error handling
