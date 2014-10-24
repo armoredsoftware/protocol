@@ -2,20 +2,24 @@
 
 module ScottyCA where
 
-import TPM
 import Web.Scotty
 import Data.ByteString.Lazy (ByteString, append, empty, pack, length, toStrict, fromStrict)
 import qualified Data.ByteString.Lazy.Char8 as L
+
+import Data.Binary
+import System.IO
+import Crypto.Cipher.AES
+import Control.Monad.Trans
 import qualified Data.Text.Lazy as LazyText
 import Data.Monoid (mconcat)
 import qualified Data.Text.Lazy.Encoding as LazyEncoding
-import CADataTypes
 import qualified Demo3Shared as AD  --ArmoredData
+import TPM
 
 
-main = scotty 3000 $ do
+scottyCAMain = scotty 3000 $ do
   --  get "/" $ text "foobar"
-    get "/foo" $ do
+    Web.Scotty.get "/foo" $ do
       v <- param "fooparam"
       html $ mconcat ["<h1>", v, "</h1>"]
       
@@ -29,16 +33,17 @@ main = scotty 3000 $ do
       a <- (param "request") :: ActionM LazyText.Text
       
       html a
-      let jj = (jsonDecode (LazyEncoding.encodeUtf8 a) :: Maybe AD.CARequest)
+      let jj = (AD.jsonDecode (LazyEncoding.encodeUtf8 a) :: Maybe AD.CARequest)
       case jj of
 	   Nothing -> text "you suck"
-	   Just caReq -> json (handleCAReq caReq)
+	   Just caReq -> do caResp <- liftIO $ handleCAReq caReq
+                            json caResp
       --return ()
       --text "posted!"
    --     text (LazyText.pack (L.unpack bod))
    
-handleCAReq :: AD.CARequest -> CAResponse
-handleCAReq (AD.CARequest id (Signed idContents idSig)) = do
+handleCAReq :: AD.CARequest -> IO AD.CAResponse
+handleCAReq (AD.CARequest id (AD.Signed idContents idSig)) = do
   ekPubKey <- readPubEK
   let iPubKey = identityPubKey idContents
       iDigest = tpm_digest $ encode iPubKey
@@ -46,9 +51,9 @@ handleCAReq (AD.CARequest id (Signed idContents idSig)) = do
       blob = encode asymContents
       encBlob =  tpm_rsa_pubencrypt ekPubKey blob
       
-      caPriKey = snd generateCAKeyPair
-      caCert = signPack caPriKey iPubKey
-      certBytes = encode caCertt
+      caPriKey = snd AD.generateCAKeyPair
+      caCert = AD.signPack caPriKey iPubKey
+      certBytes = encode caCert
       
       strictCert = toStrict certBytes
       encryptedCert = encryptCTR aes ctr strictCert
@@ -71,3 +76,14 @@ handleCAReq (AD.CARequest id (Signed idContents idSig)) = do
    aes = initAES $ toStrict key
    ctr = toStrict key
    contents dig = TPM_ASYM_CA_CONTENTS symKey dig
+
+
+
+readPubEK :: IO TPM_PUBKEY
+readPubEK = do
+  handle <- openFile AD.exportEKFileName ReadMode
+  pubKeyString <- hGetLine handle
+  let pubKey :: TPM_PUBKEY
+      pubKey = read pubKeyString
+  hClose handle
+  return pubKey
