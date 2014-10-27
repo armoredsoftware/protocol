@@ -31,7 +31,6 @@ appName = "Appraiser"
 
 attId :: Int
 attId = 19
-
 attName :: String
 attName = "Attester"
 
@@ -461,10 +460,12 @@ instance ToJSON EvidenceDescriptor where
 	toJSON D0 = DA.String "D0"
 	toJSON D1 = DA.String "D1"
 	toJSON D2 = DA.String "D2"
+	toJSON DONE = DA.String "DONE"
 instance FromJSON EvidenceDescriptor where
-	parseJSON (DA.String "D0") = pure D0
-	parseJSON (DA.String "D1") = pure D1
-	parseJSON (DA.String "D2") = pure D2
+	parseJSON (DA.String "D0")   = pure D0
+	parseJSON (DA.String "D1")   = pure D1
+	parseJSON (DA.String "D2")   = pure D2
+	parseJSON (DA.String "DONE") = pure DONE
 
 instance ToJSON TPM_PCR_SELECTION where
 	toJSON (TPM_PCR_SELECTION bs) = object [ "TPM_PCR_SELECTION" .= encodeToText (toStrict bs) ]
