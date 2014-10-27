@@ -32,8 +32,15 @@ caProcess chan = do
 -}
 
 
-receiveCARequest :: LibXenVChan -> IO CARequest
-receiveCARequest = receiveM caName
+receiveCARequest :: LibXenVChan -> IO (Either String CARequest)
+receiveCARequest chan = do
+			  eitherShared <- receiveShared chan
+			  case (eitherShared) of
+			   (Left err) -> return (Left err)
+			   (Right (WCARequest caReq)) -> return (Right caReq)
+			   (Right x) -> return (Left ("I wasn't supposed to get this!. I expected a 'CARequest' but I received this: " ++ (show x)))
+
+
 
 
 {-
@@ -48,7 +55,9 @@ receiveCARequest chan = do
   
                   
 sendCAResponse :: LibXenVChan -> CAResponse -> IO ()
-sendCAResponse = sendM caName
+sendCAResponse chan caResp = do
+				sendShared' chan (WCAResponse caResp)
+				return ()
 
 {-
 sendCAResponse :: LibXenVChan -> CAResponse -> IO ()
@@ -59,8 +68,8 @@ sendCAResponse chan resp = do
 -}
 
 
-mkCAResponse :: CARequest -> IO CAResponse --Need to check idSig!!!!
-mkCAResponse (CARequest id (Signed idContents idSig)) = do
+mkCAResponse :: Either String CARequest -> IO CAResponse --Need to check idSig!!!!
+mkCAResponse (Right (CARequest id (Signed idContents idSig))) = do
   ekPubKey <- readPubEK
   let iPubKey = identityPubKey idContents
       iDigest = tpm_digest $ encode iPubKey

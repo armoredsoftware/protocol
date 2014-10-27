@@ -104,31 +104,45 @@ mkResponse (Request desiredE pcrSelect nonce) (CAResponse caCertBytes actIdInput
   
     --measurerID <- measurePrompt
   chan <- client_init meaId
-  eList <- mapM (getEvidencePiece chan) desiredE
-
-  --badnonce <- nonce_create
-  let aikPubKey = dat decodedCACert
-      evBlob = ePack eList nonce aikPubKey
-      evBlobSha1 = bytestringDigest $ sha1 evBlob
+  --eList <- mapM (getEvidencePiece chan) desiredE
+  eitherElist <- mapM (getEvidencePiece chan) desiredE
+  -- eitherElist :: [ (Either String EvidencePiece) ] 
+  let bools = map isAllRight eitherElist
+  case and bools of 
+    True -> do  
+      let eList = map extractRight eitherElist
+                    --badnonce <- nonce_create
+          aikPubKey = dat decodedCACert
+          evBlob = ePack eList nonce aikPubKey
+          evBlobSha1 = bytestringDigest $ sha1 evBlob
+                       
+    
   {-
   sigShn <- tpm_session_oiap tpm
   eSig <- tpm_sign tpm sigShn sKeyHandle sigPass evBlobSha1
   tpm_session_close tpm sigShn
   --putStrLn "evBlob signed"
   CHANGE THIS WHEN READY TO DO REAL SIGN -}
-  let eSig = empty --TEMPORARY
-  let evPack = (EvidencePackage eList nonce eSig)
+      let eSig = empty --TEMPORARY
+      let evPack = (EvidencePackage eList nonce eSig)
   
   
-  quoteShn <- tpm_session_oiap tpm
-  (pcrComp, sig) <- tpm_quote tpm quoteShn iKeyHandle (TPM_NONCE evBlobSha1) 
-                               pcrSelect iPass 
-  let quote' = (Quote pcrComp sig)
-  tpm_session_close tpm quoteShn    
-  putStrLn "Quote generated"
-  tpm_flushspecific tpm iKeyHandle tpm_rt_key  --Evict loaded key
-  putStrLn "End of MkResponse"
-  return (Response evPack decodedCACert quote')
+      quoteShn <- tpm_session_oiap tpm
+      (pcrComp, sig) <- tpm_quote tpm quoteShn iKeyHandle (TPM_NONCE evBlobSha1) 
+                                      pcrSelect iPass 
+      let quote' = (Quote pcrComp sig)
+      tpm_session_close tpm quoteShn    
+      putStrLn "Quote generated"
+      tpm_flushspecific tpm iKeyHandle tpm_rt_key  --Evict loaded key
+      putStrLn "End of MkResponse"
+      return (Response evPack decodedCACert quote')
+      
+      {-
+    False -> do putStrLn "Not all evidence pieces collected without error" ++ show eitherElist
+                return      
+-}
+      
+    
   
  where key = tpm_key_create_identity tpm_auth_priv_use_only
        oKty = tpm_et_xor_owner
@@ -138,15 +152,30 @@ mkResponse (Request desiredE pcrSelect nonce) (CAResponse caCertBytes actIdInput
        sPass = tpm_digest_pass srkPass
        iPass = tpm_digest_pass "i"
        sigPass = tpm_digest_pass "s"
+       
+       isAllRight :: Either String EvidencePiece -> Bool
+       isAllRight (Left x) = False
+       isAllRight (Right y) = True
+       
+       extractRight :: Either String a -> a
+       extractRight (Right x) = x
   
-getEvidencePiece :: LibXenVChan -> EvidenceDescriptor -> IO EvidencePiece
+getEvidencePiece :: LibXenVChan -> EvidenceDescriptor -> IO (Either String EvidencePiece)
 getEvidencePiece chan ed = do
   putStrLn $ "\n" ++ "Attestation Agent Sending: " ++ show ed
-  send chan ed
+  --send chan ed
+  sendShared' chan (WEvidenceDescriptor ed) 
   ctrlWait chan
-  evidence :: EvidencePiece <- receive chan --TODO:  error handling
-  putStrLn $ "Received: " ++ show evidence
-  return evidence
+--  evidence :: EvidencePiece <- receive chan --TODO:  error handling
+  eitherSharedEvidence <- receiveShared chan 
+  case (eitherSharedEvidence) of
+    (Left err) -> return (Left err)
+    (Right (WEvidencePiece ep)) -> do
+                                                      putStrLn $ "Received: " ++ show ep
+                                                      return (Right (ep))
+    (Right x) -> return (Left ("I expected EvidencePiece but received: " ++ (show x)))
+--  putStrLn $ "Received: " ++ show evidence
+--  return evidence
   
 --receiveRequest :: LibXenVChan -> IO Request
 receiveRequest :: LibXenVChan -> IO (Either String Request)

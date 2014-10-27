@@ -28,7 +28,7 @@ receiveMeaRequest :: LibXenVChan -> IO (Either String EvidenceDescriptor)
 receiveMeaRequest chan = do
 			  eitherShared <- receiveShared chan
 			  case (eitherShared) of
-			   (Left err) -> return (Left err)
+			   (Left err) -> return (Left ("Measurer received an error: " ++ err))
 			   (Right (WEvidenceDescriptor evdes)) -> return (Right evdes)
 			   (Right x) -> return (Left ("I wasn't supposed to get this!. I expected an 'EvidenceDescriptor' but I received this: " ++ (show x)))
 --receiveMeaRequest = receiveM meaName
