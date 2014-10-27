@@ -8,11 +8,22 @@ import VChanUtil
 
 import Data.Bits
 import Data.ByteString.Lazy (ByteString, cons, empty)
+import Control.Monad.Loops
 --withOpenSSL
 
 
-meaProcess = process' receiveMeaRequest sendMeaResponse measure'
+--meaProcess = process' receiveMeaRequest sendMeaResponse measure'
 
+meaProcess :: LibXenVChan -> IO ()
+meaProcess chan = do
+  eitherEd <- receiveMeaRequest chan
+  case (eitherEd) of
+	(Left err) -> error ("Measurer received an error: " ++ err)			
+        (Right ({-EvidenceDescriptor evdes-} DONE)) -> sendMeaResponse chan OK
+        (Right ed ) -> do 
+          ep <- measure ed
+          sendMeaResponse chan ep
+          meaProcess chan
 {-
 meaProcess :: LibXenVChan -> IO ()
 meaProcess chan = do

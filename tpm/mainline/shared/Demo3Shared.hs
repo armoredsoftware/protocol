@@ -265,7 +265,8 @@ type Evidence = [EvidencePiece]
 
 data EvidencePiece = M0 M0Rep 
                    | M1 M1Rep
-                   | M2 M2Rep deriving (Eq, Ord, Show)
+                   | M2 M2Rep 
+                   | OK deriving (Eq, Ord, Show)
 
 type M0Rep = ByteString
 type M1Rep = ByteString

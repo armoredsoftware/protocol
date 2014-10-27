@@ -128,9 +128,10 @@ mkResponse' (Request desiredE pcrSelect nonce) (CAResponse caCertBytes actIdInpu
     --measurerID <- measurePrompt
   chan <- client_init meaId
   --eList <- mapM (getEvidencePiece chan) desiredE
-  eitherElist <- mapM (getEvidencePiece chan) desiredE
+  eitherElist' <- mapM (getEvidencePiece chan) (desiredE ++ [DONE])
+  let eitherElist = init eitherElist'
   -- eitherElist :: [ (Either String EvidencePiece) ] 
-  close chan
+  --close chan
   let bools = map isAllRight eitherElist
   case and bools of 
     True -> do  
@@ -182,20 +183,26 @@ mkResponse' (Request desiredE pcrSelect nonce) (CAResponse caCertBytes actIdInpu
        extractRight :: Either String a -> a
        extractRight (Right x) = x
   
+       
+       
+isDone :: EvidenceDescriptor -> Bool
+isDone ed = case ed of DONE -> True
+                       _ -> False
+                       
 getEvidencePiece :: LibXenVChan -> EvidenceDescriptor -> IO (Either String EvidencePiece)
 getEvidencePiece chan ed = do
-  putStrLn $ "\n" ++ "Attestation Agent Sending: " ++ show ed
-  --send chan ed
-  sendShared' chan (WEvidenceDescriptor ed) 
-  ctrlWait chan
---  evidence :: EvidencePiece <- receive chan --TODO:  error handling
-  eitherSharedEvidence <- receiveShared chan 
-  case (eitherSharedEvidence) of
-    (Left err) -> return (Left err)
-    (Right (WEvidencePiece ep)) -> do
-                                                      putStrLn $ "Received: " ++ show ep
-                                                      return (Right (ep))
-    (Right x) -> return (Left ("I expected EvidencePiece but received: " ++ (show x)))
+      putStrLn $ "\n" ++ "Attestation Agent Sending: " ++ show ed
+      --send chan ed
+      sendShared' chan (WEvidenceDescriptor ed) 
+      ctrlWait chan
+      --  evidence :: EvidencePiece <- receive chan --TODO:  error handling
+      eitherSharedEvidence <- receiveShared chan 
+      case (eitherSharedEvidence) of
+        (Left err) -> return (Left err)
+        (Right (WEvidencePiece ep)) -> do
+          putStrLn $ "Received: " ++ show ep
+          return (Right (ep))
+        (Right x) -> return (Left ("I expected EvidencePiece but received: " ++ (show x)))
 --  putStrLn $ "Received: " ++ show evidence
 --  return evidence
   

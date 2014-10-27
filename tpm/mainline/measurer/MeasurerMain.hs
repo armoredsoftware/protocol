@@ -12,7 +12,7 @@ main' :: IO ()
 main' = do 
   putStrLn "main of Measurer"
   chan <- server_init attId
-  forever $ meaProcess chan
+  meaProcess chan
   putStrLn "HEEEEERRRRRREEEE"
   close chan
   return ()

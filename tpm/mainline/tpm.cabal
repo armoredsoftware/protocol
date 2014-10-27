@@ -117,7 +117,8 @@ executable              Measurer
                         RSA,
                         parsec >= 3,
                         filepath,
-                        VChanUtil
+                        VChanUtil,
+                        monad-loops
   Main-is:              MeasurerMain.hs
   ghc-options:          -O
 
