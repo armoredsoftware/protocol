@@ -18,7 +18,7 @@ import Crypto.Cipher.AES
 --withOpenSSL
 
 
-caProcess :: LibXenVChan -> IO ()
+caProcess :: PlatformID -> IO ()
 caProcess = process receiveCARequest sendCAResponse mkCAResponse
 
 {-
@@ -37,7 +37,9 @@ receiveCARequest chan = do
 			  eitherShared <- receiveShared chan
 			  case (eitherShared) of
 			   (Left err) -> return (Left err)
-			   (Right (WCARequest caReq)) -> return (Right caReq)
+			   (Right (WCARequest caReq)) -> do 
+                             putStrLn $ "Received: " ++ (show caReq)
+                             return (Right caReq)
 			   (Right x) -> return (Left ("I wasn't supposed to get this!. I expected a 'CARequest' but I received this: " ++ (show x)))
 
 
@@ -57,6 +59,7 @@ receiveCARequest chan = do
 sendCAResponse :: LibXenVChan -> CAResponse -> IO ()
 sendCAResponse chan caResp = do
 				sendShared' chan (WCAResponse caResp)
+                                putStrLn $ "Sent: " ++ show caResp
 				return ()
 
 {-

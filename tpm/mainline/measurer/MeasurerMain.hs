@@ -5,9 +5,14 @@ import Demo3Shared
 
 import Control.Monad
 
-main :: IO ()
-main = do 
+
+main = forever main'
+  
+main' :: IO ()
+main' = do 
   putStrLn "main of Measurer"
   chan <- server_init attId
   forever $ meaProcess chan
+  putStrLn "HEEEEERRRRRREEEE"
+  close chan
   return ()

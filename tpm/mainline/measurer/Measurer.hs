@@ -11,7 +11,7 @@ import Data.ByteString.Lazy (ByteString, cons, empty)
 --withOpenSSL
 
 
-meaProcess = process receiveMeaRequest sendMeaResponse measure'
+meaProcess = process' receiveMeaRequest sendMeaResponse measure'
 
 {-
 meaProcess :: LibXenVChan -> IO ()

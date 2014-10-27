@@ -130,7 +130,7 @@ mkResponse' (Request desiredE pcrSelect nonce) (CAResponse caCertBytes actIdInpu
   --eList <- mapM (getEvidencePiece chan) desiredE
   eitherElist <- mapM (getEvidencePiece chan) desiredE
   -- eitherElist :: [ (Either String EvidencePiece) ] 
-  close chan
+  --close chan
   let bools = map isAllRight eitherElist
   case and bools of 
     True -> do  

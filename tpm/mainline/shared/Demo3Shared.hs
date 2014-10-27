@@ -124,15 +124,34 @@ receiveM descrip chan = do
 
 
 process :: (Binary a, Show a, Binary b, Show b) => (LibXenVChan -> IO a) 
-                -> (LibXenVChan -> b -> IO ()) -> (a -> IO b) -> LibXenVChan -> IO ()
-process recA sendB mk chan = do
+                -> (LibXenVChan -> b -> IO ()) -> (a -> IO b) -> PlatformID -> IO ()
+process recA sendB mk pId = do
   --ctrlWait chan
-  req <- recA chan
+  chan <- server_init pId
+  process' recA sendB mk chan
+  {-req <- recA chan
+  putStrLn "\n\nPROCESS: Request received\n\n"
   resp <- mk req
+  putStrLn "\n\nPROCESS: Response constructed\n\n"
   sendB chan resp
+  putStrLn "\n\nPROCESS: Response sent\n\n"
+-}
+  close chan
   return ()
 
-
+process' :: (Binary a, Show a, Binary b, Show b) => (LibXenVChan -> IO a) 
+                -> (LibXenVChan -> b -> IO ()) -> (a -> IO b) -> LibXenVChan -> IO ()
+process' recA sendB mk chan = do
+  --ctrlWait chan
+  --chan <- server_init pId
+  req <- recA chan
+  putStrLn "\n\nPROCESS: Request received\n\n"
+  resp <- mk req
+  putStrLn "\n\nPROCESS: Response constructed\n\n"
+  sendB chan resp
+  putStrLn "\n\nPROCESS: Response sent\n\n"
+  --close chan
+  return ()
 
 {-
 class Signable a where
@@ -195,23 +214,27 @@ data Request = Request {
   } deriving (Show)
              
 type DesiredEvidence = [EvidenceDescriptor]
-data EvidenceDescriptor = D0 | D1 | D2 deriving(Eq, Ord) --for now
+data EvidenceDescriptor = D0 | D1 | D2 
+                        | DONE deriving(Eq, Ord) --for now
 
 instance Binary EvidenceDescriptor where
   put D0 = put (0::Word8)
   put D1 = put (1::Word8)
   put D2 = put (2::Word8)
+  put DONE = put (3::Word8)
            
   get = do t<- get :: Get Word8
            case t of
                0 -> return D0
                1 -> return D1
                2 -> return D2
+               3 -> return DONE
                     
 instance Show EvidenceDescriptor where
   show D0 = "Desired: Measurement #0"
   show D1 = "Desired: Measurement #1"
   show D2 = "Desired: Measurement #2"
+  show DONE = "DONE DESCRIPTOR"
 
 
 --type Quote = (TPM_PCR_COMPOSITE, Signature)
