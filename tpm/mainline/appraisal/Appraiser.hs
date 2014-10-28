@@ -77,7 +77,7 @@ evaluate (Request d pcrSelect nonce)
   (Response (EvidencePackage eList eNonce eSig) caCert@(Signed pubKey caSig)  tpmQuote@(Quote pcrComposite qSig)) = do
   caPublicKey <- readPubCA
   let blobEvidence :: ByteString
-      blobEvidence = ePack eList eNonce pubKey
+      blobEvidence = ePack eList eNonce caCert --pubKey
       evBlobSha1 =  bytestringDigest $ sha1 blobEvidence
       
       quoteInfo :: TPM_QUOTE_INFO

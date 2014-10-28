@@ -137,8 +137,8 @@ mkResponse' (Request desiredE pcrSelect nonce) (CAResponse caCertBytes actIdInpu
     True -> do  
       let eList = map extractRight eitherElist
                     --badnonce <- nonce_create
-          aikPubKey = dat decodedCACert
-          evBlob = ePack eList nonce aikPubKey
+          --aikPubKey = dat decodedCACert
+          evBlob = ePack eList nonce decodedCACert --aikPubKey
           evBlobSha1 = bytestringDigest $ sha1 evBlob
                        
     
