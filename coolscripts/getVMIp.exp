@@ -1,0 +1,35 @@
+#!/usr/bin/expect -f
+log_user 0
+
+
+set prompt "(%|#|\\\$) $"
+catch {set prompt $env(EXPECT_PROMPT)}
+
+spawn sudo xl list
+expect "armored: "
+send  "armored\r"
+expect -re $prompt
+set a  $expect_out(buffer)
+set b  [split $a "\n"]
+
+for {set i 0} {$i < [llength $b] -1 } {incr i} {
+   regexp "(\[A-Za-z0-9_-]+) +(\[0-9]+).*" [lindex $b $i] ignore name id
+   if { [info exists name] && $id != 0} {
+      set nameToId($name) $id
+      set idToName($id) $name
+   }
+}
+
+foreach elem [array names nameToId] {
+  spawn sudo xl console $nameToId($elem)
+  expect "armored: "
+  send "armored\r"
+  sleep 0.75
+  send "\r"
+  sleep 0.5
+  send "ifconfig\r"
+  expect -re "eth0.*?inet addr:(\[0-9\\\.]+) .*"
+  puts "$elem \t$nameToId($elem)\t$expect_out(1,string)"
+  send "\r"
+ # puts $expect_out(buffer)
+}
