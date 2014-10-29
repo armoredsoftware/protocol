@@ -7,7 +7,7 @@ import System.IO
 import Data.Word
 
 goldenFileName :: String 
-goldenFileName= "goldenPcrComosite.txt"
+goldenFileName= "goldenPcrComposite.txt"
 
 
 readComp :: IO TPM_PCR_COMPOSITE

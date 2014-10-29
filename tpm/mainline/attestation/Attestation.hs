@@ -136,9 +136,9 @@ mkResponse' (Request desiredE pcrSelect nonce) (CAResponse caCertBytes actIdInpu
   case and bools of 
     True -> do  
       let eList = map extractRight eitherElist
-                    --badnonce <- nonce_create
+      badnonce <- nonce_create                     --BAD NONCE TEST LINE HERE
           --aikPubKey = dat decodedCACert
-          evBlob = ePack eList nonce decodedCACert --aikPubKey
+      let evBlob = ePack eList badnonce decodedCACert --aikPubKey
           evBlobSha1 = bytestringDigest $ sha1 evBlob
                        
     
@@ -149,8 +149,10 @@ mkResponse' (Request desiredE pcrSelect nonce) (CAResponse caCertBytes actIdInpu
   --putStrLn "evBlob signed"
   CHANGE THIS WHEN READY TO DO REAL SIGN -}
       let eSig = empty --TEMPORARY
-      let evPack = (EvidencePackage eList nonce eSig)
+      let evPack = (EvidencePackage eList badnonce eSig)
   
+      --pcrModify "a" --Change PCRS here for bad pcr check
+      pcrReset
   
       quoteShn <- tpm_session_oiap tpm
       (pcrComp, sig) <- tpm_quote tpm quoteShn iKeyHandle (TPM_NONCE evBlobSha1) 
@@ -183,7 +185,31 @@ mkResponse' (Request desiredE pcrSelect nonce) (CAResponse caCertBytes actIdInpu
        extractRight :: Either String a -> a
        extractRight (Right x) = x
   
-       
+pcrModify :: String -> IO TPM_PCRVALUE
+pcrModify val = tpm_pcr_extend_with tpm (fromIntegral pcrNum) val      
+
+pcrReset :: IO TPM_PCRVALUE
+pcrReset = do
+  tot <- tpm_getcap_pcrs tpm
+  tpm_pcr_reset tpm (fromIntegral tot) [fromIntegral pcrNum]
+  val <- tpm_pcr_read tpm (fromIntegral 23)
+  putStrLn $ show val
+  return val
+
+  {-
+  dflt <- tpm_pcr_read tpm (fromIntegral 22)
+  putStrLn $ show dflt
+  val <- tpm_pcr_read tpm (fromIntegral 23)
+  putStrLn $ show val
+  tot <- tpm_getcap_pcrs tpm
+  new <- tpm_pcr_extend tpm (fromIntegral pcrNum) dflt
+  putStrLn $ show val
+  return new
+-}
+
+   
+pcrNum :: Int
+pcrNum = 23
        
 isDone :: EvidenceDescriptor -> Bool
 isDone ed = case ed of DONE -> True
