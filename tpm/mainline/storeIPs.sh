@@ -1,0 +1,1 @@
+../../../protocol/coolscripts/storeIPs.sh

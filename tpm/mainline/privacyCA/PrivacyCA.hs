@@ -81,6 +81,7 @@ mkCAResponse (Right (CARequest id (Signed idContents idSig))) = do
       encBlob =  tpm_rsa_pubencrypt ekPubKey blob
       
       caPriKey = snd generateCAKeyPair
+      --caPriKey = snd generateBadCAKeyPair
       caCert = signPack caPriKey iPubKey
       certBytes = encode caCert
       

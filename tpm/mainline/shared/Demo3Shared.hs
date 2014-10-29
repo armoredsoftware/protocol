@@ -65,6 +65,10 @@ type SymKey = B.ByteString
 generateCAKeyPair :: (PubKey, PriKey)
 generateCAKeyPair = let gen = mkStdGen 3
                         (pub, pri, _) = generateKeyPair gen 2048 in (pub, pri)
+                                                                    
+generateBadCAKeyPair :: (PubKey, PriKey)
+generateBadCAKeyPair = let gen = mkStdGen 11
+                           (pub, pri, _) = generateKeyPair gen 2048 in (pub, pri)
 
 encrypt :: Binary a => SymKey -> a -> ByteString
 encrypt key m = (fromStrict encryptedStrictM)

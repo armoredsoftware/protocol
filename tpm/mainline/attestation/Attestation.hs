@@ -136,9 +136,9 @@ mkResponse' (Request desiredE pcrSelect nonce) (CAResponse caCertBytes actIdInpu
   case and bools of 
     True -> do  
       let eList = map extractRight eitherElist
-      badnonce <- nonce_create                     --BAD NONCE TEST LINE HERE
+      --badnonce <- nonce_create                     --BAD NONCE TEST LINE HERE
           --aikPubKey = dat decodedCACert
-      let evBlob = ePack eList badnonce decodedCACert --aikPubKey
+      let evBlob = ePack eList nonce decodedCACert --aikPubKey
           evBlobSha1 = bytestringDigest $ sha1 evBlob
                        
     
@@ -148,15 +148,20 @@ mkResponse' (Request desiredE pcrSelect nonce) (CAResponse caCertBytes actIdInpu
   tpm_session_close tpm sigShn
   --putStrLn "evBlob signed"
   CHANGE THIS WHEN READY TO DO REAL SIGN -}
+          
       let eSig = empty --TEMPORARY
-      let evPack = (EvidencePackage eList badnonce eSig)
+      let evPack = (EvidencePackage eList nonce eSig)
   
       --pcrModify "a" --Change PCRS here for bad pcr check
-      pcrReset
+      --pcrReset --Revert to default PCRS here for good pcr check
   
+      --sigKeyHandle <- createAndLoadSigKey
+      let qKeyHandle = {-sigKeyHandle-} iKeyHandle
+      
+      
       quoteShn <- tpm_session_oiap tpm
-      (pcrComp, sig) <- tpm_quote tpm quoteShn iKeyHandle (TPM_NONCE evBlobSha1) 
-                                      pcrSelect iPass 
+      (pcrComp, sig) <- tpm_quote tpm quoteShn qKeyHandle (TPM_NONCE evBlobSha1) 
+                                      pcrSelect {-sigPass-}iPass 
       let quote' = (Quote pcrComp sig)
       tpm_session_close tpm quoteShn    
       putStrLn "Quote generated"

@@ -2,7 +2,7 @@
 
 
 
-mypath="/home/armored/protocolsDir2/protocol/tpm/mainline/dist/build/"
+mypath="/home/armored/protoLocal/protocol/tpm/mainline/dist/build/"
 counter=$((0))
 for line in $(cat ips.txt) 
 do  
