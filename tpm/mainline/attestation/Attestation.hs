@@ -6,8 +6,9 @@ import TPM
 import VChanUtil
 import Demo3Shared
 
+import Data.Bits
 import Data.Binary
-import Data.ByteString.Lazy(ByteString, append, empty, pack, length, toStrict, fromStrict)
+import Data.ByteString.Lazy(ByteString, append, empty, pack, length, toStrict, fromStrict, cons)
 import Data.Digest.Pure.SHA (bytestringDigest, sha1)
 import Control.Monad
 
@@ -85,6 +86,7 @@ attProcess = process receiveRequest sendResponse mkResponse
 
 mkResponse :: Either String Request -> IO Response
 mkResponse (Right req) = do
+  {-
   (iKeyHandle, iSig) <- createAndLoadIdentKey
   pubKey <- attGetPubKey iKeyHandle iPass
   --sendPubKeyResponse chan pubKey -- TODO:  Maybe send signing pubkey too
@@ -101,10 +103,78 @@ mkResponse (Right req) = do
       putStrLn "After MkResponse"  	
       return resp   
  where iPass = tpm_digest_pass "i"
+-}
+  
+  x@(iKeyHandle, iSig) <- createAndLoadIdentKey
+  
+  caCert <- case c1 of 
+    True -> getCACert x
+    False -> getBadCACert iKeyHandle
+                                    
+  (keyHandle, keyPass) <- case c2 of 
+    True -> return (iKeyHandle, iPass)
+    False -> do sigKeyHandle <- createAndLoadSigKey
+                return (sigKeyHandle, sigPass)
+  
+  
+  resp <- mkResponse' req caCert keyHandle keyPass
+  return resp
+ where iPass = tpm_digest_pass "i"
+       sigPass = tpm_digest_pass "s"
+       
+getBadCACert :: TPM_KEY_HANDLE -> IO CACertificate
+getBadCACert iKeyHandle = do
+  pubKey <- attGetPubKey iKeyHandle iPass  --Faking CACert here
+  let caPriKey = snd generateBadCAKeyPair
+      caCert = signPack caPriKey pubKey
+  return caCert
+  where oPass = tpm_digest_pass ownerPass
+        iPass = tpm_digest_pass "i"
+  
 
 
-mkResponse' :: Request -> CAResponse -> TPM_KEY_HANDLE -> IO Response
-mkResponse' (Request desiredE pcrSelect nonce) (CAResponse caCertBytes actIdInput) iKeyHandle = do
+getCACert :: (TPM_KEY_HANDLE, ByteString) -> IO CACertificate
+getCACert (iKeyHandle, iSig) = do
+  pubKey <- attGetPubKey iKeyHandle iPass
+  --sendPubKeyResponse chan pubKey -- TODO:  Maybe send signing pubkey too
+  let caRequest = mkCARequest iPass pubKey iSig
+  putStrLn "\n BEFORE sendCARequest"
+  caChan <- sendCARequest caRequest
+  putStrLn "\n AFTER sendCARequest"
+  eitherCAResponse <- receiveCAResponse caChan
+  case (eitherCAResponse) of
+    (Left err) -> error ("Failed to receive CAResponse. Error was: " ++ 
+                                        (show err))
+    (Right (CAResponse caCertBytes actIdInput)) -> do
+      iShn <- tpm_session_oiap tpm
+      oShn <- tpm_session_oiap tpm
+      sessionKey <- tpm_activateidentity tpm iShn oShn iKeyHandle iPass oPass 
+                                                      actIdInput
+      putStrLn $ show sessionKey
+  
+      let keyBytes = tpmSymmetricData sessionKey
+          strictKey = toStrict keyBytes
+          aes = initAES strictKey
+          ctr = strictKey
+      
+      
+          decryptedCertBytes = {-decrypt keyBytes caCertBytes-} decryptCTR aes ctr (toStrict caCertBytes)
+          lazy = fromStrict decryptedCertBytes 
+          decodedCACert = (decode lazy {-decryptedCertBytes-}) :: CACertificate
+          caCert = decodedCACert
+      tpm_session_close tpm iShn
+      tpm_session_close tpm oShn
+      
+      return caCert
+
+ where oPass = tpm_digest_pass ownerPass
+       iPass = tpm_digest_pass "i"
+       
+       
+mkResponse' :: Request -> CACertificate -> TPM_KEY_HANDLE 
+                        -> TPM_DIGEST -> IO Response
+mkResponse' (Request desiredE pcrSelect nonce) caCert 
+                     qKeyHandle qKeyPass= do
 
   {-
   iShn <- tpm_session_oiap tpm
@@ -122,29 +192,30 @@ mkResponse' (Request desiredE pcrSelect nonce) (CAResponse caCertBytes actIdInpu
       decryptedCertBytes = {-decrypt keyBytes caCertBytes-} decryptCTR aes ctr (toStrict caCertBytes)
       lazy = fromStrict decryptedCertBytes 
       decodedCACert = (decode lazy {-decryptedCertBytes-}) :: CACertificate
+      caCert = decodedCACert
   tpm_session_close tpm iShn
   tpm_session_close tpm oShn
-  -}
+-}
   
+  
+  {-
   pubKey <- attGetPubKey iKeyHandle iPass  --Faking CACert here
+  let caPriKey = snd generateBadCAKeyPair
+      caCert = signPack caPriKey pubKey
+-}
+
+
+      
+
   
   
-    --measurerID <- measurePrompt
-  chan <- client_init meaId
-  --eList <- mapM (getEvidencePiece chan) desiredE
-  eitherElist' <- mapM (getEvidencePiece chan) (desiredE ++ [DONE])
-  let eitherElist = init eitherElist'
-  -- eitherElist :: [ (Either String EvidencePiece) ] 
-  --close chan
-  let bools = map isAllRight eitherElist
-  case and bools of 
-    True -> do  
-      let eList = map extractRight eitherElist
-      --badnonce <- nonce_create                     --BAD NONCE TEST LINE HERE
-          --aikPubKey = dat decodedCACert
-      let evBlob = ePack eList nonce decodedCACert --aikPubKey
-          evBlobSha1 = bytestringDigest $ sha1 evBlob
-                       
+  eList <- case (and [c5, c6, c7]) of 
+    True -> getEvidence desiredE
+    False -> getBadEvidence desiredE
+                        
+  putStrLn $ show eList
+      
+
     
   {-
   sigShn <- tpm_session_oiap tpm
@@ -152,31 +223,28 @@ mkResponse' (Request desiredE pcrSelect nonce) (CAResponse caCertBytes actIdInpu
   tpm_session_close tpm sigShn
   --putStrLn "evBlob signed"
   CHANGE THIS WHEN READY TO DO REAL SIGN -}
+                    
+ -- badnonce <- nonce_create       --BAD NONCE TEST LINE HERE
+  qnonce <- case c3 of 
+    True -> return nonce
+    False -> nonce_create
+    
+  let evBlob = ePack eList qnonce caCert --aikPubKey
+      evBlobSha1 = bytestringDigest $ sha1 evBlob
           
-      let eSig = empty --TEMPORARY
-      let evPack = (EvidencePackage eList nonce eSig)
-  
-      --pcrModify "a" --Change PCRS here for bad pcr check
-      --pcrReset --Revert to default PCRS here for good pcr check
-  
-      --sigKeyHandle <- createAndLoadSigKey
-      let qKeyHandle = {-sigKeyHandle-} iKeyHandle
-      
-      
-      quoteShn <- tpm_session_oiap tpm
-      (pcrComp, sig) <- tpm_quote tpm quoteShn qKeyHandle (TPM_NONCE evBlobSha1) 
-                                      pcrSelect {-sigPass-}iPass 
-      let quote' = (Quote pcrComp sig)
-      tpm_session_close tpm quoteShn    
-      putStrLn "Quote generated"
-      tpm_flushspecific tpm iKeyHandle tpm_rt_key  --Evict loaded key
-      putStrLn "End of MkResponse"
-      return (Response evPack decodedCACert quote')
-      
-      {-
-    False -> do putStrLn "Not all evidence pieces collected without error" ++ show eitherElist
-                return      
--}
+                   
+  case c4 of
+    True -> pcrReset --Revert to default PCRS here for good pcr check
+    False -> pcrModify "a" --Change PCRS here for bad pcr check
+                   
+  quote <- mkQuote qKeyHandle qKeyPass pcrSelect evBlobSha1
+  let eSig = empty --TEMPORARY
+      evPack = (EvidencePackage eList qnonce eSig)
+  tpm_flushspecific tpm qKeyHandle tpm_rt_key  --Evict loaded key
+  putStrLn "End of MkResponse"
+  return (Response evPack caCert quote)       
+        
+        
       
  where key = tpm_key_create_identity tpm_auth_priv_use_only
        oKty = tpm_et_xor_owner
@@ -187,13 +255,65 @@ mkResponse' (Request desiredE pcrSelect nonce) (CAResponse caCertBytes actIdInpu
        iPass = tpm_digest_pass "i"
        sigPass = tpm_digest_pass "s"
        
-       isAllRight :: Either String EvidencePiece -> Bool
-       isAllRight (Left x) = False
-       isAllRight (Right y) = True
-       
-       extractRight :: Either String a -> a
-       extractRight (Right x) = x
+
   
+
+getEvidence :: DesiredEvidence -> IO [EvidencePiece]  
+getEvidence desiredE = do
+  chan <- client_init meaId
+  --eList <- mapM (getEvidencePiece chan) desiredE
+  eitherElist' <- mapM (getEvidencePiece chan) (desiredE ++ [DONE])
+  let eitherElist = init eitherElist'
+      -- eitherElist :: [ (Either String EvidencePiece) ] 
+      --close chan
+  let bools = map isAllRight eitherElist
+  case and bools of 
+    True -> let eList = map extractRight eitherElist in
+      return eList
+    False -> error "not all evidence gathered successfully"
+    
+ where 
+   isAllRight :: Either String EvidencePiece -> Bool
+   isAllRight (Left x) = False
+   isAllRight (Right y) = True
+       
+   extractRight :: Either String a -> a
+   extractRight (Right x) = x
+
+getBadEvidence :: DesiredEvidence -> IO [EvidencePiece]  
+getBadEvidence desiredE = return eList
+                          
+  where
+   eList = [M0 m0Val, M1 m1Val, M2 m2Val] 
+   
+   m0Val :: M0Rep
+   m0Val = case c5 of 
+     True -> cons (bit 0) empty
+     False -> cons (bit 1) empty
+
+   m1Val :: M1Rep
+   m1Val = case c6 of 
+     True -> cons (bit 0) empty
+     False -> cons (bit 1) empty
+
+   m2Val :: M2Rep
+   m2Val = case c7 of 
+     True -> cons (bit 2) empty
+     False -> cons (bit 1) empty
+
+
+       
+mkQuote :: TPM_KEY_HANDLE -> TPM_DIGEST -> TPM_PCR_SELECTION 
+                  -> ByteString -> IO Quote 
+mkQuote qKeyHandle qKeyPass pcrSelect exData = do 
+   quoteShn <- tpm_session_oiap tpm
+   (pcrComp, sig) <- tpm_quote tpm quoteShn qKeyHandle 
+                             (TPM_NONCE exData) pcrSelect qKeyPass
+   tpm_session_close tpm quoteShn    
+   putStrLn "Quote generated"
+   return (Quote pcrComp sig)
+        
+        
 pcrModify :: String -> IO TPM_PCRVALUE
 pcrModify val = tpm_pcr_extend_with tpm (fromIntegral pcrNum) val      
 

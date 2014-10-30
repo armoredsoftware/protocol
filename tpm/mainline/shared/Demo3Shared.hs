@@ -23,6 +23,17 @@ import qualified Data.ByteString.Char8 as Char8
 tpm :: TPMSocket
 tpm = tpm_socket "/var/run/tpm/tpmd_socket:0"
 
+checks :: [Bool]
+checks = [True, True, True, True, True, True, True]
+
+c1 = head checks
+c2 = last $ take 2 checks
+c3 = last $ take 3 checks
+c4 = last $ take 4 checks
+c5 = last $ take 5 checks
+c6 = last $ take 6 checks
+c7 = last $ take 7 checks
+
 appId :: Int
 appId = 20
 

@@ -59,7 +59,7 @@ expect -regexp "/home/.*/coolscripts/storeIPs.sh"
 set val0 $expect_out(buffer)
 expect -regexp ".*\\]\\$ "
 send -- "alias storeips='$val0 &'\r"
-expect "alias storeips='$val0 &'\r"
+expect -regexp "alias storeips='.* &'\r"
 expect -regexp ".*\\]\\$ "
 send -- "locate -n 1 coolscripts/autoSCP.exp\r"
 expect "locate -n 1 coolscripts/autoSCP.exp\r\n"
@@ -67,7 +67,7 @@ expect -regexp "/home/.*/coolscripts/autoSCP.exp"
 set val1 $expect_out(buffer)
 expect -regexp ".*\\]\\$ "
 send -- "alias scpauto='$val1 &'\r"
-expect "alias scpauto='$val1 &'\r"
+expect -regexp "alias scpauto='.* &'\r(\[\\n]*)"
 #expect "\r"
 expect -regexp ".*\\]\\$ "
 interact
