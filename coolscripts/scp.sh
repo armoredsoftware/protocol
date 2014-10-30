@@ -1,10 +1,10 @@
 #!/bin/bash
 
 
-
-mypath="/home/armored/protoLocal/protocol/tpm/mainline/dist/build/"
+mypath="$(locate -n 1 /coolscripts)"
+mypathbuild="$mypath""/../tpm/mainline/dist/build/"
 counter=$((0))
-for line in $(cat ips.txt) 
+for line in $(cat $mypath"/"ips.txt) 
 do  
  counter=$((counter+1))
   done
@@ -13,11 +13,11 @@ echo "Number is:$counter"
 
 
 var=$((1))
-for line in $(cat ips.txt) 
+for line in $(cat $mypath"/"ips.txt) 
 do 
   if [ $((var % 3)) -eq 0 ]
     then
-      scp "$mypath""Appraiser/""Appraiser" "$mypath""Attestation/""Attestation" "$mypath""Measurer/""Measurer" "$mypath""PrivacyCA/""PrivacyCA" "root@$line"":"
+      scp "$mypathbuild""Appraiser/""Appraiser" "$mypathbuild""Attestation/""Attestation" "$mypathbuild""Measurer/""Measurer" "$mypathbuild""PrivacyCA/""PrivacyCA" "root@$line"":"
   fi 
   var=$((var+1))
   done

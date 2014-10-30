@@ -1,0 +1,4 @@
+CREATE TABLE pubkeys(id INT PRIMARY KEY, jsontpmkey BLOB);
+--.separator "~~~"
+--.import ./pubkeyTable.csv pubkeys
+
