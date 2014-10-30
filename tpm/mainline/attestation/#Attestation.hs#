@@ -127,7 +127,8 @@ mkResponse' (Request desiredE pcrSelect nonce) (CAResponse caCertBytes actIdInpu
   -}
   
   pubKey <- attGetPubKey iKeyHandle iPass  --Faking CACert here
-  
+  --caPriKey = snd generateBadCAKeyPair
+  caCert = signPack caPriKey iPubKey
   
     --measurerID <- measurePrompt
   chan <- client_init meaId
