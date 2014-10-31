@@ -13,6 +13,6 @@ main' = do
   putStrLn "main of Measurer"
   chan <- server_init attId
   meaProcess chan
-  putStrLn "HEEEEERRRRRREEEE"
+  --putStrLn "HEEEEERRRRRREEEE"
   close chan
   return ()

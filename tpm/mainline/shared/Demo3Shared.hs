@@ -24,7 +24,7 @@ tpm :: TPMSocket
 tpm = tpm_socket "/var/run/tpm/tpmd_socket:0"
 
 checks :: [Bool]
-checks = [True, True, True, True, True, True, True]
+checks = [False, False, False, False, False, False, False]
 
 c1 = head checks
 c2 = last $ take 2 checks
@@ -143,13 +143,6 @@ process recA sendB mk pId = do
   --ctrlWait chan
   chan <- server_init pId
   process' recA sendB mk chan
-  {-req <- recA chan
-  putStrLn "\n\nPROCESS: Request received\n\n"
-  resp <- mk req
-  putStrLn "\n\nPROCESS: Response constructed\n\n"
-  sendB chan resp
-  putStrLn "\n\nPROCESS: Response sent\n\n"
--}
   close chan
   return ()
 

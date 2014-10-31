@@ -138,9 +138,9 @@ getCACert (iKeyHandle, iSig) = do
   pubKey <- attGetPubKey iKeyHandle iPass
   --sendPubKeyResponse chan pubKey -- TODO:  Maybe send signing pubkey too
   let caRequest = mkCARequest iPass pubKey iSig
-  putStrLn "\n BEFORE sendCARequest"
+  --putStrLn "\n BEFORE sendCARequest"
   caChan <- sendCARequest caRequest
-  putStrLn "\n AFTER sendCARequest"
+  --putStrLn "\n AFTER sendCARequest"
   eitherCAResponse <- receiveCAResponse caChan
   case (eitherCAResponse) of
     (Left err) -> error ("Failed to receive CAResponse. Error was: " ++ 
@@ -176,63 +176,28 @@ mkResponse' :: Request -> CACertificate -> TPM_KEY_HANDLE
 mkResponse' (Request desiredE pcrSelect nonce) caCert 
                      qKeyHandle qKeyPass= do
 
-  {-
-  iShn <- tpm_session_oiap tpm
-  oShn <- tpm_session_oiap tpm
-  sessionKey <- tpm_activateidentity tpm iShn oShn iKeyHandle iPass oPass 
-                                                      actIdInput
-  putStrLn $ show sessionKey
-  
-  let keyBytes = tpmSymmetricData sessionKey
-      strictKey = toStrict keyBytes
-      aes = initAES strictKey
-      ctr = strictKey
-      
-      
-      decryptedCertBytes = {-decrypt keyBytes caCertBytes-} decryptCTR aes ctr (toStrict caCertBytes)
-      lazy = fromStrict decryptedCertBytes 
-      decodedCACert = (decode lazy {-decryptedCertBytes-}) :: CACertificate
-      caCert = decodedCACert
-  tpm_session_close tpm iShn
-  tpm_session_close tpm oShn
--}
-  
-  
-  {-
-  pubKey <- attGetPubKey iKeyHandle iPass  --Faking CACert here
-  let caPriKey = snd generateBadCAKeyPair
-      caCert = signPack caPriKey pubKey
--}
 
-
-      
-
-  
   
   eList <- case (and [c5, c6, c7]) of 
     True -> getEvidence desiredE
     False -> getBadEvidence desiredE
                         
-  putStrLn $ show eList
-      
-
-    
+  --putStrLn $ show eList
   {-
   sigShn <- tpm_session_oiap tpm
   eSig <- tpm_sign tpm sigShn sKeyHandle sigPass evBlobSha1
   tpm_session_close tpm sigShn
   --putStrLn "evBlob signed"
-  CHANGE THIS WHEN READY TO DO REAL SIGN -}
+  CHANGE THIS WHEN READY TO DO REAL SIGN 
+  -}
                     
- -- badnonce <- nonce_create       --BAD NONCE TEST LINE HERE
   qnonce <- case c3 of 
     True -> return nonce
-    False -> nonce_create
+    False -> nonce_create --badnonce created here
     
   let evBlob = ePack eList qnonce caCert --aikPubKey
       evBlobSha1 = bytestringDigest $ sha1 evBlob
           
-                   
   case c4 of
     True -> pcrReset --Revert to default PCRS here for good pcr check
     False -> pcrModify "a" --Change PCRS here for bad pcr check
@@ -244,8 +209,6 @@ mkResponse' (Request desiredE pcrSelect nonce) caCert
   putStrLn "End of MkResponse"
   return (Response evPack caCert quote)       
         
-        
-      
  where key = tpm_key_create_identity tpm_auth_priv_use_only
        oKty = tpm_et_xor_owner
        kty = tpm_et_xor_keyhandle
