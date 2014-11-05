@@ -5,14 +5,15 @@ import Demo3Shared
 
 import Control.Monad
 
-
-main = forever main'
-  
-main' :: IO ()
-main' = do 
-  putStrLn "main of Measurer"
+main = do
+  putStrLn "main of Measurer"     
+  putStrLn "OPENING CHAN"
   chan <- server_init attId
-  meaProcess chan
-  --putStrLn "HEEEEERRRRRREEEE"
+  forever $ meaLoop chan
+  putStrLn "CLOSING CHAN"
   close chan
   return ()
+
+meaLoop :: LibXenVChan -> IO ()
+meaLoop chan = do
+  meaProcess chan
