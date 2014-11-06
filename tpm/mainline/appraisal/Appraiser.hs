@@ -100,7 +100,9 @@ evaluate (Request d pcrSelect nonce)
       qSigSize = Data.ByteString.Lazy.length $ qSig
       
       shaBlobLen = Data.ByteString.Lazy.length evBlobSha1
-      
+  
+      nonceLength = Data.ByteString.Lazy.length $ encode eNonce
+  putStrLn $ "Nonce Length: " ++ show nonceLength
   {-
   putStrLn $ "Key Size: " ++ show size  
   putStrLn $ "Key Mod: " ++ show mod
