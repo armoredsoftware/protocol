@@ -63,8 +63,6 @@ caId = getID meaName 7 --21
 
 
 
-
-
 getID :: String -> Int -> Int
 getID str defaultInt = let eitherWords = unsafePerformIO $ getWords "domains.txt" in
 		         case eitherWords of
