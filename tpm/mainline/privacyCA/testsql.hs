@@ -15,18 +15,40 @@ import Data.Monoid (mconcat)
 import qualified Data.Text.Lazy.Encoding as LazyEncoding
 import qualified Demo3Shared as AD  --ArmoredData
 import TPM
+import Demo3Shared
 
-
-
+databaseName = "armoredDB.db"
+my_id= 19 :: Int
 main = do
 	putStrLn "hello"
-	conn <- connectSqlite3 "armoredDB.db"
-	let id = show (19 :: Int)
-	res <- quickQuery' conn ("SELECT jsontpmkey from pubkeys where id =" ++ id) []
-	putStrLn (show res) 
-	putStrLn "success "
+	conn <- connectSqlite3 databaseName
 	filekey <- readPubEK
-	run conn "INSERT INTO pubkeys VALUES( ?, ?)" [toSql id, toSql (AD.jsonEncode filekey)]
+	run conn "INSERT INTO pubkeys VALUES( ?, ?)" [toSql my_id, toSql (AD.jsonEncode filekey)]
 	commit conn
 	disconnect conn
 	putStrLn (show (AD.jsonEncode filekey))
+	
+	
+testgetparsing = do
+		putStrLn "beginning..."
+		conn <- connectSqlite3 databaseName
+		res <- quickQuery' conn ("SELECT jsontpmkey from pubkeys where id =" ++ (show my_id)) []
+		putStrLn "Here is the result of the query:"
+		putStrLn (show res) 
+		let res' = (res !! 0) !! 0
+		    convertedRes = fromSql res' :: ByteString
+		putStrLn " Here is the bytestring version: "
+		putStrLn (show convertedRes)
+		let x = jsonEitherDecode convertedRes :: Either String TPM_PUBKEY 
+		putStrLn "Here is the JSON decoded version: "
+		putStrLn (show x)
+		case x of
+			(Left err) -> do 
+					putStrLn ("Failed to get from DB properly. Error was: " ++ err)
+					--return ()
+			(Right k) -> do 
+					putStrLn "SUCCESS! Good job. successfully read the TPM_PUBKEY out of the sql db as json and converted to TPM_PUBKEY object"
+					--return ()
+		
+		putStrLn "thats all for now"
+		

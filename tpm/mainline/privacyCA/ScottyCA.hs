@@ -3,8 +3,8 @@
 module ScottyCA where
 
 import Web.Scotty
-import Data.ByteString.Lazy (ByteString, append, empty, pack, length, toStrict, fromStrict)
-import qualified Data.ByteString.Lazy.Char8 as L
+import Data.ByteString.Lazy (ByteString, append, empty, pack, toStrict, fromStrict)
+import qualified Data.ByteString.Lazy.Char8 as L hiding (length)
 
 import Data.Binary
 import System.IO
@@ -16,9 +16,13 @@ import qualified Data.Text.Lazy.Encoding as LazyEncoding
 import qualified Demo3Shared as AD  --ArmoredData
 import TPM
 
+import Database.HDBC 
+import Database.HDBC.Sqlite3
+import Demo3Shared
 
 scottyCAMain = scotty 3000 $ do
-  --  get "/" $ text "foobar"
+    Web.Scotty.get "/" $ text "foobar" 
+    {-
     Web.Scotty.get "/foo" $ do
       v <- param "fooparam"
       html $ mconcat ["<h1>", v, "</h1>"]
@@ -33,35 +37,43 @@ scottyCAMain = scotty 3000 $ do
       a <- (param "request") :: ActionM LazyText.Text
       
       html a
-      let jj = (AD.jsonDecode (LazyEncoding.encodeUtf8 a) :: Maybe AD.CARequest)
+      let jj = (AD.jsonEitherDecode (LazyEncoding.encodeUtf8 a) :: Either String AD.CARequest)
       case jj of
-	   Nothing -> text "you suck"
-	   Just caReq -> do caResp <- liftIO $ handleCAReq caReq
-                            json caResp
+	   (Left err)    -> text (LazyText.pack ("Error decoding CARequest from JSON. Error was: " ++ err))
+	   (Right caReq) -> do 
+	   		     eitherCAResp <- liftIO $ handleCAReq caReq
+	   		     case eitherCAResp of
+	   		     	(Left err) 	-> text (LazyText.pack ("Error formulating CAResponse. Error was: " ++ err))
+	   		     	(Right caResp) 	-> do
+	   		     			    --caResp' <- liftIO caResp
+	   		     			    json caResp
       --return ()
       --text "posted!"
    --     text (LazyText.pack (L.unpack bod))
    
-handleCAReq :: AD.CARequest -> IO AD.CAResponse
+handleCAReq :: AD.CARequest -> IO (Either String AD.CAResponse)
 handleCAReq (AD.CARequest id (AD.Signed idContents idSig)) = do
-  ekPubKey <- readPubEK
-  let iPubKey = identityPubKey idContents
-      iDigest = tpm_digest $ encode iPubKey
-      asymContents = contents iDigest
-      blob = encode asymContents
-      encBlob =  tpm_rsa_pubencrypt ekPubKey blob
-      
-      caPriKey = snd AD.generateCAKeyPair
-      caCert = AD.signPack caPriKey iPubKey
-      certBytes = encode caCert
-      
-      strictCert = toStrict certBytes
-      encryptedCert = encryptCTR aes ctr strictCert
-      enc = fromStrict encryptedCert
-      --encryptedSignedAIK = crypt' CTR symKey symKey Encrypt signedAIK  
+  eitherEKPubKey <- ekLookup id
+  case (eitherEKPubKey) of
+  	(Left err) -> return (Left ("LOOKUP FAILURE. Error was: " ++ err))
+  	(Right ekPubKey) -> do
+		  let iPubKey = identityPubKey idContents
+		      iDigest = tpm_digest $ encode iPubKey
+		      asymContents = contents iDigest
+		      blob = encode asymContents
+		      encBlob =  tpm_rsa_pubencrypt ekPubKey blob
+		      
+		      caPriKey = snd AD.generateCAKeyPair
+		      caCert = AD.signPack caPriKey iPubKey
+		      certBytes = encode caCert
+		      
+		      strictCert = toStrict certBytes
+		      encryptedCert = encryptCTR aes ctr strictCert
+		      enc = fromStrict encryptedCert
+		      --encryptedSignedAIK = crypt' CTR symKey symKey Encrypt signedAIK  
 
-      --enc = encrypt key certBytes
-  return (AD.CAResponse enc encBlob)
+		      --enc = encrypt key certBytes
+		  return (Right (AD.CAResponse enc encBlob))
  where 
    symKey = 
      TPM_SYMMETRIC_KEY 
@@ -77,7 +89,32 @@ handleCAReq (AD.CARequest id (AD.Signed idContents idSig)) = do
    ctr = toStrict key
    contents dig = TPM_ASYM_CA_CONTENTS symKey dig
 
-
+databaseName = "armoredDB.db"
+ekLookup :: Int -> IO (Either String TPM_PUBKEY)
+ekLookup my_id = do
+		putStrLn "beginning..."
+		conn <- connectSqlite3 databaseName
+		res <- quickQuery' conn ("SELECT jsontpmkey from pubkeys where id =" ++ (show my_id)) []
+		putStrLn "Here is the result of the query:"
+		putStrLn (show res) 
+		if (length res) < 1 then do return (Left ("No entry in " ++ databaseName ++ " found for given ID: " ++ (show my_id)))
+		 else do
+		  let res' = (res !! 0) !! 0
+		      convertedRes = fromSql res' :: ByteString
+		  putStrLn " Here is the bytestring version: "
+		  putStrLn (show convertedRes)
+		  let x = jsonEitherDecode convertedRes :: Either String TPM_PUBKEY 
+		  putStrLn "Here is the JSON decoded version: "
+		  putStrLn (show x)
+		  case x of
+			(Left err) -> do 
+					--putStrLn "Failed to get from DB properly. Error was: " ++ err
+					return (Left ("Failed to convert DB entry of key from JSON to Haskell type. Error was: " ++ err))
+			(Right k) -> do 
+					putStrLn "SUCCESS! Good job. successfully read the TPM_PUBKEY out of the sql db as json and converted to TPM_PUBKEY object"
+					return (Right k)
+					
+		  --putStrLn "thats all for now"
 
 readPubEK :: IO TPM_PUBKEY
 readPubEK = do
@@ -87,3 +124,5 @@ readPubEK = do
       pubKey = read pubKeyString
   hClose handle
   return pubKey
+  
+  -}

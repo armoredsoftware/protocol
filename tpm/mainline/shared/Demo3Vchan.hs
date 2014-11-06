@@ -25,16 +25,65 @@ import Demo3SharedNOVCHAN
 import VChanUtil
 import Data.Binary
 import Data.ByteString.Lazy(ByteString, empty, append, pack, toStrict, fromStrict)
+
+
+import qualified Control.Monad.Trans.State as T
+import Control.Monad.Trans
+
+data AttState = AttState {checks::[Bool],
+meaChan :: LibXenVChan,
+appChan :: LibXenVChan,
+priChan :: LibXenVChan}
+
+
+type Att = T.StateT AttState IO
+runAtt = T.runStateT
+
+getAt :: Int -> Att Bool
+getAt ind = do
+	st <- T.get
+	return $ last $ take ind (checks st)
+c1 :: Att Bool
+c1 = getAt 1
+c2 :: Att Bool
+c2 = getAt 2
+c3 :: Att Bool
+c3 = getAt 3
+c4 :: Att Bool
+c4 = getAt 4
+c5 :: Att Bool
+c5 = getAt 5
+c6 :: Att Bool
+c6 = getAt 6
+c7 :: Att Bool
+c7 = getAt 7
+
+
+getMeaChan :: Att LibXenVChan
+getMeaChan = do
+	st <- T.get
+	return $ meaChan st
+getAppChan :: Att LibXenVChan
+getAppChan = do
+	st <- T.get
+	return $ appChan st
+getPriChan :: Att LibXenVChan
+getPriChan = do
+	st <- T.get
+	return $ priChan st
+
 sendShared :: Int -> Shared -> IO LibXenVChan
 sendShared id shared = do
 			chan <- client_init id
 			sendShared' chan shared
+			return chan
 
-sendShared' :: LibXenVChan -> Shared -> IO LibXenVChan
+sendShared' :: LibXenVChan -> Shared -> IO ()
 sendShared' chan shared = do
 			   logger <- createLogger
 			   sendChunkedMessageByteString logger chan (toStrict (jsonEncode shared))
-			   return chan
+			   return ()
+			   --return chan
 
 receiveShared :: LibXenVChan -> IO (Either String Shared)
 receiveShared chan = do

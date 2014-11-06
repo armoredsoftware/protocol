@@ -33,10 +33,10 @@ import OpenSSL.EVP.Cipher
 import Appraiser
 import Attestation
 import Measurer
-import PrivacyCA
+--import PrivacyCA
 import Provisioning
 import Demo3Shared
-import ScottyCA
+--import ScottyCA
 
 {-
 cmd_log :: (TPM t) => ShellCmd (State t)
