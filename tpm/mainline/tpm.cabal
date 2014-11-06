@@ -9,6 +9,8 @@ Cabal-Version:          >= 1.2
 
 Build-type:             Simple
 
+
+
 executable              Project
   hs-source-dirs:       api, shell, src, shared, project, appraisal, attestation, measurer, privacyCA, provisioning
   build-depends:        base >= 4,
@@ -36,7 +38,7 @@ executable              Project
   Main-is:              Main.hs
   ghc-options:          -O
 
-executable              tpmi
+executable tpmi
   hs-source-dirs:       api, shell, src, shared
   build-depends:        base >= 4,
                         shell >= 1.0,
@@ -54,8 +56,8 @@ executable              tpmi
                         parsec >= 3,
                         filepath,
                         VChanUtil
-  Main-is:              TpmiMain.hs
-  ghc-options:          -O
+  Main-is: TpmiMain.hs
+  ghc-options: -O
 
 
 executable              Attestation
@@ -140,7 +142,13 @@ executable              PrivacyCA
                         parsec >= 3,
                         filepath,
                         VChanUtil,
-                        cipher-aes
+                        cipher-aes,
+                        HDBC,
+                        HDBC-sqlite3,
+                        io-streams,
+                        http-streams,
+                        HTTP,
+                        network-uri
   Main-is:              PrivacyCAMain.hs
   ghc-options:          -O
 
@@ -162,8 +170,8 @@ executable              Provisioning
                         parsec >= 3,
                         filepath,
                         VChanUtil
-  Main-is:              ProvisioningMain.hs
-  ghc-options:          -O
+  Main-is: ProvisioningMain.hs
+  ghc-options: -O
 
 
 
