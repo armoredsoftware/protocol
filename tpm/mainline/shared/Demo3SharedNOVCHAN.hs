@@ -10,7 +10,8 @@ import qualified Data.ByteString as B (ByteString)
 import Codec.Crypto.RSA hiding (sign, verify)
 import System.Random
 import Crypto.Cipher.AES
-
+import qualified Control.Monad.Trans.State as T
+import Control.Monad.Trans
 import Data.Aeson (toJSON, parseJSON, ToJSON,FromJSON, object , (.=), (.:) )
 import qualified Data.Aeson as DA (Value(..), encode, decode, eitherDecode)
 import qualified Data.Text.Encoding as TE
@@ -29,18 +30,92 @@ import System.IO.Unsafe (unsafePerformIO) --LOL
 
 tpm :: TPMSocket
 tpm = tpm_socket "/var/run/tpm/tpmd_socket:0"
-
-checks :: [Bool]
-checks = [False, False, False, False, False, False, False]
-
-c1 = head checks
-c2 = last $ take 2 checks
-c3 = last $ take 3 checks
-c4 = last $ take 4 checks
-c5 = last $ take 5 checks
-c6 = last $ take 6 checks
-c7 = last $ take 7 checks
-
+data AttState = AttState {checks::[Bool],
+meaChan :: LibXenVChan,
+appChan :: LibXenVChan,
+priChan :: LibXenVChan}
+type Att = T.StateT AttState IO
+runAtt = T.runStateT
+getMeaChan :: Att LibXenVChan
+getMeaChan = do
+st <- T.get
+return $ meaChan st
+getAppChan :: Att LibXenVChan
+getAppChan = do
+st <- T.get
+return $ appChan st
+getPriChan :: Att LibXenVChan
+getPriChan = do
+st <- T.get
+return $ priChan st
+{-
+q :: Att ()
+q = do b <- done
+liftIO $ case b of
+True -> putStrLn "done"
+False -> putStrLn "not done"
+{-before <- cc
+liftIO $ putStrLn $ show before
+stepFalse 1
+after <- cc
+liftIO $ putStrLn $ show after
+-}
+mapM stepFalse [0..6]
+st <- T.get
+liftIO $ putStrLn $ show $ checks st
+-}
+setAt :: Bool -> Int -> [Bool] -> [Bool]
+setAt b ind bs = (xs ++ (b:ys'))
+where (xs, ys) = splitAt (ind-1) bs
+ys' = drop 1 ys
+setTrueAt = setAt True
+setFalseAt = setAt False
+updateFalse :: Int -> [Bool] -> [Bool]
+updateFalse ind bs
+| (ind == 0) = bs
+| otherwise = setFalseAt ind bs
+updateTrue :: Int -> [Bool] -> [Bool]
+updateTrue ind bs
+| (ind == 0) = bs
+| otherwise = setTrueAt ind bs
+buildX :: [Int] -> [Bool]
+buildX [] = []
+buildX xs = buildX' allTrue xs
+where allTrue = replicate numChecks True
+numChecks = 7
+buildX' :: [Bool] -> [Int] -> [Bool]
+buildX' inits xs
+| (null xs) = inits
+| otherwise = let x = head xs
+xs' = tail xs
+new = updateFalse x inits in
+buildX' new xs'
+{-
+stepFalse :: Int -> [Bool] -> [Bool]
+stepFalse ind = do
+updateFalse ind
+updateTrue (ind - 1)
+-}
+getAt :: Int -> Att Bool
+getAt ind = do
+st <- T.get
+return $ last $ take ind (checks st)
+c1 :: Att Bool
+c1 = getAt 1
+c2 :: Att Bool
+c2 = getAt 2
+c3 :: Att Bool
+c3 = getAt 3
+c4 :: Att Bool
+c4 = getAt 4
+c5 :: Att Bool
+c5 = getAt 5
+c6 :: Att Bool
+c6 = getAt 6
+c7 :: Att Bool
+c7 = getAt 7
+appId :: Int
+appId = 20
 appName :: String
 appName = "Appraiser"
 appId :: Int
@@ -108,7 +183,9 @@ type PubKey = Codec.Crypto.RSA.PublicKey
 type PriKey = Codec.Crypto.RSA.PrivateKey
 
 type SymKey = B.ByteString
-
+generateBadQuotePriKey :: PriKey
+generateBadQuotePriKey = let gen = mkStdGen 5
+(_, pri, _) = generateKeyPair gen 2048 in pri
 generateCAKeyPair :: (PubKey, PriKey)
 generateCAKeyPair = let gen = mkStdGen 3
                         (pub, pri, _) = generateKeyPair gen 2048 in (pub, pri)
