@@ -10,7 +10,7 @@ import Provisioning
 import Data.Word
 import Data.Binary
 --import Codec.Crypto.RSA(PublicKey)
-import Data.ByteString.Lazy (ByteString, pack, append, empty, cons, fromStrict)
+import Data.ByteString.Lazy (ByteString, pack, append, empty, cons, fromStrict, length)
 import Data.Bits
 import Control.Monad
 import Data.Digest.Pure.SHA (bytestringDigest, sha1)
@@ -50,9 +50,9 @@ sendRequest req = do
   
               
 receiveResponse :: LibXenVChan -> IO (Either String Response)--Response
-receiveResponse chan = do 
-		   eithershared <- receiveShared chan
-		   case (eithershared) of
+receiveResponse chan = do
+                       eithershared <- receiveShared chan
+                       case (eithershared) of
 			(Left err) -> return (Left err)
 			(Right (WResponse resp)) -> return (Right resp)
 			(Right x) -> return (Left ("Received unexpected type. I expected a 'Response' but here is what I received instead: " ++ (show x)))
@@ -90,7 +90,28 @@ evaluate (Request d pcrSelect nonce)
       
       r1 = verify caPublicKey caCert
       signedQuoteInfo = Signed quoteInfo qSig
-      r2 =  verify aikPublicKey signedQuoteInfo
+      
+      size = tpm_key_pubsize pubKey
+      mod = tpm_key_pubmod pubKey
+      modLength = Data.ByteString.Lazy.length $ encode mod
+      exp = (tpm_key_pubexp pubKey)
+      blobSize = Data.ByteString.Lazy.length $ encode quoteInfo
+      
+      qSigSize = Data.ByteString.Lazy.length $ qSig
+      
+      shaBlobLen = Data.ByteString.Lazy.length evBlobSha1
+      
+  {-
+  putStrLn $ "Key Size: " ++ show size  
+  putStrLn $ "Key Mod: " ++ show mod
+  putStrLn $ "Mod Length: " ++ show modLength
+  putStrLn $ "Key Exp: " ++ show exp
+  putStrLn $ "Blob Length: " ++ show blobSize
+  putStrLn $ "SHA1 Blob Len: " ++ show shaBlobLen
+  putStrLn $ "Quote Sig Length: " ++ show qSigSize
+-}
+  putStrLn "HHHHHHHHHHHHHHHHHHHHHHHHHHHHHH"
+  let r2 =  verify aikPublicKey signedQuoteInfo
       r3 = nonce == eNonce
   goldenPcrComposite <- readComp
   let r4 = pcrComposite == goldenPcrComposite
@@ -103,6 +124,7 @@ type Demo3EvalResult = (Bool, Bool, Bool, Bool, [MeasureEval])
 showDemo3EvalResult :: Demo3EvalResult -> IO ()
 showDemo3EvalResult (r1, r2, r3, r4, ms) = 
   let rs = [r1, r2, r3, r4] in do
+    putStrLn ""
     zipWithM_ f evalStrings rs
     mapM_ g ms
        
@@ -211,7 +233,7 @@ noGolden = "No Golden Value for measurement #"
 
 
 
-
+{-
 testRequest :: IO Request
 testRequest = do 
   (pcrSelect, nonce) <- mkTPMRequest ([0..23]::[Word8])
@@ -230,7 +252,7 @@ testResponse = do
 
  where evPack = EvidencePackage [M0 m0Val, M1 m1Val] (TPM_NONCE m1Val)                                                     m1Val
 
-
+-}
 
 m0Val :: M0Rep
 m0Val = cons (bit 0) empty

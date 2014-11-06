@@ -17,11 +17,13 @@ import Crypto.Cipher.AES
 --import Codec.Crypto.AES
 --withOpenSSL
 
-
+{-
 caProcess :: PlatformID -> IO ()
 caProcess = process receiveCARequest sendCAResponse mkCAResponse
+-}
 
-{-
+
+
 caProcess :: LibXenVChan -> IO ()
 caProcess chan = do
   --ctrlWait chan
@@ -29,7 +31,7 @@ caProcess chan = do
   resp <- mkCAResponse req
   sendCAResponse chan resp
   return () 
--}
+
 
 
 receiveCARequest :: LibXenVChan -> IO (Either String CARequest)

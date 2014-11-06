@@ -34,6 +34,7 @@ executable              Project
                         text,
                         aeson,
                         unordered-containers,
+                        transformers,
                         scotty
   Main-is:              Main.hs
   ghc-options:          -O

@@ -16,12 +16,14 @@ import Control.Monad.Loops
 
 meaProcess :: LibXenVChan -> IO ()
 meaProcess chan = do
+  putStrLn "RECEIVING ON CHAN"
   eitherEd <- receiveMeaRequest chan
   case (eitherEd) of
 	(Left err) -> error ("Measurer received an error: " ++ err)			
         (Right ({-EvidenceDescriptor evdes-} DONE)) -> sendMeaResponse chan OK
         (Right ed ) -> do 
           ep <- measure ed
+          putStrLn "SENDING ON CHAN"
           sendMeaResponse chan ep
           meaProcess chan
 {-

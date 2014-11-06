@@ -14,11 +14,12 @@ main = do
   {-let publicKey = fst generateCAKeyPair
   exportCAPub exportCAPubFileName publicKey
   -}
-  --chan <- server_init attId
+  chan <- server_init attId
   --req <- receiveCARequest chan
   --resp <- mkCAResponse req
   --sendCAResponse chan resp
-  forever $ caProcess attId
+  forever $ caProcess chan
+  close chan
  {- req <-receiveCARequest chan
   putStrLn $ show req
   resp <- mkCAResponse req

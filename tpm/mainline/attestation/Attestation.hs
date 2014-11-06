@@ -7,11 +7,12 @@ import VChanUtil
 import Demo3Shared
 
 import Data.Bits
-import Data.Binary
+import Data.Binary hiding (put, get)
 import Data.ByteString.Lazy(ByteString, append, empty, pack, length, toStrict, fromStrict, cons)
 import Data.Digest.Pure.SHA (bytestringDigest, sha1)
 import Control.Monad
-
+import Control.Monad.Trans.State
+import Control.Monad.Trans
 import Crypto.Cipher.AES
 
 import OpenSSL (withOpenSSL)
@@ -82,42 +83,52 @@ createAndLoadIdentKey = do
        iPass = tpm_digest_pass "i"
 
 
-attProcess = process receiveRequest sendResponse mkResponse
+--attProcess = process receiveRequest sendResponse mkResponse
 
-mkResponse :: Either String Request -> IO Response
+attProcess :: [Bool] -> Att ()
+attProcess bs = do
+  {-putStrLn "OPENING CHAN"
+  chan <- liftIO $ server_init appId -}
+  apprChan <- getAppChan
+  measChan <- getMeaChan
+  priCaChan <- getPriChan
+  liftIO $ putStrLn "RECEIVING REQUEST..."
+  req <- liftIO $ receiveRequest apprChan
+  put $ AttState bs measChan apprChan priCaChan
+ -- liftIO takeInit
+  resp <- mkResponse req
+  liftIO $ putStrLn "Sending Response"
+  liftIO $ sendResponse apprChan resp
+  liftIO $ putStrLn "After Send Response"
+  return ()
+  
+  
+mkResponse :: Either String Request -> Att Response
 mkResponse (Right req) = do
+  
+  x@(iKeyHandle, iSig) <- liftIO $ createAndLoadIdentKey
+  --(sigKeyHandle, _) <- liftIO $ createAndLoadIdentKey
+  
   {-
-  (iKeyHandle, iSig) <- createAndLoadIdentKey
-  pubKey <- attGetPubKey iKeyHandle iPass
-  --sendPubKeyResponse chan pubKey -- TODO:  Maybe send signing pubkey too
-  let caRequest = mkCARequest iPass pubKey iSig
-  putStrLn "\n BEFORE sendCARequest"
-  caChan <- sendCARequest caRequest
-  putStrLn "\n AFTER sendCARequest"
-  eitherCAResponse <- receiveCAResponse caChan
-  case (eitherCAResponse) of
-    (Left err) -> error ("Failed to receive CAResponse. Error was: " ++ 
-                                        (show err))
-    (Right caresp) -> do
-      resp <- mkResponse' req caresp iKeyHandle  --Maybe pass sig key handle
-      putStrLn "After MkResponse"  	
-      return resp   
- where iPass = tpm_digest_pass "i"
+  c2b <- c2
+  (keyHandle, keyPass) <- liftIO $ case c2b of 
+    True -> return (iKeyHandle, iPass)
+    False -> return (iKeyHandle, iPass)
 -}
   
-  x@(iKeyHandle, iSig) <- createAndLoadIdentKey
-  
-  caCert <- case c1 of 
-    True -> getCACert x
-    False -> getBadCACert iKeyHandle
+  caChan <- getPriChan
+  c1b <- c1
+  caCert <-liftIO $  case c1b of 
+    True -> getCACert x caChan
+    False ->getBadCACert iKeyHandle
                                     
-  (keyHandle, keyPass) <- case c2 of 
-    True -> return (iKeyHandle, iPass)
-    False -> do sigKeyHandle <- createAndLoadSigKey
-                return (sigKeyHandle, sigPass)
+
   
-  
-  resp <- mkResponse' req caCert keyHandle keyPass
+  resp <- mkResponse' req caCert iKeyHandle iPass
+  {-case c2b of 
+    True ->  liftIO $ tpm_flushspecific tpm sigKeyHandle tpm_rt_key  --Evict key 
+    False -> liftIO $ tpm_flushspecific tpm iKeyHandle tpm_rt_key  --Evict key
+  -}  
   return resp
  where iPass = tpm_digest_pass "i"
        sigPass = tpm_digest_pass "s"
@@ -133,13 +144,14 @@ getBadCACert iKeyHandle = do
   
 
 
-getCACert :: (TPM_KEY_HANDLE, ByteString) -> IO CACertificate
-getCACert (iKeyHandle, iSig) = do
+getCACert :: (TPM_KEY_HANDLE, ByteString) -> LibXenVChan 
+                    -> IO CACertificate
+getCACert (iKeyHandle, iSig) caChan = do
   pubKey <- attGetPubKey iKeyHandle iPass
   --sendPubKeyResponse chan pubKey -- TODO:  Maybe send signing pubkey too
   let caRequest = mkCARequest iPass pubKey iSig
   --putStrLn "\n BEFORE sendCARequest"
-  caChan <- sendCARequest caRequest
+  sendCARequest caChan caRequest
   --putStrLn "\n AFTER sendCARequest"
   eitherCAResponse <- receiveCAResponse caChan
   case (eitherCAResponse) of
@@ -172,13 +184,15 @@ getCACert (iKeyHandle, iSig) = do
        
        
 mkResponse' :: Request -> CACertificate -> TPM_KEY_HANDLE 
-                        -> TPM_DIGEST -> IO Response
+                        -> TPM_DIGEST -> Att Response
 mkResponse' (Request desiredE pcrSelect nonce) caCert 
                      qKeyHandle qKeyPass= do
 
 
-  
-  eList <- case (and [c5, c6, c7]) of 
+  c5b <- c5
+  c6b <- c6
+  c7b <- c7
+  eList <- case (and [c5b, c6b, c7b]) of 
     True -> getEvidence desiredE
     False -> getBadEvidence desiredE
                         
@@ -191,22 +205,30 @@ mkResponse' (Request desiredE pcrSelect nonce) caCert
   CHANGE THIS WHEN READY TO DO REAL SIGN 
   -}
                     
-  qnonce <- case c3 of 
+  c3b <- c3
+  qnonce <- liftIO $ case c3b of 
     True -> return nonce
     False -> nonce_create --badnonce created here
     
   let evBlob = ePack eList qnonce caCert --aikPubKey
       evBlobSha1 = bytestringDigest $ sha1 evBlob
           
-  case c4 of
+  c4b <- c4
+  liftIO $ case c4b of
     True -> pcrReset --Revert to default PCRS here for good pcr check
     False -> pcrModify "a" --Change PCRS here for bad pcr check
                    
-  quote <- mkQuote qKeyHandle qKeyPass pcrSelect evBlobSha1
+  c2b <- c2
+  quote <- liftIO $ case c2b of 
+    True -> mkQuote qKeyHandle qKeyPass pcrSelect evBlobSha1
+    False -> mkBadQuote pcrSelect evBlobSha1
+             
+             
+ -- quote <- liftIO $ mkQuote qKeyHandle qKeyPass pcrSelect evBlobSha1
   let eSig = empty --TEMPORARY
       evPack = (EvidencePackage eList qnonce eSig)
-  tpm_flushspecific tpm qKeyHandle tpm_rt_key  --Evict loaded key
-  putStrLn "End of MkResponse"
+  liftIO $ tpm_flushspecific tpm qKeyHandle tpm_rt_key  --Evict loaded key
+  liftIO $ putStrLn "End of MkResponse"
   return (Response evPack caCert quote)       
         
  where key = tpm_key_create_identity tpm_auth_priv_use_only
@@ -219,13 +241,21 @@ mkResponse' (Request desiredE pcrSelect nonce) caCert
        sigPass = tpm_digest_pass "s"
        
 
+mkBadQuote :: TPM_PCR_SELECTION -> ByteString -> IO Quote
+mkBadQuote pcrSelect exData = do
+  pcrComp <- tpm_pcr_composite tpm pcrSelect
+  let quoteInfo = TPM_QUOTE_INFO (tpm_pcr_composite_hash $ pcrComp) (TPM_NONCE exData)
+      priKey = generateBadQuotePriKey
   
+      qSig = sign priKey quoteInfo
+  return (Quote pcrComp qSig)
 
-getEvidence :: DesiredEvidence -> IO [EvidencePiece]  
+getEvidence :: DesiredEvidence -> Att [EvidencePiece]  
 getEvidence desiredE = do
-  chan <- client_init meaId
+  --chan <- client_init meaId
+  chan <- getMeaChan
   --eList <- mapM (getEvidencePiece chan) desiredE
-  eitherElist' <- mapM (getEvidencePiece chan) (desiredE ++ [DONE])
+  eitherElist' <- liftIO $ mapM (getEvidencePiece chan) (desiredE ++ [DONE])
   let eitherElist = init eitherElist'
       -- eitherElist :: [ (Either String EvidencePiece) ] 
       --close chan
@@ -243,26 +273,24 @@ getEvidence desiredE = do
    extractRight :: Either String a -> a
    extractRight (Right x) = x
 
-getBadEvidence :: DesiredEvidence -> IO [EvidencePiece]  
-getBadEvidence desiredE = return eList
-                          
-  where
-   eList = [M0 m0Val, M1 m1Val, M2 m2Val] 
-   
-   m0Val :: M0Rep
-   m0Val = case c5 of 
-     True -> cons (bit 0) empty
-     False -> cons (bit 1) empty
+getBadEvidence :: DesiredEvidence -> Att [EvidencePiece]  
+getBadEvidence desiredE = do
+  m0Val <- do c5b <- c5
+              case c5b of 
+                True -> return $ cons (bit 0) empty
+                False -> return $ cons (bit 1) empty 
 
-   m1Val :: M1Rep
-   m1Val = case c6 of 
-     True -> cons (bit 0) empty
-     False -> cons (bit 1) empty
+  m1Val <- do c6b <- c6
+              case c6b of 
+                True -> return $ cons (bit 0) empty
+                False -> return $ cons (bit 1) empty
 
-   m2Val :: M2Rep
-   m2Val = case c7 of 
-     True -> cons (bit 2) empty
-     False -> cons (bit 1) empty
+  m2Val <- do c7b <- c7 
+              case c7b of 
+                True -> return $ cons (bit 2) empty
+                False -> return $ cons (bit 1) empty 
+
+  return [M0 m0Val, M1 m1Val, M2 m2Val] 
 
 
        
@@ -312,7 +340,7 @@ getEvidencePiece chan ed = do
       putStrLn $ "\n" ++ "Attestation Agent Sending: " ++ show ed
       --send chan ed
       sendShared' chan (WEvidenceDescriptor ed) 
-      ctrlWait chan
+      --ctrlWait chan
       --  evidence :: EvidencePiece <- receive chan --TODO:  error handling
       eitherSharedEvidence <- receiveShared chan 
       case (eitherSharedEvidence) of
@@ -367,8 +395,8 @@ mkCARequest privCALabel iPubKey iSig =
   (CARequest attId (Signed idContents iSig))
   
   
-sendCARequest :: CARequest -> IO LibXenVChan 
-sendCARequest careq = sendShared caId (WCARequest careq) 
+sendCARequest :: LibXenVChan -> CARequest -> IO ()
+sendCARequest chan careq = sendShared' chan (WCARequest careq) 
 --sendCARequest = sendR caId attName
 
 {-
