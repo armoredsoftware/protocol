@@ -245,9 +245,11 @@ mkBadQuote :: TPM_PCR_SELECTION -> ByteString -> IO Quote
 mkBadQuote pcrSelect exData = do
   pcrComp <- tpm_pcr_composite tpm pcrSelect
   let quoteInfo = TPM_QUOTE_INFO (tpm_pcr_composite_hash $ pcrComp) (TPM_NONCE exData)
-      priKey = generateBadQuotePriKey
-  
-      qSig = sign priKey quoteInfo
+      priKey = {-snd generateBadCAKeyPair-} generateBadQuotePriKey
+  putStrLn $ "PriKey: " ++ show priKey
+  {-putStrLn $ "PriKey Length: " ++ (show $ Data.ByteString.Lazy.length $ encode priKey) -}
+  putStrLn $ "Quote blob length : " ++ (show $ Data.ByteString.Lazy.length $ encode quoteInfo) ++ "\n"
+  let qSig = sign priKey quoteInfo
   return (Quote pcrComp qSig)
 
 getEvidence :: DesiredEvidence -> Att [EvidencePiece]  
