@@ -102,8 +102,10 @@ evaluate (Request d pcrSelect nonce)
       shaBlobLen = Data.ByteString.Lazy.length evBlobSha1
   
       nonceLength = Data.ByteString.Lazy.length $ encode eNonce
-  putStrLn $ "Nonce Length: " ++ show nonceLength
+  
   {-
+  putStrLn $ "Nonce Length: " ++ show nonceLength
+  
   putStrLn $ "Key Size: " ++ show size  
   putStrLn $ "Key Mod: " ++ show mod
   putStrLn $ "Mod Length: " ++ show modLength
@@ -112,7 +114,7 @@ evaluate (Request d pcrSelect nonce)
   putStrLn $ "SHA1 Blob Len: " ++ show shaBlobLen
   putStrLn $ "Quote Sig Length: " ++ show qSigSize
 -}
-  putStrLn "HHHHHHHHHHHHHHHHHHHHHHHHHHHHHH"
+  --putStrLn "HHHHHHHHHHHHHHHHHHHHHHHHHHHHHH"
   let r2 =  verify aikPublicKey signedQuoteInfo
       r3 = nonce == eNonce
   goldenPcrComposite <- readComp

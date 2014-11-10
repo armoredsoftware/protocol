@@ -32,7 +32,7 @@ main = do
 				result <- evaluate req response
   				showDemo3EvalResult result
   
-  mapM_  (appLoop chan) [1..]
+  mapM_  (appLoop chan) [0..6]
   putStrLn "END main of Appraiser"
 
 appLoop :: LibXenVChan -> Int -> IO () 

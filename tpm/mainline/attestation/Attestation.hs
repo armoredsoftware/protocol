@@ -213,6 +213,9 @@ mkResponse' (Request desiredE pcrSelect nonce) caCert
   let evBlob = ePack eList qnonce caCert --aikPubKey
       evBlobSha1 = bytestringDigest $ sha1 evBlob
           
+  liftIO $ putStrLn ("Nonce Length: " ++ (show $ Data.ByteString.Lazy.length $ encode qnonce) )
+  
+  liftIO $ putStrLn ("Cert Length: " ++ (show $ Data.ByteString.Lazy.length $ encode caCert) )
   c4b <- c4
   liftIO $ case c4b of
     True -> pcrReset --Revert to default PCRS here for good pcr check

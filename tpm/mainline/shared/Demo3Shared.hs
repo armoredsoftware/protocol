@@ -10,6 +10,7 @@ import qualified Data.ByteString as B (ByteString)
 import Codec.Crypto.RSA hiding (sign, verify)
 import System.Random
 import Crypto.Cipher.AES
+import Data.Digest.Pure.SHA (bytestringDigest, sha1)
 import qualified Control.Monad.Trans.State as T
 import Control.Monad.Trans
 
@@ -413,7 +414,11 @@ instance Binary EvidencePiece where
                          
        
 ePack :: Evidence -> TPM_NONCE -> CACertificate -> ByteString
-ePack e (TPM_NONCE n) cert = ePack' e `append` n `append` (encode cert) 
+ePack e (TPM_NONCE n) cert@(Signed pubkey sig) = ePack' e `append` n' `append` cert'
+
+ where n' = bytestringDigest $ sha1 n
+       cert' = bytestringDigest $ sha1 (encode cert)
+       
 
 ePackSilly :: Evidence -> TPM_NONCE -> ByteString
 ePackSilly e (TPM_NONCE n) = n `append` ePack' e   
@@ -422,9 +427,11 @@ ePackSilly e (TPM_NONCE n) = n `append` ePack' e
 -- if it is something else.  see comment below
 ePack' :: Evidence -> ByteString
 ePack'  = foldr f empty 
-  where f (M0 x) y = x `append` y -- (i.e. (toByteString x) `append` y )
-        f (M1 x) y = x `append` y
-        f (M2 x) y = x `append` y          
+  where f (M0 x) y = (h x) `append` (h y) -- (i.e. (toByteString x) `append` y )
+        f (M1 x) y = (h x) `append` (h y)
+        f (M2 x) y = (h x) `append` (h y)          
+        h :: ByteString -> ByteString
+        h s = bytestringDigest $ sha1 s
          
          
       
