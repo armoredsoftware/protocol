@@ -13,11 +13,11 @@ import Control.Monad.Trans
 import qualified Data.Text.Lazy as LazyText
 import Data.Monoid (mconcat)
 import qualified Data.Text.Lazy.Encoding as LazyEncoding
-import qualified Demo3Shared as AD  --ArmoredData
+import qualified Demo3SharedNOVCHAN as AD  --ArmoredData
 import TPM
-import Demo3Shared
+import Demo3SharedNOVCHAN
 
-databaseName = "armoredDB.db"
+--databaseName = "armoredDB.db"
 my_id= 19 :: Int
 main = do
 	putStrLn "hello"

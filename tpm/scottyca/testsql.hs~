@@ -48,7 +48,7 @@ testgetparsing = do
 					--return ()
 			(Right k) -> do 
 					putStrLn "SUCCESS! Good job. successfully read the TPM_PUBKEY out of the sql db as json and converted to TPM_PUBKEY object"
-					--return ()
+					return ()
 		
 		putStrLn "thats all for now"
 		

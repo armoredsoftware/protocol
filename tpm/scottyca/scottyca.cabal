@@ -1,0 +1,76 @@
+Name:                   scottyca
+Version:                0.1
+Description:            A scotty CA server
+License:                BSD3
+--License-file:           LICENSE
+Author:                 Paul Kline
+Maintainer:             p098k866@ku.edu
+Cabal-Version:          >= 1.2
+
+Build-type:             Simple
+
+
+
+
+executable              ScottyCA
+  hs-source-dirs:       ../mainline/src, ./
+  build-depends:        base >= 4,
+                        mtl,
+                        directory,
+                        containers,
+                        bytestring,
+                        binary,
+                        network,
+                        random,
+                        --network-bytestring,
+                        HsOpenSSL,
+                        SHA,
+                        RSA,
+                        parsec >= 3,
+                        filepath,
+                        cipher-aes,
+                        HDBC,
+                        HDBC-sqlite3,
+                        io-streams,
+                        http-streams,
+                        HTTP,
+                        network-uri,
+                        text,
+                        unordered-containers,
+                        aeson,
+                        base64-bytestring,
+                        scotty
+  Main-is:              ScottyCAMain.hs
+  ghc-options:          
+
+executable              AttesterCAComm
+  hs-source-dirs:       ../mainline/src, ./
+  build-depends:        base >= 4,
+                        mtl,
+                        directory,
+                        containers,
+                        bytestring,
+                        binary,
+                        network,
+                        random,
+                        --network-bytestring,
+                        HsOpenSSL,
+                        SHA,
+                        RSA,
+                        parsec >= 3,
+                        filepath,
+                        cipher-aes,
+                        HDBC,
+                        HDBC-sqlite3,
+                        io-streams,
+                        http-streams,
+                        HTTP,
+                        network-uri,
+                        text,
+                        unordered-containers,
+                        aeson,
+                        base64-bytestring,
+                        scotty
+  Main-is:              AttesterCAComm.hs
+  ghc-options: 
+

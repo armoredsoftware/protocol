@@ -9,8 +9,10 @@ Cabal-Version:          >= 1.2
 
 Build-type:             Simple
 
+
+
 executable              Project
-  hs-source-dirs:       api, shell, src, shared, project, appraisal, attestation, measurer, privacyCA, provisioning
+  hs-source-dirs:       api, shell, src, shared, project, appraisal, attestation, measurer, provisioning
   build-depends:        base >= 4,
                         shell >= 1.0,
                         mtl,
@@ -37,7 +39,7 @@ executable              Project
   Main-is:              Main.hs
   ghc-options:          -O
 
-executable              tpmi
+executable tpmi
   hs-source-dirs:       api, shell, src, shared
   build-depends:        base >= 4,
                         shell >= 1.0,
@@ -55,8 +57,8 @@ executable              tpmi
                         parsec >= 3,
                         filepath,
                         VChanUtil
-  Main-is:              TpmiMain.hs
-  ghc-options:          -O
+  Main-is: TpmiMain.hs
+  ghc-options: -O
 
 
 executable              Attestation
@@ -123,28 +125,6 @@ executable              Measurer
   Main-is:              MeasurerMain.hs
   ghc-options:          -O
 
-executable              PrivacyCA
-  hs-source-dirs:       api, shell, src, shared, privacyCA
-  build-depends:        base >= 4,
-                        shell >= 1.0,
-                        mtl,
-                        directory,
-                        containers,
-                        bytestring,
-                        binary,
-                        network,
-                        random,
-                        --network-bytestring,
-                        HsOpenSSL,
-                        SHA,
-                        RSA,
-                        parsec >= 3,
-                        filepath,
-                        VChanUtil,
-                        cipher-aes
-  Main-is:              PrivacyCAMain.hs
-  ghc-options:          -O
-
 executable              Provisioning
   hs-source-dirs:       api, shell, src, shared, provisioning
   build-depends:        base >= 4,
@@ -163,8 +143,8 @@ executable              Provisioning
                         parsec >= 3,
                         filepath,
                         VChanUtil
-  Main-is:              ProvisioningMain.hs
-  ghc-options:          -O
+  Main-is: ProvisioningMain.hs
+  ghc-options: -O
 
 
 

@@ -1,9 +1,9 @@
 {-# LANGUAGE TypeSynonymInstances, FlexibleInstances, OverlappingInstances, OverloadedStrings, RecordWildCards  #-}
 
-module Demo3Shared where
+module Demo3SharedNOVCHAN where
 
 import TPM
-import VChanUtil
+
 import Data.Binary
 import Data.ByteString.Lazy(ByteString, empty, append, pack, toStrict, fromStrict)
 import qualified Data.ByteString as B (ByteString)
@@ -13,7 +13,6 @@ import Crypto.Cipher.AES
 import Data.Digest.Pure.SHA (bytestringDigest, sha1)
 import qualified Control.Monad.Trans.State as T
 import Control.Monad.Trans
-
 import Data.Aeson (toJSON, parseJSON, ToJSON,FromJSON, object , (.=), (.:) )
 import qualified Data.Aeson as DA (Value(..), encode, decode, eitherDecode)
 import qualified Data.Text.Encoding as TE
@@ -23,145 +22,116 @@ import Control.Applicative ( (<$>), (<*>), pure )
 import qualified Data.HashMap.Strict as HM (member, lookup)
 import Data.Maybe
 import qualified Data.ByteString.Char8 as Char8
+
+--import Prelude ( ($!) )
+import Data.List (isInfixOf, head) --for parsing the id file.
+import Text.Read (readMaybe) --for parsin'
+import System.IO (IOMode( ReadMode ), openFile,hGetContents)
+import System.IO.Unsafe (unsafePerformIO) --LOL
+
 tpm :: TPMSocket
 tpm = tpm_socket "/var/run/tpm/tpmd_socket:0"
 
-
-data AttState = AttState {checks::[Bool], 
-                          meaChan :: LibXenVChan,
-                          appChan :: LibXenVChan, 
-                          priChan :: LibXenVChan}
-  
-type Att = T.StateT AttState IO 
-  
-runAtt = T.runStateT
-
-getMeaChan :: Att LibXenVChan
-getMeaChan = do
-  st <- T.get
-  return $ meaChan st
-  
-getAppChan :: Att LibXenVChan
-getAppChan = do
-  st <- T.get
-  return $ appChan st
-  
-getPriChan :: Att LibXenVChan
-getPriChan = do
-  st <- T.get
-  return $ priChan st
-           
-         {-
-
+{-
 q :: Att ()
 q = do b <- done
-       liftIO $ case b of 
-         True -> putStrLn "done"
-         False -> putStrLn "not done" 
-       {-before <- cc
-       liftIO $ putStrLn $ show before
-       stepFalse 1
-       after <- cc
-       liftIO $ putStrLn $ show after
+liftIO $ case b of
+True -> putStrLn "done"
+False -> putStrLn "not done"
+{-before <- cc
+liftIO $ putStrLn $ show before
+stepFalse 1
+after <- cc
+liftIO $ putStrLn $ show after
 -}
-       mapM stepFalse [0..6]
-       st <- T.get
-       liftIO $ putStrLn $ show $ checks st
+mapM stepFalse [0..6]
+st <- T.get
+liftIO $ putStrLn $ show $ checks st
 -}
-         
-
-
-           
-setAt :: Bool -> Int  -> [Bool] -> [Bool]
+setAt :: Bool -> Int -> [Bool] -> [Bool]
 setAt b ind bs = (xs ++ (b:ys'))
-  where (xs, ys) = splitAt (ind-1) bs
-        ys' = drop 1 ys
-  
+ where (xs, ys) = splitAt (ind-1) bs
+       ys' = drop 1 ys
 setTrueAt = setAt True
 setFalseAt = setAt False
-
 updateFalse :: Int -> [Bool] -> [Bool]
-updateFalse ind bs 
-  | (ind == 0) = bs
-  | otherwise = setFalseAt ind bs
-
+updateFalse ind bs
+	| (ind == 0) = bs
+	| otherwise = setFalseAt ind bs
 updateTrue :: Int -> [Bool] -> [Bool]
-updateTrue ind bs 
-  | (ind == 0) = bs
-  | otherwise = setTrueAt ind bs
-                                      
-                
+updateTrue ind bs
+	| (ind == 0) = bs
+	| otherwise = setTrueAt ind bs
 buildX :: [Int] -> [Bool]
 buildX [] = []
 buildX xs = buildX' allTrue xs
-  
-  where allTrue = replicate numChecks True
+ where  allTrue = replicate numChecks True
         numChecks = 7
-        
-buildX' :: [Bool] -> [Int] -> [Bool]
-buildX' inits xs 
-  | (null xs) = inits
-  | otherwise = let x = head xs
-                    xs' = tail xs
-                    new = updateFalse x inits in 
-                buildX' new xs'
-  
+	buildX' :: [Bool] -> [Int] -> [Bool]
+	buildX' inits xs
+		| (null xs) = inits
+		| otherwise = let x = head xs
+				  xs' = tail xs
+				  new = updateFalse x inits in
+			        		buildX' new xs'
 {-
 stepFalse :: Int -> [Bool] -> [Bool]
-stepFalse ind = do 
-  updateFalse ind
-  updateTrue (ind - 1)
+stepFalse ind = do
+updateFalse ind
+updateTrue (ind - 1)
 -}
-
-
-getAt :: Int -> Att Bool
-getAt ind = do 
-  st <- T.get
-  return $ last $ take ind (checks st)
-
-c1 :: Att Bool
-c1 = getAt 1
-
-c2 :: Att Bool
-c2 = getAt 2
-
-c3 :: Att Bool
-c3 = getAt 3
-
-c4 :: Att Bool
-c4 = getAt 4
-
-c5 :: Att Bool
-c5 = getAt 5
-
-c6 :: Att Bool
-c6 = getAt 6
-
-c7 :: Att Bool
-c7 = getAt 7
-
-appId :: Int
-appId = 20
 
 appName :: String
 appName = "Appraiser"
+appId :: Int
+appId = ($!)(\x -> x) (getID appName 20) --68 --20    --		
 
-attId :: Int
-attId = 23
 attName :: String
 attName = "Attester"
-
-meaId :: Int
-meaId = 22
+attId :: Int
+attId = getID attName 19 --69 --19
 
 meaName :: String
 meaName = "Measurer"
-
-caId :: Int
-caId = 21
+meaId :: Int
+meaId = getID meaName 7 --61 --7
 
 caName :: String
 caName = "CA"
+caId :: Int
+caId = getID meaName 7 --21
+
+
+
+getID :: String -> Int -> Int
+getID str defaultInt = let eitherWords = unsafePerformIO $ getWords "domains.txt" in
+		         case eitherWords of
+		         	(Left err) -> defaultInt
+		         	(Right words) -> let eitherId = searchFor str words in
+        					  case eitherId of
+        	   				   (Left err) -> defaultInt
+			    	        	   (Right r)  -> r
+		    
+getWords :: String -> IO (Either String [String])
+getWords file =     do
+        	handle <-  openFile file ReadMode
+        	contents <-  hGetContents handle
+        	let singlewords = (words contents)
+        	return (Right (singlewords))
+        	
+        	{-
+        	
+        	   		    -}
+searchFor :: String -> [String] -> Either String Int
+searchFor _ [] = (Left "Not found!!")
+searchFor _ [x] = (Left "Not found!!!")
+searchFor str (x:xs) = if isInfixOf str x then
+			let maybeParsedInt = readMaybe (head xs)in
+				case maybeParsedInt of
+					(Just i) -> Right i
+					(Nothing) -> Left "Hey that wasn't a number following the idName I was looking for!"
+		       else searchFor str xs
+
 
 ownerPass :: String
 ownerPass = "adam"
@@ -178,11 +148,9 @@ type PubKey = Codec.Crypto.RSA.PublicKey
 type PriKey = Codec.Crypto.RSA.PrivateKey
 
 type SymKey = B.ByteString
-
 generateBadQuotePriKey :: PriKey
 generateBadQuotePriKey = let gen = mkStdGen 5
-                             (_, pri, _) = generateKeyPair gen 2048 in pri
-
+			     (_, pri, _) = generateKeyPair gen 2048 in pri
 generateCAKeyPair :: (PubKey, PriKey)
 generateCAKeyPair = let gen = mkStdGen 3
                         (pub, pri, _) = generateKeyPair gen 2048 in (pub, pri)
@@ -224,62 +192,9 @@ signPack :: (Binary a{-, Signable a-}) => PriKey -> a -> Signed a
 signPack priKey x = Signed x sig
   where sig = sign priKey x
 
-{-
-sendM :: (Binary a, Show a) => String -> LibXenVChan ->  a -> IO ()
-sendM descrip chan m = do
-  putStrLn $ descrip ++ "Sending: " ++ show m ++ "\n"
-  send chan $ m
-  return () 
 
 
 
-sendR :: (Binary a, Show a) => PlatformID -> String -> a -> IO LibXenVChan
-sendR dest descrip req = do
-    chan <- client_init dest
-    putStrLn $ descrip ++ "Sending: " ++ show req ++ "\n"
-    send chan $ req
-    return chan
-
-receiveM :: (Binary a, Show a) => String -> LibXenVChan -> IO a
-receiveM descrip chan = do
-  ctrlWait chan
-  res <- receive chan
-  putStrLn $ descrip ++ "Received: " ++ show res ++ "\n"
-  return res
--}
-
-
-process :: (Binary a, Show a, Binary b, Show b) => (LibXenVChan -> IO a) 
-                -> (LibXenVChan -> b -> IO ()) -> (a -> IO b) -> PlatformID -> IO ()
-process recA sendB mk pId = do
-  --ctrlWait chan
-  putStrLn "OPENING CHAN"
-  chan <- server_init pId
-  process' recA sendB mk chan
-  putStrLn "CLOSING CHAN"
-  close chan
-  return ()
-
-process' :: (Binary a, Show a, Binary b, Show b) => (LibXenVChan -> IO a) 
-                -> (LibXenVChan -> b -> IO ()) -> (a -> IO b) -> LibXenVChan -> IO ()
-process' recA sendB mk chan = do
-  --ctrlWait chan
-  --chan <- server_init pId
-  putStrLn "RECEIVING ON CHAN..."
-  req <- recA chan
-  putStrLn "\nPROCESS: Request received\n\n"
-  resp <- mk req
-  putStrLn "\nPROCESS: Response constructed\n\n"
-  sendB chan resp
-  putStrLn "\nPROCESS: Response sent\n\n"
-  --close chan
-  return ()
-
-{-
-class Signable a where
-  toBits :: Binary a => a -> ByteString
-  toBits = encode
--}
 
 --instance Signable TPM_QUOTE_INFO
 
@@ -835,54 +750,6 @@ decodeFromTextL x = do bs <- decodeFromText x
 
 -- {-
 
-sendShared :: Int -> Shared -> IO LibXenVChan
-sendShared id shared = do
-			chan <- client_init id
-			sendShared' chan shared
-                        return chan
-
-sendShared' :: LibXenVChan -> Shared -> IO ()
-sendShared' chan shared = do
-			   logger <- createLogger
-			   sendChunkedMessageByteString logger chan (toStrict (jsonEncode shared))
-			   return ()
-
-receiveShared :: LibXenVChan -> IO (Either String Shared)
-receiveShared chan = do
-			ctrlWait chan
-			logger <- createLogger
-			bytes <- readChunkedMessageByteString logger chan
-			let shared =  jsonEitherDecode (fromStrict bytes) :: Either String Shared
-			return shared
 
 
---sendJSON :: Shared ->
--- -}
-{-
-sendRequest :: Request -> IO (LibXenVChan)
-sendRequest req = do
-  id <-getDomId
-  putStrLn $ "Appraiser Domain id: "++(show id)
-  other <- prompt
-  chan <- client_init other
-  putStrLn $ "\n" ++ "Appraiser Sending: "++(show $ req) ++ "\n"
-  logger <- createLogger
-  sendChunkedMessageByteString logger chan (LB.toStrict  (jsonEncode (RequestW req)))
-  --send chan $ Appraisal req
-  return chan
-
-receiveResponse :: LibXenVChan -> IO Response
-receiveResponse chan =  do
-  ctrlWait chan
-  logger <- createLogger
-  bytes <- readChunkedMessageByteString logger chan
-  let res = Just ( getResponse ( fromJust ( (jsonDecode (LB.fromStrict bytes)) :: Maybe WrappedData)))
-  --res :: Shared <- receive chan
-  case res of 
-    Just response ->  do
-      putStrLn $ "\n" ++ "Appraiser Received: " ++ (show res)++ "\n"
-      return response
-    otherwise ->  throw $ ErrorCall quoteReceiveError --TODO: error handling?
-    
--}
 

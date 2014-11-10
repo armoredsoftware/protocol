@@ -13,15 +13,16 @@ import Control.Monad.Trans
 import qualified Data.Text.Lazy as LazyText
 import Data.Monoid (mconcat)
 import qualified Data.Text.Lazy.Encoding as LazyEncoding
-import qualified Demo3Shared as AD  --ArmoredData
+import qualified Demo3SharedNOVCHAN as AD  --ArmoredData
 import TPM
 
 import Database.HDBC 
 import Database.HDBC.Sqlite3
-import Demo3Shared
+--import Demo3SharedNOVCHAN
 
 scottyCAMain = scotty 3000 $ do
-    Web.Scotty.get "/" $ text "foobar" {-
+    Web.Scotty.get "/" $ text "foobar" 
+    
     Web.Scotty.get "/foo" $ do
       v <- param "fooparam"
       html $ mconcat ["<h1>", v, "</h1>"]
@@ -35,17 +36,23 @@ scottyCAMain = scotty 3000 $ do
         --json (bod :: String) --(a :: String)
       a <- (param "request") :: ActionM LazyText.Text
       
-      html a
-      let jj = (AD.jsonEitherDecode (LazyEncoding.encodeUtf8 a) :: Either String AD.CARequest)
+      --html a 
+      liftIO $ putStrLn (show a)
+      liftIO $ putStrLn (show (LazyEncoding.encodeUtf8 a))
+      let jj = AD.jsonEitherDecode (LazyEncoding.encodeUtf8 a) :: Either String AD.CARequest
+      liftIO $ putStrLn (show jj)
+    --  let jj2 = (AD.jsonEitherDecode a :: Either String AD.EvidenceDescriptor)
+     -- liftIO $ putStrLn ("second: " ++ (show jj2))
       case jj of
 	   (Left err)    -> text (LazyText.pack ("Error decoding CARequest from JSON. Error was: " ++ err))
 	   (Right caReq) -> do 
+	   		     json caReq 
 	   		     eitherCAResp <- liftIO $ handleCAReq caReq
 	   		     case eitherCAResp of
 	   		     	(Left err) 	-> text (LazyText.pack ("Error formulating CAResponse. Error was: " ++ err))
 	   		     	(Right caResp) 	-> do
 	   		     			    --caResp' <- liftIO caResp
-	   		     			    json caResp
+	   		     			    json caResp 
       --return ()
       --text "posted!"
    --     text (LazyText.pack (L.unpack bod))
@@ -102,7 +109,7 @@ ekLookup my_id = do
 		      convertedRes = fromSql res' :: ByteString
 		  putStrLn " Here is the bytestring version: "
 		  putStrLn (show convertedRes)
-		  let x = jsonEitherDecode convertedRes :: Either String TPM_PUBKEY 
+		  let x = AD.jsonEitherDecode convertedRes :: Either String TPM_PUBKEY 
 		  putStrLn "Here is the JSON decoded version: "
 		  putStrLn (show x)
 		  case x of
@@ -124,4 +131,4 @@ readPubEK = do
   hClose handle
   return pubKey
   
-  -}
+  
