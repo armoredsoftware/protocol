@@ -34,7 +34,8 @@ executable              Project
                         text,
                         aeson,
                         unordered-containers,
-                        scotty
+                        scotty,
+                        transformers
   Main-is:              Main.hs
   ghc-options:          -O
 
@@ -79,7 +80,7 @@ executable              Attestation
                         filepath,
                         VChanUtil
   Main-is:              AttestationMain.hs
-  ghc-options:          -O
+  ghc-options:         
 
 executable              Appraiser
   hs-source-dirs:       api, shell, src, shared, appraisal, provisioning
