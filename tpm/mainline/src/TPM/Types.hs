@@ -101,7 +101,7 @@ instance Binary TPM_ASYM_CA_CONTENTS where
 data TPM_IDENTITY_CONTENTS = TPM_IDENTITY_CONTENTS {
   labelPrivCADigest :: TPM_CHOSENID_HASH,
   identityPubKey :: TPM_PUBKEY
-  }  deriving (Show)
+  }  deriving (Show, Read)
 
 instance Binary TPM_IDENTITY_CONTENTS where
   put(TPM_IDENTITY_CONTENTS label pubkey) = do

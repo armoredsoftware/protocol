@@ -17,11 +17,11 @@ for line in $(cat $mypath"/"ips.txt)
 do 
   if [ $((var % 3)) -eq 0 ]
     then
-      scp "$mypathbuild""Appraiser/""Appraiser" "$mypathbuild""Attestation/""Attestation" "$mypathbuild""Measurer/""Measurer" "$mypathbuild""PrivacyCA/""PrivacyCA" "$mypathbuild""ScottyCA/""ScottyCA" "root@$line"":"
+      scp "$mypathbuild""Appraiser/""Appraiser" "$mypathbuild""Attestation/""Attestation" "$mypathbuild""Measurer/""Measurer" "$mypathbuild""PrivacyCA/""PrivacyCA" "$mypathbuild""../../shared/domains.txt" "root@$line"":"
   fi 
   var=$((var+1))
   done
-
+#"$mypathbuild""ScottyCA/""ScottyCA"
 #hi change
 #scp Attestation Appraiser keys.txt root@10.100.0.208: ;
 #scp Attestation Appraiser keys.txt root@10.100.0.212: ;

@@ -16,7 +16,10 @@ import Control.Monad.Trans
 import Crypto.Cipher.AES
 
 import OpenSSL (withOpenSSL)
---withOpenSSL 
+import AttesterCAComm
+
+
+
 
 
 takeInit :: IO TPM_PUBKEY
@@ -150,10 +153,14 @@ getCACert (iKeyHandle, iSig) caChan = do
   pubKey <- attGetPubKey iKeyHandle iPass
   --sendPubKeyResponse chan pubKey -- TODO:  Maybe send signing pubkey too
   let caRequest = mkCARequest iPass pubKey iSig
+  doExport' caFile caRequest
   --putStrLn "\n BEFORE sendCARequest"
-  sendCARequest caChan caRequest
+--  sendCARequest caChan caRequest
   --putStrLn "\n AFTER sendCARequest"
-  eitherCAResponse <- receiveCAResponse caChan
+ -- eitherCAResponse <- receiveCAResponse caChan
+  putStrLn "ABOUT TO CONVERSE WITH SCOTTYCA"
+  eitherCAResponse <- converseWithScottyCA caRequest
+  putStrLn "I MADE IT PAST CONVERSING WITH SCOTTYCA"
   case (eitherCAResponse) of
     (Left err) -> error ("Failed to receive CAResponse. Error was: " ++ 
                                         (show err))

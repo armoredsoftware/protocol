@@ -25,6 +25,7 @@ scottyCAMain = scotty 3000 $ do
     
     Web.Scotty.get "/foo" $ do
       v <- param "fooparam"
+      liftIO (putStrLn "ahhhhhhhhhhh")
       html $ mconcat ["<h1>", v, "</h1>"]
       
 

@@ -39,12 +39,14 @@ executable              ScottyCA
                         unordered-containers,
                         aeson,
                         base64-bytestring,
-                        scotty
+                        scotty,
+                        transformers
   Main-is:              ScottyCAMain.hs
   ghc-options:          
 
-executable              AttesterCAComm
-  hs-source-dirs:       ../mainline/src, ./
+library           
+  exposed-modules:      AttesterCAComm
+  hs-source-dirs:       shared, ./, ../mainline/src, ../shell
   build-depends:        base >= 4,
                         mtl,
                         directory,
@@ -65,12 +67,7 @@ executable              AttesterCAComm
                         io-streams,
                         http-streams,
                         HTTP,
-                        network-uri,
-                        text,
-                        unordered-containers,
-                        aeson,
-                        base64-bytestring,
-                        scotty
-  Main-is:              AttesterCAComm.hs
-  ghc-options: 
-
+                        network-uri
+  other-extensions:     ForeignFunctionInterface
+ -- Main-is:              AttesterCACommMain.hs
+  ghc-options:          -O
