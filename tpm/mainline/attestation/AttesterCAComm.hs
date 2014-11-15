@@ -1,5 +1,5 @@
 {-# LANGUAGE OverloadedStrings, ForeignFunctionInterface #-}
-module AttesterCAComm (converseWithScottyCA) where
+module AttesterCAComm where
 import Data.ByteString.Lazy
 import Data.Monoid (mconcat)
 import Data.Maybe

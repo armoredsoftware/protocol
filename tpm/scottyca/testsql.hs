@@ -18,7 +18,7 @@ import TPM
 import Demo3SharedNOVCHAN
 
 --databaseName = "armoredDB.db"
-my_id= 19 :: Int
+my_id= 23 :: Int
 main = do
 	putStrLn "hello"
 	conn <- connectSqlite3 databaseName
