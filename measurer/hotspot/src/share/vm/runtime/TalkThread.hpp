@@ -2,6 +2,8 @@
 #include "runtime/timer.hpp"
 #include "memory/allocation.hpp"
 
+#include <string>
+
 class TalkThread: public Thread {
   friend class VMStructs;
  public:
@@ -26,6 +28,8 @@ class TalkThread: public Thread {
   char* name() const { return (char*)"VM Talk Thread"; }
   void print_on(outputStream* st) const;
   void print() const { print_on(tty); }
+
+  static std::string ExecuteOperation(int local);
 
   // Returns the single instance of TalkThread
   static TalkThread* talk_thread()         { return _talk_thread; }

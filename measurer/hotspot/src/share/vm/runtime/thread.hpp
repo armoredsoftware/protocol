@@ -56,6 +56,10 @@
 #include <string>
 //JG - Change End
 
+//JG - Change Start
+#include "jr_custom_classes/papiThreadShadow.hpp"
+//JG - Change End
+
 class ThreadSafepointState;
 class ThreadProfiler;
 
@@ -708,6 +712,38 @@ class WatcherThread: public Thread {
   static void stop();
 };
 
+//JG - Change Start
+// We use this thread to scan the JavaThread stacks throughout runtime ignoring segfaults
+class OurStackWatcherDeoptThread: public Thread {
+  friend class VMStructs;
+ public:
+  virtual void run();
+
+ private:
+  static OurStackWatcherDeoptThread* _stack_watcher_thread;
+
+  volatile static bool _should_terminate; // updated without holding lock
+ public:
+
+  // Constructor
+  OurStackWatcherDeoptThread();
+
+  // Tester
+  bool is_Stack_Watcher_thread() const                 { return true; }
+
+  // Printing
+  char* name() const { return (char*)"Runtime Stack Scanner"; }
+  void print_on(outputStream* st) const;
+  void print() const { print_on(tty); }
+
+  // Returns the single instance of OurStackWatcherDeoptThread
+  static OurStackWatcherDeoptThread* stack_watcher_thread()         { return _stack_watcher_thread; }
+
+  // Create and start the single instance of OurStackWatcherDeoptThread, or stop it on shutdown
+  static void start();
+  static void stop();
+};
+//JG - Change End
 
 class CompilerThread;
 
@@ -885,6 +921,10 @@ class JavaThread: public Thread {
   // Set of all such queues.
   static DirtyCardQueueSet _dirty_card_queue_set;
 
+  //JG - Change Start
+  PapiThreadShadow* _pts;
+  //JG - Change End
+
   void flush_barrier_queues();
 #endif // !SERIALGC
 
@@ -899,6 +939,11 @@ class JavaThread: public Thread {
   JavaThread(bool is_attaching = false); // for main thread and JNI attached threads
   JavaThread(ThreadFunction entry_point, size_t stack_size = 0);
   ~JavaThread();
+
+  //JG - Change Start
+  void set_papi_thread_shadow(PapiThreadShadow* pts) { _pts = pts; }
+  PapiThreadShadow* get_papi_thread_shadow()         { return _pts; }
+  //JG - Change End
 
 #ifdef ASSERT
   // verify this JavaThread hasn't be published in the Threads::list yet
@@ -1373,6 +1418,15 @@ public:
   }
   javaVFrame* last_java_vframe(RegisterMap* reg_map);
 
+ //JG - Change Start
+  frame SW_last_frame() {
+    _anchor.make_walkable(this);
+    //          MC
+    return pd_last_frame();
+  }
+  javaVFrame* SW_last_java_vframe(RegisterMap* reg_map);
+ //JG - Change End
+
   // Returns method at 'depth' java or native frames down the stack
   // Used for security checks
   klassOop security_get_caller_class(int depth);
@@ -1826,6 +1880,11 @@ class Threads: AllStatic {
 
   static void convert_hcode_pointers();
   static void restore_hcode_pointers();
+
+  //JG - Change Start
+  // This method will call our stack scanner on each JavaThread
+  static void our_stack_sweeper();
+  //JG - Change End
 
   // Sweeper
   static void nmethods_do(CodeBlobClosure* cf);

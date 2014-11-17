@@ -44,13 +44,31 @@ TalkThread::TalkThread() : Thread()
 }
 
 
+std::string TalkThread::ExecuteOperation(int local)
+{
+	//Prepare VM Operation
+	VM_MonitorAction op;
+	op.signal = 1001; //code for variable value
+
+	op.method = "main";//new char[method.length()];
+	//strcpy (op.method,method.c_str());
+	op.local = local;
+
+	VMThread::execute(&op);	
+	std::string result = op.result;
+
+	printf("\n Result of VM operation was:%s \n", result.c_str());
+
+	return result;
+}
+
 void TalkThread::run() {
 	//Leave this blank for now
 	printf("ENTRY: TalkThread::run()\n");
 
 	int sockfd = 0, n = 0;
 	char recvBuff[1024];
-    	char sendBuff[1025];
+    	char sendBuff[1024];
 	struct sockaddr_in serv_addr; 
 
 	memset(recvBuff, '0',sizeof(recvBuff));
@@ -81,7 +99,7 @@ void TalkThread::run() {
 	 	printf("\n TalkThread : Awaiting request\n");
 		n=0;
 
-		n = read(sockfd, recvBuff, sizeof(recvBuff)-1);
+		n = read(sockfd, recvBuff, sizeof(recvBuff));
 		recvBuff[n] = 0;
 		if(fputs(recvBuff, stdout) == EOF)
 		{
@@ -94,11 +112,45 @@ void TalkThread::run() {
 			return;
 		} 
 
+		//EXECUTE OPERATION
+		if (strncmp(recvBuff,"{\"WEvidenceDescriptor\":\"D0\"}", 28)==0)
+		{
+			std::string result = ExecuteOperation(1);
+			snprintf(sendBuff, sizeof(sendBuff), "{\"WEvidencePiece\":{\"M0\":\"%s\"}}\n", result.c_str());
+		}
+		else if (strncmp(recvBuff,"{\"WEvidenceDescriptor\":\"D1\"}", 28)==0)
+		{			
+			std::string result = ExecuteOperation(2);
+			snprintf(sendBuff, sizeof(sendBuff), "{\"WEvidencePiece\":{\"M1\":\"%s\"}}\n", result.c_str());
+		}
+		else if (strncmp(recvBuff,"{\"WEvidenceDescriptor\":\"D2\"}", 28)==0)
+		{			
+			std::string result = ExecuteOperation(3);
+			snprintf(sendBuff, sizeof(sendBuff), "{\"WEvidencePiece\":{\"M2\":\"%s\"}}\n", result.c_str());
+		}		
+		else
+		{
+			snprintf(sendBuff, sizeof(sendBuff), "Invalid Request!\n");
+		}
+
+		/*if (strncmp(recvBuff,"PID", 3)==0)
+		{
+			snprintf(sendBuff, sizeof(sendBuff), "PID=%d\n", getpid());
+		}
+		else if (strncmp(recvBuff,"NTIME", 5)==0)
+		{
+			time_t ticks = time(NULL);
+       			snprintf(sendBuff, sizeof(sendBuff), "%.24s\r\n", ctime(&ticks));
+		}
+		else
+		{
+			snprintf(sendBuff, sizeof(sendBuff), "Invalid Request!\n");
+		}*/
+
 		//SEND RESULT
 
 	 	printf("\n TalkThread : Sending result\n");
-		
-		snprintf(sendBuff, sizeof(sendBuff), "THERESULT\n");
+
         	write(sockfd, sendBuff, strlen(sendBuff)); 
 		
 

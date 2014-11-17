@@ -106,9 +106,26 @@
 #include "runtime/TalkThread.hpp"
 //JG - Change End
 
+//JG - Change Start
+#include "jr_custom_classes/memoryCollector.hpp"
+#include "jr_custom_classes/fileIO.hpp"
+#include "jr_custom_classes/methodCollector.hpp"
+#include "jr_custom_classes/methodGatherer.hpp"
+#include "jr_custom_classes/stackWatcher.hpp"
+#include "jr_custom_classes/methodCheckIn.hpp"
+#include "jr_custom_classes/papiManager.hpp"
+#include "jr_custom_classes/papiThreadShadow.hpp"
+#include "oops/constMethodOop.hpp"
+//JG - Change End
+
 HS_DTRACE_PROBE_DECL(hotspot, vm__shutdown);
 
 #ifndef PRODUCT
+
+//JG - Change Start
+void print_method_compiles_and_decompiles();
+void print_our_method_invocation_histogram();
+//JG - Change End
 
 // Statistics printing (method invocation histogram)
 
@@ -314,6 +331,25 @@ void print_statistics() {
     CodeCache::print_internals();
   }
 
+  //JG - Change Start
+  if (JRMemoryProfiler) {
+    OurMemoryCollector::do_statistics();
+    nmethod::print_statistics();
+    OurMemoryCollector::print_collector();
+    OurMemoryCollector::output_collector();
+    constMethodOopDesc::print_memory_stats();
+  }
+
+  if (JRMethodMemoryProfiler) {
+    MethodMemoryProfiler::print_nmethods();
+    MethodMemoryProfiler::destroy_list();
+  }
+  
+  if (JRMethodDeoptStackWatcher) {
+    print_method_compiles_and_decompiles();
+  }
+  //JG - Change End
+
   if (PrintClassStatistics) {
     SystemDictionary::print_class_statistics();
   }
@@ -352,6 +388,38 @@ void print_statistics() {
   }
 #endif // COMPILER2
 #endif // ENABLE_ZAP_DEAD_LOCALS
+
+  //JG - Change Start
+  if (JRMethodCountTrace) {
+    while (Universe::heap()->is_gc_active()) usleep(10);
+    MethodCallGatherer::print_statistics_and_output_data();
+    
+  }
+
+  if (PAPI::is_papi_enabled()) {
+    PapiThreadShadow::stop_profile_all_threads();
+
+    FILE* output_file;
+    if (PAPIOutputFile == NULL || (output_file = fopen(PAPIOutputFile, "w+")) == NULL) {
+      if (JRVerbose)
+	output_file = stdout;
+      else 
+	output_file = NULL;
+    }
+
+    if (output_file != NULL && output_file != stdout)
+      PapiThreadShadow::output_data(output_file);
+
+    if (output_file != NULL && output_file != stdout)
+      fclose(output_file);
+
+    PapiThreadShadow::destory_shadow_threads();
+    if (PAPI::papi_tear_down() != 0) {
+      tty->print_cr("PAPI was in an invalid state at exit. Perhaps the data cannot be trusted.");
+    }
+  }
+  //JG - Change End
+
 }
 
 #else // PRODUCT MODE STATISTICS

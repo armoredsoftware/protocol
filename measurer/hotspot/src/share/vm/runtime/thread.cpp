@@ -102,9 +102,22 @@
 #include "opto/idealGraphPrinter.hpp"
 #endif
 
-//JG - CHANGESTART
+//JG - Change Start
 #include "runtime/TalkThread.hpp"
-//JG - CHANGEEND
+//JG - Change End
+
+//JG - Change Start
+#include "jr_custom_classes/memoryCollector.hpp"
+#include "jr_custom_classes/methodGatherer.hpp"
+#include "jr_custom_classes/stackWatcher.hpp"
+#include "jr_custom_classes/methodCheckIn.hpp"
+#include "jr_custom_classes/papiManager.hpp"
+#include "jr_custom_classes/papiThreadShadow.hpp"
+#ifdef TARGET_OS_FAMILY_linux
+# include <setjmp.h>
+#endif
+#include <sys/syscall.h>
+//JG - Change End
 
 #ifdef DTRACE_ENABLED
 
@@ -1241,6 +1254,148 @@ void WatcherThread::print_on(outputStream* st) const {
   Thread::print_on(st);
   st->cr();
 }
+
+//JG - Change Start
+// ======= OurStackWatcherDeoptThread ========
+// Used to scan JavaThread stacks during runtime. This will ignore segfaults hopefully.
+OurStackWatcherDeoptThread* OurStackWatcherDeoptThread::_stack_watcher_thread   = NULL;
+volatile bool  OurStackWatcherDeoptThread::_should_terminate = false;
+
+OurStackWatcherDeoptThread::OurStackWatcherDeoptThread() : Thread() {
+  assert(stack_watcher_thread() == NULL, "we can only allocate one OurStackWatcherDeoptThread");
+  
+  StackWatcher::mark_timer = (jlong)JRMethodDeoptStackWatcherMarkTimer * MICROUNITS;
+  if (os::create_thread(this, os::watcher_thread)) {
+    _stack_watcher_thread = this;
+
+    os::set_priority(this, MinPriority);
+    if (!DisableStartThread) {
+      os::start_thread(this);
+    }
+  }
+}
+
+void OurStackWatcherDeoptThread::run() {
+  assert(this == stack_watcher_thread(), "just checking");
+
+  this->record_stack_base_and_size();
+  this->initialize_thread_local_storage();
+  this->set_active_handles(JNIHandleBlock::allocate_block());
+  //jlong prev_time = os::javaTimeNanos();
+
+  //Signal masking here:
+  sigset_t set;
+  int s;
+  sigemptyset(&set);
+  sigaddset(&set, SIGSEGV);
+  //s = pthread_sigmask(SIG_IGN, &set, NULL);
+ 
+  StackWatcher::SWDT_pthread_ptr = pthread_self();
+
+  while(!_should_terminate) {
+    assert(stack_watcher_thread() == Thread::current(),  "thread consistency check");
+    assert(stack_watcher_thread() == this,  "thread consistency check");
+
+    // Calculate how long it'll be until the next PeriodicTask work
+    // should be done, and sleep that amount of time.
+    /*size_t time_to_wait = PeriodicTask::time_to_wait();
+
+    // we expect this to timeout - we only ever get unparked when
+    // we should terminate
+    {
+      OSThreadWaitState osts(this->osthread(), false);
+
+      jlong prev_time = os::javaTimeNanos();
+      for (;;) {
+        int res= _SleepEvent->park(time_to_wait);
+        if (res == OS_TIMEOUT || _should_terminate)
+          break;
+        // spurious wakeup of some kind
+        jlong now = os::javaTimeNanos();
+        time_to_wait -= (now - prev_time) / 1000000;
+        if (time_to_wait <= 0)
+          break;
+        prev_time = now;
+      }
+      }*/
+    /*jlong curr_time = os::javaTimeNanos();
+    tty->print_cr("%llu", (curr_time - prev_time));
+    prev_time = curr_time;*/
+    StackWatcher::stack_watcher_main();
+    os::yield();
+
+    if (is_error_reported()) {
+      // A fatal error has happened, the error handler(VMError::report_and_die)
+      // should abort JVM after creating an error log file. However in some
+      // rare cases, the error handler itself might deadlock. Here we try to
+      // kill JVM if the fatal error handler fails to abort in 2 minutes.
+      //
+      // This code is in WatcherThread because WatcherThread wakes up
+      // periodically so the fatal error handler doesn't need to do anything;
+      // also because the WatcherThread is less likely to crash than other
+      // threads.
+
+      for (;;) {
+        if (!ShowMessageBoxOnError
+         && (OnError == NULL || OnError[0] == '\0')
+         && Arguments::abort_hook() == NULL) {
+             os::sleep(this, 2 * 60 * 1000, false);
+             fdStream err(defaultStream::output_fd());
+             err.print_raw_cr("# [ timer expired, abort... ]");
+             // skip atexit/vm_exit/vm_abort hooks
+             os::die();
+        }
+
+        // Wake up 5 seconds later, the fatal handler may reset OnError or
+        // ShowMessageBoxOnError when it is ready to abort.
+        os::sleep(this, 5 * 1000, false);
+      }
+    }
+  }
+
+  // Signal that it is terminated
+  {
+    MutexLockerEx mu(Terminator_lock, Mutex::_no_safepoint_check_flag);
+    _stack_watcher_thread = NULL;
+    Terminator_lock->notify();
+  }
+
+  // Thread destructor usually does this..
+  ThreadLocalStorage::set_thread(NULL);
+}
+
+void OurStackWatcherDeoptThread::start() {
+  if (stack_watcher_thread() == NULL) {
+    _should_terminate = false;
+    // Create the single instance of WatcherThread
+    new OurStackWatcherDeoptThread();
+  }
+}
+
+void OurStackWatcherDeoptThread::stop() {
+  // it is ok to take late safepoints here, if needed
+  MutexLocker mu(Terminator_lock);
+  _should_terminate = true;
+  OrderAccess::fence();  // ensure WatcherThread sees update in main loop
+
+  Thread* watcher = stack_watcher_thread();
+  if (watcher != NULL)
+    watcher->_SleepEvent->unpark();
+
+  while(stack_watcher_thread() != NULL) {
+    // This wait should make safepoint checks, wait without a timeout,
+    // and wait as a suspend-equivalent condition.
+    Terminator_lock->wait(!Mutex::_no_safepoint_check_flag, 0,
+                          Mutex::_as_suspend_equivalent_flag);
+  }
+}
+
+void OurStackWatcherDeoptThread::print_on(outputStream* st) const {
+  st->print("\"%s\" ", name());
+  Thread::print_on(st);
+  st->cr();
+}
+//JG - Change End
 
 // ======= JavaThread ========
 
@@ -3011,6 +3166,24 @@ javaVFrame* JavaThread::last_java_vframe(RegisterMap *reg_map) {
   return NULL;
 }
 
+//JG - Change Start
+javaVFrame* JavaThread::SW_last_java_vframe(RegisterMap *reg_map) {
+  assert(pthread_self() == StackWatcher::get_pthread(), "This should only be accessed by the StackWatcherDeoptThread");
+  /*if (reg_map == NULL) {
+    siglongjmp(StackWatcher::exception_env, 1);
+    }*/
+  assert(reg_map != NULL, "a map must be given");
+  //             NCY
+  frame f = last_frame();
+  //                          NCY                                        NCY
+  for (vframe* vf = vframe::new_vframe(&f, reg_map, this); vf; vf = vf->sender() ) {
+    //             NCY                       NCY
+    if (vf->is_java_frame()) return javaVFrame::cast(vf);
+  }
+  return NULL;
+}
+//JG - Change End
+
 
 klassOop JavaThread::security_get_caller_class(int depth) {
   vframeStream vfst(this);
@@ -3128,6 +3301,15 @@ jint Threads::create_vm(JavaVMInitArgs* args, bool* canTryAgain) {
   if (PauseAtStartup) {
     os::pause();
   }
+
+  //JG - Change Start
+  if (PAPIEventFile != NULL) {
+    if (PAPI::papi_setup() != 0) {
+      tty->print_cr("PAPI setup failed. PAPI will not be used this run.\n\n");
+    }
+  }
+  //JG - Change End
+
 
   HS_DTRACE_PROBE(hotspot, vm__init__begin);
 
@@ -3452,6 +3634,29 @@ jint Threads::create_vm(JavaVMInitArgs* args, bool* canTryAgain) {
     vm_exit(1);
   }
 
+  //JG - Change Start
+  // Initialize and start our StackWatcher thread
+  if (JRMethodDeoptStackWatcher) {
+    StackWatcher::engage(JRMethodDeoptStackWatcherInterval);
+    
+  }
+
+  // initialize
+  if (JRMethodDeoptCheckIn && JRDoDeopt) {
+    MethodCheckInHandler::engage();
+  }
+
+  // Start the periodic task for our method profiler
+  if (JRMethodCountTrace)     MethodCallGatherer::engage();
+
+  // Register the command line argument specifying whether the memory
+  // profiler should create a map of the code cache. I am registering
+  // the argument this way incase there are times we want to not make
+  // a memory map even though we have the flag set. We probably will
+  // not use this functionality, but it doesn't hurt to have it.
+  if (JRMemoryProfiler) OurMemoryCollector::set_use_memory_map(JRMethodMemoryProfilerCCMap);
+  //JG - Change End
+
   if (Arguments::has_profile())       FlatProfiler::engage(main_thread, true);
   if (Arguments::has_alloc_profile()) AllocationProfiler::engage();
   if (MemProfiling)                   MemProfiler::engage();
@@ -3479,6 +3684,12 @@ jint Threads::create_vm(JavaVMInitArgs* args, bool* canTryAgain) {
 
   //JG - Change Start
   TalkThread::start();
+  //JG - Change End
+
+  //JG - Change Start
+  if (JRMethodDeoptStackWatcher){
+    OurStackWatcherDeoptThread::start();
+  }
   //JG - Change End
 
   // Give os specific code one last chance to start
