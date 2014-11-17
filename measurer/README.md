@@ -9,7 +9,7 @@ PREPARATION
 2. In a separate VM on the same node, launch the relay and then the measurer. (See below for details)
 3. Get talking!
 
-*** You may need to set path to 'common' and 'include' in ./relay/Makefile. (This is not necessary if you 'code' directory is in the same directory as 'protocol') ***
+*** You may need to set the path to 'common' and 'include' in ./relay/Makefile. (This is not necessary if you 'code' directory is in the same directory as 'protocol') ***
 
 THE FAKE ATTESTER
 
