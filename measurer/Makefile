@@ -25,10 +25,10 @@ build-fakeattester:
 	cd relay; make build-fakeattester 
 
 run-hotspot:
-	/root/Research/hotspot/build/linux/linux_i486_compiler1/jvmg/gamma -jar $(APP)
+	export JAVA_HOME=$(current_dir)/jdk1.6.0_45;export PATH=$(current_dir)/jdk1.6.0_45/bin:$$PATH;export ALT_BOOTDIR=$(current_dir)/jdk1.6.0_45;export LD_LIBRARY_PATH=$$LD_LIBRARY_PATH:$(current_dir)/hotspot/build/linux/linux_i486_compiler1/jvmg;/root/Research/hotspot/build/linux/linux_i486_compiler1/jvmg/gamma -jar $(APP)
 
 run-hotspot-hackableloop:
-	/root/Research/hotspot/build/linux/linux_i486_compiler1/jvmg/gamma -jar applications/loop-hackable/ControlVar.jar
+	export JAVA_HOME=$(current_dir)/jdk1.6.0_45;export PATH=$(current_dir)/jdk1.6.0_45/bin:$$PATH;export ALT_BOOTDIR=$(current_dir)/jdk1.6.0_45;export LD_LIBRARY_PATH=$$LD_LIBRARY_PATH:$(current_dir)/hotspot/build/linux/linux_i486_compiler1/jvmg;/root/Research/hotspot/build/linux/linux_i486_compiler1/jvmg/gamma -jar applications/loop-hackable/ControlVar.jar
 
 run-relay:
 	cd relay; make run-relay DOMID=$(DOMID)
