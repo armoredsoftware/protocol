@@ -13,13 +13,13 @@ run-relay:
 	modprobe xen_gntalloc
 	modprobe xen_evtchn
 	modprobe xen_gntdev
-	./relay 1 $(DOMID)
+	./relay $(CLIENT) $(DOMID)
 
 run-fakeattester:
 	modprobe xen_gntalloc
 	modprobe xen_evtchn
 	modprobe xen_gntdev
-	./fakeattester 0 $(DOMID)
+	./fakeattester $(CLIENT) $(DOMID)
 
 clean:
 	rm -rf *o relay fakeattester
