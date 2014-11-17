@@ -6,6 +6,9 @@ INCLUDE_path = ../../../code/experiments/vchanTestCentOS_1/include/
 
 all: build-hotspot build-relay build-fakeattester
 
+build-hotspot-getlibs:
+	yum install  glibc-static.i686 glibc-devel.i686 glibc-static.i686 libstdc++.i686 libstdc++-devel.i686	
+
 build-hotspot-prepjava:
 	export JAVA_HOME=$(current_dir)/jdk1.6.0_45
 	export PATH=$(current_dir)/jdk1.6.0_45/bin:$$PATH
