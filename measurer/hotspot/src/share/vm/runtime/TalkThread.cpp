@@ -127,7 +127,12 @@ void TalkThread::run() {
 		{			
 			std::string result = ExecuteOperation(3);
 			snprintf(sendBuff, sizeof(sendBuff), "{\"WEvidencePiece\":{\"M2\":\"%s\"}}\n", result.c_str());
-		}		
+		}
+		else if (strncmp(recvBuff,"{\"WEvidenceDescriptor\":\"DONE\"}", 28)==0)
+		{			
+			std::string result = ExecuteOperation(3);
+			snprintf(sendBuff, sizeof(sendBuff), "{\"WEvidencePiece\":\"OK\"}\n", result.c_str());
+		}			
 		else
 		{
 			snprintf(sendBuff, sizeof(sendBuff), "Invalid Request!\n");
