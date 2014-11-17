@@ -1,5 +1,9 @@
 current_dir = $(shell pwd)
 
+COMMON_path = ../../../code/experiments/vchanTestCentOS_1/common/common.c
+INCLUDE_path = ../../../code/experiments/vchanTestCentOS_1/include/
+
+
 all: build-hotspot
 
 build-hotspot-prepjava:
@@ -15,16 +19,16 @@ build-hotspot-noprep:
 	cd hotspot/make; make jvmg1
 
 build-relay:
-	cd relay; make relay
+	cd relay; make build-relay
 
 build-fakeattester:
-	cd relay; make fakeattester
+	cd relay; make build-fakeattester 
 
 run-relay:
 	cd relay; make run-relay ATTESTER_DOMID=$(ATTESTER_DOMID)
 
 run-fakeattester:
-	cd relay; make run-fakeattester
+	cd relay; make run-fakeattester RELAY_DOMID=$(RELAY_DOMID)
 
 clean:
 	cd hotspot/make; make clean

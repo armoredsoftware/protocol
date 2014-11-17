@@ -1,5 +1,5 @@
-COMMON_path = /root/code/experiments/vchanTestCentOS_1/common/common.c
-INCLUDE_path = /root/code/experiments/vchanTestCentOS_1/include/
+COMMON_path = ../../../code/experiments/vchanTestCentOS_1/common/common.c
+INCLUDE_path = ../../../code/experiments/vchanTestCentOS_1/include/
 
 build: build-relay build-fakeattester
 
@@ -13,7 +13,7 @@ run-relay:
 	./relay 1 $(ATTESTER_DOMID)
 
 run-fakeattester:
-	./fakeattester 0 $(RELAY_ID)
+	./fakeattester 0 $(RELAY_DOMID)
 
 clean:
 	rm -rf *o relay fakeattester
