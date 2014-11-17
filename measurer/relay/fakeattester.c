@@ -5,8 +5,6 @@
 #include <libxenvchan.h>
 #include <exp1Common.h>
 
-//####################################################################
-
 int main(int argc, char **argv)
 {
   struct libxenvchan *chan = 0;
@@ -42,7 +40,7 @@ int main(int argc, char **argv)
 	memset(tmp, 0, sizeof(tmp));
      printf("Enter request to send:\n");
      fgets(tmp, 1024, stdin);
-     send(chan,tmp, sizeof(tmp));
+     vchan_send(chan,tmp, sizeof(tmp));
 
      int size;
   char * msg;
@@ -58,9 +56,7 @@ int main(int argc, char **argv)
      printf("\n");
 
  }
-    
-  
- 
+     
 
   libxenvchan_close(chan);
 
