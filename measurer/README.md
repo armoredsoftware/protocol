@@ -4,29 +4,20 @@ PREPARATION
 
 THE FAKE ATTESTER
 
-BUILD
-
 	$make build-fakeattester
-RUN
-
+	
 	$make run-fakeattester DOMID=<relay domid>
 
 THE RELAY
 
-BUILD
-
 	$make build-relay
-RUN
 
 	$make run-relay DOMID=<attester domid>
 
 
 THE MEASURER (hotspot)
 
-BUILD
-
 	$make build-hotspot
-RUN
 
 	$make run-hotspot APP=<path to application jar>
 	
