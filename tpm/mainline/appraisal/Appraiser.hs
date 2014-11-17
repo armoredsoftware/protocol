@@ -9,7 +9,6 @@ import Provisioning
 
 import Data.Word
 import Data.Binary
---import Codec.Crypto.RSA(PublicKey)
 import Data.ByteString.Lazy (ByteString, pack, append, empty, cons, fromStrict, length)
 import Data.Bits
 import Control.Monad
@@ -37,18 +36,6 @@ mkMeasureReq = map f
 sendRequest :: Request -> IO LibXenVChan    
 sendRequest req = sendShared attId (WRequest req)
 
---sendRequest = sendR attId appName 
-{-
-sendRequest :: Request -> IO LibXenVChan
-sendRequest req = do
-  putStrLn $ "Appraiser Domain id: "++ show appId
-  chan <- client_init attId
-  putStrLn $ "\n" ++ "Appraiser Sending: "++ show (Appraisal req) ++ "\n"
-  send chan $ Appraisal req
-  return chan
--}
-  
-              
 receiveResponse :: LibXenVChan -> IO (Either String Response)--Response
 receiveResponse chan = do
                        eithershared <- receiveShared chan
@@ -57,19 +44,6 @@ receiveResponse chan = do
 			(Right (WResponse resp)) -> return (Right resp)
 			(Right x) -> return (Left ("Received unexpected type. I expected a 'Response' but here is what I received instead: " ++ (show x)))
 			 
---receiveResponse = receiveM appName
-{-
-receiveResponse :: LibXenVChan -> IO Response
-receiveResponse chan =  do
-  ctrlWait chan
-  res :: Shared <- receive chan
-  case res of 
-    Attestation response ->  do
-      putStrLn $ "\n" ++ "Appraiser Received: " ++ show res ++ "\n"
-      return response
-    otherwise ->  error quoteReceiveError --TODO: error handling?
--}
-
 --EVALUATION-------------------------------------
 
 evaluate :: Request -> Response -> IO Demo3EvalResult
@@ -114,14 +88,12 @@ evaluate (Request d pcrSelect nonce)
   putStrLn $ "SHA1 Blob Len: " ++ show shaBlobLen
   putStrLn $ "Quote Sig Length: " ++ show qSigSize
 -}
-  --putStrLn "HHHHHHHHHHHHHHHHHHHHHHHHHHHHHH"
   let r2 =  verify aikPublicKey signedQuoteInfo
       r3 = nonce == eNonce
   goldenPcrComposite <- readComp
   let r4 = pcrComposite == goldenPcrComposite
       ms = evaluateEvidence d eList 
   return (r1, r2, r3, r4, ms)
-  
   
 type Demo3EvalResult = (Bool, Bool, Bool, Bool, [MeasureEval])
 
@@ -200,6 +172,73 @@ readPubCA = do
   hClose handle
   return pubKey
 
+--Error messages(only for debugging, at least for now)
+quoteReceiveError :: String
+quoteReceiveError = "Appraiser did not receive a Quote as expected"
+
+noGolden :: String
+noGolden = "No Golden Value for measurement #"
+
+{-
+m0Val :: M0Rep
+m0Val = cons (bit 0) empty
+
+m1Val :: M1Rep
+m1Val = cons (bit 1) empty
+-}
+
+
+readPubEK :: IO TPM_PUBKEY
+readPubEK = do
+  handle <- openFile exportEKFileName ReadMode
+  pubKeyString <- hGetLine handle
+  let pubKey :: TPM_PUBKEY
+      pubKey = read pubKeyString
+  hClose handle
+  return pubKey
+  
+  
+{-
+testRequest :: IO Request
+testRequest = do 
+  (pcrSelect, nonce) <- mkTPMRequest ([0..23]::[Word8])
+  let mReq = mkMeasureReq [0..2]
+  return (Request mReq pcrSelect nonce)
+
+testResponse :: IO Response
+testResponse = do 
+  pubKey <- readPubEK
+  comp <- readComp
+  putStrLn $ show comp
+  let caCert = Signed pubKey m1Val
+      quote = Quote comp (fromStrict (Char8.pack "hello")) --m0Val
+  
+  return $ Response evPack caCert quote
+
+ where evPack = EvidencePackage [M0 m0Val, M1 m1Val] (TPM_NONCE m1Val)                                                     m1Val
+
+-}  
+  
+  
+  
+{-  
+goldenFileName :: String 
+goldenFileName= "goldenPcrComosite.txt"
+
+exportEKFileName = "attEKPubKey.txt"
+-}
+
+
+{-
+readComp :: IO TPM_PCR_COMPOSITE
+readComp = do
+  handle <- openFile goldenFileName ReadMode
+  compString <- hGetLine handle
+  let comp :: TPM_PCR_COMPOSITE
+      comp = read compString
+  hClose handle
+  return comp
+-}
 
 
 {-
@@ -221,74 +260,4 @@ receivePubKeyResponse chan = do
   putStrLn $ "\n" ++ "Appraiser Received: " ++ "Pubkey Response: " 
                   ++ show resp ++ "\n"
   return resp
--}
-
-
-
---Error messages(only for debugging, at least for now)
-quoteReceiveError :: String
-quoteReceiveError = "Appraiser did not receive a Quote as expected"
-
-noGolden :: String
-noGolden = "No Golden Value for measurement #"
-
-
-
-
-
-
-{-
-testRequest :: IO Request
-testRequest = do 
-  (pcrSelect, nonce) <- mkTPMRequest ([0..23]::[Word8])
-  let mReq = mkMeasureReq [0..2]
-  return (Request mReq pcrSelect nonce)
-
-testResponse :: IO Response
-testResponse = do 
-  pubKey <- readPubEK
-  comp <- readComp
-  putStrLn $ show comp
-  let caCert = Signed pubKey m1Val
-      quote = Quote comp (fromStrict (Char8.pack "hello")) --m0Val
-  
-  return $ Response evPack caCert quote
-
- where evPack = EvidencePackage [M0 m0Val, M1 m1Val] (TPM_NONCE m1Val)                                                     m1Val
-
--}
-
-m0Val :: M0Rep
-m0Val = cons (bit 0) empty
-
-m1Val :: M1Rep
-m1Val = cons (bit 1) empty
-
-
-readPubEK :: IO TPM_PUBKEY
-readPubEK = do
-  handle <- openFile exportEKFileName ReadMode
-  pubKeyString <- hGetLine handle
-  let pubKey :: TPM_PUBKEY
-      pubKey = read pubKeyString
-  hClose handle
-  return pubKey
-  
-{-  
-goldenFileName :: String 
-goldenFileName= "goldenPcrComosite.txt"
-
-exportEKFileName = "attEKPubKey.txt"
--}
-
-
-{-
-readComp :: IO TPM_PCR_COMPOSITE
-readComp = do
-  handle <- openFile goldenFileName ReadMode
-  compString <- hGetLine handle
-  let comp :: TPM_PCR_COMPOSITE
-      comp = read compString
-  hClose handle
-  return comp
 -}

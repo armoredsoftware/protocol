@@ -61,24 +61,7 @@ updateTrue :: Int -> [Bool] -> [Bool]
 updateTrue ind bs
 	| (ind == 0) = bs
 	| otherwise = setTrueAt ind bs
-buildX :: [Int] -> [Bool]
-buildX [] = []
-buildX xs = buildX' allTrue xs
- where  allTrue = replicate numChecks True
-        numChecks = 7
-	buildX' :: [Bool] -> [Int] -> [Bool]
-	buildX' inits xs
-		| (null xs) = inits
-		| otherwise = let x = head xs
-				  xs' = tail xs
-				  new = updateFalse x inits in
-			        		buildX' new xs'
-{-
-stepFalse :: Int -> [Bool] -> [Bool]
-stepFalse ind = do
-updateFalse ind
-updateTrue (ind - 1)
--}
+
 
 appName :: String
 appName = "Appraiser"
@@ -191,13 +174,7 @@ signPack :: (Binary a{-, Signable a-}) => PriKey -> a -> Signed a
 signPack priKey x = Signed x sig
   where sig = sign priKey x
 
-
-
-
-
 --instance Signable TPM_QUOTE_INFO
-
-
 
 data Shared   = WRequest Request
               | WResponse Response

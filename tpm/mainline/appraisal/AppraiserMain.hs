@@ -7,16 +7,7 @@ import TPM.Cipher
 import Data.Binary
 import Control.Monad
 
-
 --main = do replicateM_ 10 $ main'
-
-
-
-
-
-
-
-
 main = do 
   putStrLn "START main of Appraiser"
   (pcrSelect, nonce) <- mkTPMRequest ([0..23]::[Word8])

@@ -19,10 +19,6 @@ import System.IO
 import OpenSSL (withOpenSSL)
 import AttesterCAComm
 
-
-
-
-
 takeInit :: IO TPM_PUBKEY
 takeInit = do 
   tpm_forceclear tpm
@@ -38,7 +34,6 @@ takeInit = do
  where oPass = tpm_digest_pass ownerPass
        sPass = tpm_digest_pass srkPass
        
-
 attGetPubKey :: TPM_KEY_HANDLE -> TPM_DIGEST -> IO TPM_PUBKEY
 attGetPubKey handle pass = do
   shn <- tpm_session_oiap tpm
@@ -96,15 +91,12 @@ doExportReq fileName comp =
 
 attProcess :: [Bool] -> Att ()
 attProcess bs = do
-  {-putStrLn "OPENING CHAN"
-  chan <- liftIO $ server_init appId -}
   apprChan <- getAppChan
   measChan <- getMeaChan
   priCaChan <- getPriChan
   liftIO $ putStrLn "RECEIVING REQUEST..."
   req <- liftIO $ receiveRequest apprChan
   put $ AttState bs measChan apprChan priCaChan
- -- liftIO takeInit
   resp <- mkResponse req
   liftIO $ putStrLn "Sending Response"
   liftIO $ sendResponse apprChan resp
@@ -116,28 +108,14 @@ mkResponse :: Either String Request -> Att Response
 mkResponse (Right req) = do
   
   x@(iKeyHandle, iSig) <- liftIO $ createAndLoadIdentKey
-  --(sigKeyHandle, _) <- liftIO $ createAndLoadIdentKey
-  
-  {-
-  c2b <- c2
-  (keyHandle, keyPass) <- liftIO $ case c2b of 
-    True -> return (iKeyHandle, iPass)
-    False -> return (iKeyHandle, iPass)
--}
-  
+
   caChan <- getPriChan
   c1b <- c1
   caCert <-liftIO $  case c1b of 
     True -> getCACert x caChan
     False ->getBadCACert iKeyHandle
                                     
-
-  
   resp <- mkResponse' req caCert iKeyHandle iPass
-  {-case c2b of 
-    True ->  liftIO $ tpm_flushspecific tpm sigKeyHandle tpm_rt_key  --Evict key 
-    False -> liftIO $ tpm_flushspecific tpm iKeyHandle tpm_rt_key  --Evict key
-  -}  
   return resp
  where iPass = tpm_digest_pass "i"
        sigPass = tpm_digest_pass "s"
@@ -151,19 +129,12 @@ getBadCACert iKeyHandle = do
   where oPass = tpm_digest_pass ownerPass
         iPass = tpm_digest_pass "i"
   
-
-
 getCACert :: (TPM_KEY_HANDLE, ByteString) -> LibXenVChan 
                     -> IO CACertificate
 getCACert (iKeyHandle, iSig) caChan = do
   pubKey <- attGetPubKey iKeyHandle iPass
   --sendPubKeyResponse chan pubKey -- TODO:  Maybe send signing pubkey too
   let caRequest = mkCARequest iPass pubKey iSig
-  doExport' caFile caRequest
-  --putStrLn "\n BEFORE sendCARequest"
---  sendCARequest caChan caRequest
-  --putStrLn "\n AFTER sendCARequest"
- -- eitherCAResponse <- receiveCAResponse caChan
   putStrLn "ABOUT TO CONVERSE WITH SCOTTYCA"
   eitherCAResponse <- converseWithScottyCA caRequest
   putStrLn "I MADE IT PAST CONVERSING WITH SCOTTYCA"
@@ -194,13 +165,11 @@ getCACert (iKeyHandle, iSig) caChan = do
 
  where oPass = tpm_digest_pass ownerPass
        iPass = tpm_digest_pass "i"
-       
-       
+              
 mkResponse' :: Request -> CACertificate -> TPM_KEY_HANDLE 
                         -> TPM_DIGEST -> Att Response
 mkResponse' (Request desiredE pcrSelect nonce) caCert 
                      qKeyHandle qKeyPass= do
-
 
   c5b <- c5
   c6b <- c6
@@ -209,26 +178,19 @@ mkResponse' (Request desiredE pcrSelect nonce) caCert
     True -> getEvidence desiredE
     False -> getBadEvidence desiredE
                         
-  --putStrLn $ show eList
-  {-
-  sigShn <- tpm_session_oiap tpm
-  eSig <- tpm_sign tpm sigShn sKeyHandle sigPass evBlobSha1
-  tpm_session_close tpm sigShn
-  --putStrLn "evBlob signed"
-  CHANGE THIS WHEN READY TO DO REAL SIGN 
-  -}
                     
   c3b <- c3
   qnonce <- liftIO $ case c3b of 
     True -> return nonce
     False -> nonce_create --badnonce created here
     
-  let evBlob = ePack eList qnonce caCert --aikPubKey
+  let evBlob = ePack eList qnonce caCert
       evBlobSha1 = bytestringDigest $ sha1 evBlob
-          
+  {-        
   liftIO $ putStrLn ("Nonce Length: " ++ (show $ Data.ByteString.Lazy.length $ encode qnonce) )
   
   liftIO $ putStrLn ("Cert Length: " ++ (show $ Data.ByteString.Lazy.length $ encode caCert) )
+-}
   c4b <- c4
   liftIO $ case c4b of
     True -> pcrReset --Revert to default PCRS here for good pcr check
@@ -239,8 +201,6 @@ mkResponse' (Request desiredE pcrSelect nonce) caCert
     True -> mkQuote qKeyHandle qKeyPass pcrSelect evBlobSha1
     False -> mkBadQuote pcrSelect evBlobSha1
              
-             
- -- quote <- liftIO $ mkQuote qKeyHandle qKeyPass pcrSelect evBlobSha1
   let eSig = empty --TEMPORARY
       evPack = (EvidencePackage eList qnonce eSig)
   liftIO $ tpm_flushspecific tpm qKeyHandle tpm_rt_key  --Evict loaded key
@@ -256,27 +216,23 @@ mkResponse' (Request desiredE pcrSelect nonce) caCert
        iPass = tpm_digest_pass "i"
        sigPass = tpm_digest_pass "s"
        
-
 mkBadQuote :: TPM_PCR_SELECTION -> ByteString -> IO Quote
 mkBadQuote pcrSelect exData = do
   pcrComp <- tpm_pcr_composite tpm pcrSelect
   let quoteInfo = TPM_QUOTE_INFO (tpm_pcr_composite_hash $ pcrComp) (TPM_NONCE exData)
-      priKey = {-snd generateBadCAKeyPair-} generateBadQuotePriKey
-  putStrLn $ "PriKey: " ++ show priKey
-  {-putStrLn $ "PriKey Length: " ++ (show $ Data.ByteString.Lazy.length $ encode priKey) -}
-  putStrLn $ "Quote blob length : " ++ (show $ Data.ByteString.Lazy.length $ encode quoteInfo) ++ "\n"
+      priKey = generateBadQuotePriKey
+  {-putStrLn $ "PriKey: " ++ show priKey
+  putStrLn $ "Quote blob length : " ++ (show $ Data.ByteString.Lazy.length $ encode quoteInfo) ++ "\n" 
+-}
   let qSig = sign priKey quoteInfo
   return (Quote pcrComp qSig)
 
 getEvidence :: DesiredEvidence -> Att [EvidencePiece]  
 getEvidence desiredE = do
-  --chan <- client_init meaId
   chan <- getMeaChan
-  --eList <- mapM (getEvidencePiece chan) desiredE
   eitherElist' <- liftIO $ mapM (getEvidencePiece chan) (desiredE ++ [DONE])
   let eitherElist = init eitherElist'
-      -- eitherElist :: [ (Either String EvidencePiece) ] 
-      --close chan
+
   let bools = map isAllRight eitherElist
   case and bools of 
     True -> let eList = map extractRight eitherElist in
@@ -310,8 +266,6 @@ getBadEvidence desiredE = do
 
   return [M0 m0Val, M1 m1Val, M2 m2Val] 
 
-
-       
 mkQuote :: TPM_KEY_HANDLE -> TPM_DIGEST -> TPM_PCR_SELECTION 
                   -> ByteString -> IO Quote 
 mkQuote qKeyHandle qKeyPass pcrSelect exData = do 
@@ -334,18 +288,6 @@ pcrReset = do
   putStrLn $ show val
   return val
 
-  {-
-  dflt <- tpm_pcr_read tpm (fromIntegral 22)
-  putStrLn $ show dflt
-  val <- tpm_pcr_read tpm (fromIntegral 23)
-  putStrLn $ show val
-  tot <- tpm_getcap_pcrs tpm
-  new <- tpm_pcr_extend tpm (fromIntegral pcrNum) dflt
-  putStrLn $ show val
-  return new
--}
-
-   
 pcrNum :: Int
 pcrNum = 23
        
@@ -356,10 +298,7 @@ isDone ed = case ed of DONE -> True
 getEvidencePiece :: LibXenVChan -> EvidenceDescriptor -> IO (Either String EvidencePiece)
 getEvidencePiece chan ed = do
       putStrLn $ "\n" ++ "Attestation Agent Sending: " ++ show ed
-      --send chan ed
       sendShared' chan (WEvidenceDescriptor ed) 
-      --ctrlWait chan
-      --  evidence :: EvidencePiece <- receive chan --TODO:  error handling
       eitherSharedEvidence <- receiveShared chan 
       case (eitherSharedEvidence) of
         (Left err) -> return (Left err)
@@ -367,10 +306,7 @@ getEvidencePiece chan ed = do
           putStrLn $ "Received: " ++ show ep
           return (Right (ep))
         (Right x) -> return (Left ("I expected EvidencePiece but received: " ++ (show x)))
---  putStrLn $ "Received: " ++ show evidence
---  return evidence
-  
---receiveRequest :: LibXenVChan -> IO Request
+
 receiveRequest :: LibXenVChan -> IO (Either String Request)
 receiveRequest chan = do
 		   eithershared <- receiveShared chan
@@ -380,32 +316,12 @@ receiveRequest chan = do
                                                                                 (show r)
                                                    return (Right r)
 			(Right x) -> return (Left ("Received correctly, but was an unexpected type. I expected a 'Response' but here is what I received instead: " ++ (show x)))
---receiveRequest = receiveM attName
-{-
-receiveRequest :: LibXenVChan -> IO Request
-receiveRequest chan = do
-  ctrlWait chan
-  res :: Shared <- receive chan
-  case res of
-    Appraisal req -> do
-      putStrLn $ "\n" ++ "Attester Received: " ++ show res ++ "\n"
-      return req
-    otherwise -> error requestReceiveError 
--}
-    
+
 sendResponse :: LibXenVChan -> Response-> IO ()   
 sendResponse chan response = do
 				sendShared' chan (WResponse response) 
                                 putStrLn $ "Sent: " ++ (show response)
 				return ()
---sendResponse = sendM attName
-{-
-sendResponse :: LibXenVChan -> Response-> IO ()   
-sendResponse chan resp = do
-  putStrLn $ "Attester Sending: " ++ show (Attestation resp) ++ "\n"
-  send chan $ Attestation resp
-  return () 
--}
 
 mkCARequest :: TPM_DIGEST -> TPM_PUBKEY -> Signature -> CARequest
 mkCARequest privCALabel iPubKey iSig = 
@@ -415,20 +331,7 @@ mkCARequest privCALabel iPubKey iSig =
   
 sendCARequest :: LibXenVChan -> CARequest -> IO ()
 sendCARequest chan careq = sendShared' chan (WCARequest careq) 
---sendCARequest = sendR caId attName
 
-{-
-sendCARequest :: CARequest -> IO LibXenVChan
-sendCARequest req = do
-  chan <- client_init caId
-  putStrLn $ "\n" ++ "Attestation Sending: "++ 
-                  "CA Request: " ++ (show req) ++ "\n"
-  send chan $ req
-  return chan
--}
-
-
---receiveCAResponse :: LibXenVChan -> IO CAResponse
 receiveCAResponse :: LibXenVChan -> IO (Either String CAResponse)
 receiveCAResponse chan = do
 			eithershared <- receiveShared chan
@@ -436,6 +339,14 @@ receiveCAResponse chan = do
 				(Left err) 			-> return (Left err)
 				(Right (WCAResponse caresp)) 	-> return (Right caresp)
 				(Right x) 			-> return (Left ("Received unexpected type. I expected a 'CAResponse' but here is what I received instead: " ++ (show x)))
+
+--Error messages(only for debugging, at least for now)
+requestReceiveError :: String
+requestReceiveError = "Attester did not receive a Request as expected"
+
+caReceiveError :: String
+caReceiveError = "Attester did not receive a CAResponse as expected"
+
 --receiveCAResponse = receiveM attName
 
 {-
@@ -466,11 +377,3 @@ sendPubKeyResponse chan iPubKey = do
   send chan iPubKey
   return () 
 -}
-
-    
---Error messages(only for debugging, at least for now)
-requestReceiveError :: String
-requestReceiveError = "Attester did not receive a Request as expected"
-
-caReceiveError :: String
-caReceiveError = "Attester did not receive a CAResponse as expected"
