@@ -1,4 +1,17 @@
+current_dir = $(shell pwd)
+
 all: build-hotspot
+
+preparejava:
+	export JAVA_HOME=$(current_dir)/jdk1.6.0_45; echo $$JAVA_HOME
+	export PATH=$(current_dir)/jdk1.6.0_45/bin:$$PATH
+	export ALT_BOOTDIR=$(current_dir)/jdk1.6.0_45
+	export LD_LIBRARY_PATH=$$LD_LIBRARY_PATH:$(current_dir)/hotspot/build/linux/linux_i486_compiler1/jvmg
+	echo $$JAVA_HOME
+
+preparejava2:
+	source javasetup
+
 
 build-hotspot: 
 	cd hotspot/make; make jvmg1
