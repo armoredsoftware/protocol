@@ -4,7 +4,7 @@ COMMON_path = ../../../code/experiments/vchanTestCentOS_1/common/common.c
 INCLUDE_path = ../../../code/experiments/vchanTestCentOS_1/include/
 
 
-all: build-hotspot
+all: build-hotspot build-relay build-fakeattester
 
 build-hotspot-prepjava:
 	export JAVA_HOME=$(current_dir)/jdk1.6.0_45
@@ -23,6 +23,12 @@ build-relay:
 
 build-fakeattester:
 	cd relay; make build-fakeattester 
+
+run-hotspot:
+	export JAVA_HOME=$(current_dir)/jdk1.6.0_45;export PATH=$(current_dir)/jdk1.6.0_45/bin:$$PATH;export ALT_BOOTDIR=$(current_dir)/jdk1.6.0_45;export LD_LIBRARY_PATH=$$LD_LIBRARY_PATH:$(current_dir)/hotspot/build/linux/linux_i486_compiler1/jvmg;/root/Research/hotspot/build/linux/linux_i486_compiler1/jvmg/gamma -jar $(APP)
+
+run-hotspot-hackableloop:
+	export JAVA_HOME=$(current_dir)/jdk1.6.0_45;export PATH=$(current_dir)/jdk1.6.0_45/bin:$$PATH;export ALT_BOOTDIR=$(current_dir)/jdk1.6.0_45;export LD_LIBRARY_PATH=$$LD_LIBRARY_PATH:$(current_dir)/hotspot/build/linux/linux_i486_compiler1/jvmg;/root/Research/hotspot/build/linux/linux_i486_compiler1/jvmg/gamma -jar applications/loop-hackable/ControlVar.jar
 
 run-relay:
 	cd relay; make run-relay DOMID=$(DOMID)
