@@ -1,5 +1,5 @@
-COMMON_path = /root/code/experiments/vchanTestCentOS_1/common/common.c
-INCLUDE_path = /root/code/experiments/vchanTestCentOS_1/include/
+COMMON_path = ../../../code/experiments/vchanTestCentOS_1/common/common.c
+INCLUDE_path = ../../../code/experiments/vchanTestCentOS_1/include/
 
 build: build-relay build-fakeattester
 
@@ -10,10 +10,16 @@ build-fakeattester:
 	gcc fakeattester.c -o fakeattester $(COMMON_path) -lxenvchan -lxenctrl -I$(INCLUDE_path)
 
 run-relay:
-	./relay 1 $(ATTESTER_DOMID)
+	modprobe xen_gntalloc
+	modprobe xen_evtchn
+	modprobe xen_gntdev
+	./relay 1 $(DOMID)
 
 run-fakeattester:
-	./fakeattester 0 $(RELAY_ID)
+	modprobe xen_gntalloc
+	modprobe xen_evtchn
+	modprobe xen_gntdev
+	./fakeattester 0 $(DOMID)
 
 clean:
 	rm -rf *o relay fakeattester
