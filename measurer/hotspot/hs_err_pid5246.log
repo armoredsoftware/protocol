@@ -1,0 +1,305 @@
+#
+# A fatal error has been detected by the Java Runtime Environment:
+#
+#  Internal Error (/projects/zephyr/deadzone/hotspot/src/os_cpu/linux_x86/vm/thread_linux_x86.hpp:34), pid=5246, tid=3761515328
+#  assert(has_last_Java_frame()) failed: must have last_Java_sp() when suspended
+#
+# JRE version: 6.0_45-b06
+# Java VM: OpenJDK Client VM (21.0-b17-internal-jvmg mixed mode linux-x86 )
+# Failed to write core dump. Core dumps have been disabled. To enable core dumping, try "ulimit -c unlimited" before starting Java again
+#
+# If you would like to submit a bug report, please visit:
+#   http://bugreport.sun.com/bugreport/crash.jsp
+#
+
+---------------  T H R E A D  ---------------
+
+Current thread (0xf689d800):  VMThread [stack: 0xe02c2000,0xe0343000] [id=5248]
+
+Stack: [0xe02c2000,0xe0343000],  sp=0xe0341a60,  free space=510k
+Native frames: (J=compiled Java code, j=interpreted, Vv=VM code, C=native code)
+V  [libjvm.so+0x59a23e]  VMError::report(outputStream*)+0xc9e
+V  [libjvm.so+0x59b273]  VMError::report_and_die()+0x67d
+V  [libjvm.so+0x241653]  report_vm_error(char const*, int, char const*, char const*)+0x7f
+V  [libjvm.so+0x17b1a0]  JavaThread::pd_last_frame()+0x50
+V  [libjvm.so+0x17b146]  JavaThread::last_frame()+0x30
+V  [libjvm.so+0x563567]  JavaThread::last_java_vframe(RegisterMap*)+0x59
+V  [libjvm.so+0x5634c5]  JavaThread::trace_stack()+0x91
+V  [libjvm.so+0x5c13d4]  VM_MonitorAction::doit()+0x8c
+V  [libjvm.so+0x5c023e]  VM_Operation::evaluate()+0x60
+V  [libjvm.so+0x5bef78]  VMThread::evaluate_operation(VM_Operation*)+0x3c
+V  [libjvm.so+0x5bf3e1]  VMThread::loop()+0x3e3
+V  [libjvm.so+0x5becb1]  VMThread::run()+0xf3
+V  [libjvm.so+0x4897b6]  java_start(Thread*)+0x1b4
+C  [libpthread.so.0+0x6d8a]  start_thread+0xca
+
+VM_Operation (0xdfcfefec): Dummy, mode: safepoint, requested by thread 0xe0015000
+
+
+---------------  P R O C E S S  ---------------
+
+Java Threads: ( => current thread )
+  0xe0019800 JavaThread "Low Memory Detector" daemon [_thread_blocked, id=5255, stack(0xdfbdd000,0xdfc2e000)]
+  0xe0017000 JavaThread "C1 CompilerThread0" daemon [_thread_blocked, id=5254, stack(0xdfc2e000,0xdfcaf000)]
+  0xe0015000 JavaThread "Signal Dispatcher" daemon [_thread_blocked, id=5253, stack(0xdfcaf000,0xdfd00000)]
+  0xf68b4800 JavaThread "Finalizer" daemon [_thread_blocked, id=5252, stack(0xe0220000,0xe0271000)]
+  0xf68b2800 JavaThread "Reference Handler" daemon [_thread_blocked, id=5251, stack(0xe0271000,0xe02c2000)]
+  0xf6818000 JavaThread "main" [_thread_blocked, id=5247, stack(0xf6948000,0xf6999000)]
+
+Other Threads:
+=>0xf689d800 VMThread [stack: 0xe02c2000,0xe0343000] [id=5248]
+  0xe001c400 WatcherThread [stack: 0xdfb5c000,0xdfbdd000] [id=5256]
+
+VM state:at safepoint (normal execution)
+
+VM Mutex/Monitor currently owned by a thread:  ([mutex/lock_event])
+[0xf6815f18] Threads_lock - owner thread: 0xf689d800
+
+Heap
+ def new generation   total 4992K, used 1129K [0xe0650000, 0xe0bb0000, 0xe5ba0000)
+  eden space 4480K,  25% used [0xe0650000, 0xe076a408, 0xe0ab0000)
+  from space 512K,   0% used [0xe0ab0000, 0xe0ab0000, 0xe0b30000)
+  to   space 512K,   0% used [0xe0b30000, 0xe0b30000, 0xe0bb0000)
+ tenured generation   total 10944K, used 377K [0xe5ba0000, 0xe6650000, 0xf0650000)
+   the space 10944K,   3% used [0xe5ba0000, 0xe5bfe6c0, 0xe5bfe800, 0xe6650000)
+ compacting perm gen  total 12288K, used 2347K [0xf0650000, 0xf1250000, 0xf4650000)
+   the space 12288K,  19% used [0xf0650000, 0xf089aff8, 0xf089b000, 0xf1250000)
+No shared spaces configured.
+
+Code Cache  [0xf46d9000, 0xf47f9000, 0xf66d9000)
+ total_blobs=236 nmethods=109 adapters=69 free_code_cache=31623Kb largest_free_block=32382400
+
+Dynamic libraries:
+08048000-0804f000 r-xp 00000000 00:2a 45661625                           /nfs/projects/zephyr/deadzone/hotspot/build/linux/linux_i486_compiler1/jvmg/gamma
+0804f000-08050000 r--p 00006000 00:2a 45661625                           /nfs/projects/zephyr/deadzone/hotspot/build/linux/linux_i486_compiler1/jvmg/gamma
+08050000-08051000 rw-p 00007000 00:2a 45661625                           /nfs/projects/zephyr/deadzone/hotspot/build/linux/linux_i486_compiler1/jvmg/gamma
+08b3c000-08b5d000 rw-p 00000000 00:00 0                                  [heap]
+488f7000-48916000 r-xp 00000000 08:03 2765464                            /usr/lib/ld-2.18.so
+48917000-48918000 r--p 0001f000 08:03 2765464                            /usr/lib/ld-2.18.so
+48918000-48919000 rw-p 00020000 08:03 2765464                            /usr/lib/ld-2.18.so
+4891b000-48ad3000 r-xp 00000000 08:03 2777597                            /usr/lib/libc-2.18.so
+48ad3000-48ad5000 r--p 001b8000 08:03 2777597                            /usr/lib/libc-2.18.so
+48ad5000-48ad6000 rw-p 001ba000 08:03 2777597                            /usr/lib/libc-2.18.so
+48ad6000-48ad9000 rw-p 00000000 00:00 0 
+df800000-df821000 rw-p 00000000 00:00 0 
+df821000-df900000 ---p 00000000 00:00 0 
+dfa00000-dfa92000 rw-p 00000000 00:00 0 
+dfa92000-dfb00000 ---p 00000000 00:00 0 
+dfb32000-dfb5c000 r--s 001d4000 00:2a 45661630                           /nfs/projects/zephyr/deadzone/hotspot/scratch/jar/avrora-cvs-20091224.jar
+dfb5c000-dfb5d000 ---p 00000000 00:00 0 
+dfb5d000-dfbdd000 rwxp 00000000 00:00 0                                  [stack:5256]
+dfbdd000-dfbe0000 ---p 00000000 00:00 0 
+dfbe0000-dfc2e000 rwxp 00000000 00:00 0                                  [stack:5255]
+dfc2e000-dfc31000 ---p 00000000 00:00 0 
+dfc31000-dfcaf000 rwxp 00000000 00:00 0                                  [stack:5254]
+dfcaf000-dfcb2000 ---p 00000000 00:00 0 
+dfcb2000-dfd00000 rwxp 00000000 00:00 0                                  [stack:5253]
+dfd00000-dff00000 r--p 00000000 08:03 3030047                            /usr/lib/locale/locale-archive
+dff00000-dff21000 rw-p 00000000 00:00 0 
+dff21000-e0000000 ---p 00000000 00:00 0 
+e0000000-e0100000 rw-p 00000000 00:00 0 
+e0100000-e0200000 rw-p 00000000 00:00 0 
+e0220000-e0223000 ---p 00000000 00:00 0 
+e0223000-e0271000 rwxp 00000000 00:00 0                                  [stack:5252]
+e0271000-e0274000 ---p 00000000 00:00 0 
+e0274000-e02c2000 rwxp 00000000 00:00 0                                  [stack:5251]
+e02c2000-e02c3000 ---p 00000000 00:00 0 
+e02c3000-e0343000 rwxp 00000000 00:00 0                                  [stack:5248]
+e0343000-e0377000 rw-p 00000000 00:00 0 
+e0377000-e0510000 r--s 03087000 00:2a 42072734                           /nfs/projects/zephyr/deadzone/java/jdk1.6.0_45/jre/lib/rt.jar
+e0510000-e0538000 rw-p 00000000 00:00 0 
+e0538000-e053f000 rw-p 00000000 00:00 0 
+e053f000-e0559000 rw-p 00000000 00:00 0 
+e0559000-e055f000 rw-p 00000000 00:00 0 
+e055f000-e05af000 rw-p 00000000 00:00 0 
+e05af000-e05b2000 rw-p 00000000 00:00 0 
+e05b2000-e05d9000 rw-p 00000000 00:00 0 
+e05d9000-e05df000 rw-p 00000000 00:00 0 
+e05df000-e062f000 rw-p 00000000 00:00 0 
+e062f000-e0635000 rw-p 00000000 00:00 0 
+e0635000-e064f000 rw-p 00000000 00:00 0 
+e064f000-e0650000 rw-p 00000000 00:00 0 
+e0650000-e0ba0000 rw-p 00000000 00:00 0 
+e0ba0000-e0bb0000 rw-p 00000000 00:00 0 
+e0bb0000-e5ba0000 rw-p 00000000 00:00 0 
+e5ba0000-e6650000 rw-p 00000000 00:00 0 
+e6650000-f0650000 rw-p 00000000 00:00 0 
+f0650000-f1250000 rw-p 00000000 00:00 0 
+f1250000-f4650000 rw-p 00000000 00:00 0 
+f4659000-f465a000 rw-p 00000000 00:00 0 
+f465a000-f465b000 rw-p 00000000 00:00 0 
+f465b000-f465c000 rw-p 00000000 00:00 0 
+f465c000-f465d000 rw-p 00000000 00:00 0 
+f465d000-f465e000 rw-p 00000000 00:00 0 
+f465e000-f46d9000 rw-p 00000000 00:00 0 
+f46d9000-f4701000 rwxp 00000000 00:00 0 
+f4701000-f4709000 rwxp 00000000 00:00 0 
+f4709000-f4711000 rwxp 00000000 00:00 0 
+f4711000-f4719000 rwxp 00000000 00:00 0 
+f4719000-f4721000 rwxp 00000000 00:00 0 
+f4721000-f4729000 rwxp 00000000 00:00 0 
+f4729000-f4731000 rwxp 00000000 00:00 0 
+f4731000-f4739000 rwxp 00000000 00:00 0 
+f4739000-f4741000 rwxp 00000000 00:00 0 
+f4741000-f4749000 rwxp 00000000 00:00 0 
+f4749000-f4751000 rwxp 00000000 00:00 0 
+f4751000-f4759000 rwxp 00000000 00:00 0 
+f4759000-f4761000 rwxp 00000000 00:00 0 
+f4761000-f4769000 rwxp 00000000 00:00 0 
+f4769000-f4771000 rwxp 00000000 00:00 0 
+f4771000-f4779000 rwxp 00000000 00:00 0 
+f4779000-f4781000 rwxp 00000000 00:00 0 
+f4781000-f4789000 rwxp 00000000 00:00 0 
+f4789000-f4791000 rwxp 00000000 00:00 0 
+f4791000-f4799000 rwxp 00000000 00:00 0 
+f4799000-f47a1000 rwxp 00000000 00:00 0 
+f47a1000-f47a9000 rwxp 00000000 00:00 0 
+f47a9000-f47b1000 rwxp 00000000 00:00 0 
+f47b1000-f47b9000 rwxp 00000000 00:00 0 
+f47b9000-f47c1000 rwxp 00000000 00:00 0 
+f47c1000-f47c9000 rwxp 00000000 00:00 0 
+f47c9000-f47d1000 rwxp 00000000 00:00 0 
+f47d1000-f47d9000 rwxp 00000000 00:00 0 
+f47d9000-f47e1000 rwxp 00000000 00:00 0 
+f47e1000-f47e9000 rwxp 00000000 00:00 0 
+f47e9000-f47f1000 rwxp 00000000 00:00 0 
+f47f1000-f47f9000 rwxp 00000000 00:00 0 
+f47f9000-f66d9000 rw-p 00000000 00:00 0 
+f66d9000-f66e4000 r-xp 00000000 08:03 2777622                            /usr/lib/libnss_files-2.18.so
+f66e4000-f66e5000 r--p 0000a000 08:03 2777622                            /usr/lib/libnss_files-2.18.so
+f66e5000-f66e6000 rw-p 0000b000 08:03 2777622                            /usr/lib/libnss_files-2.18.so
+f66e6000-f67e6000 rw-p 00000000 00:00 0 
+f67e6000-f67fc000 r-xp 00000000 08:03 2777614                            /usr/lib/libnsl-2.18.so
+f67fc000-f67fd000 r--p 00015000 08:03 2777614                            /usr/lib/libnsl-2.18.so
+f67fd000-f67fe000 rw-p 00016000 08:03 2777614                            /usr/lib/libnsl-2.18.so
+f67fe000-f6800000 rw-p 00000000 00:00 0 
+f6800000-f68ff000 rw-p 00000000 00:00 0 
+f68ff000-f6900000 ---p 00000000 00:00 0 
+f6901000-f6905000 r--s 09f57000 00:2a 42073732                           /nfs/projects/zephyr/deadzone/benchmarks/dacapo-9.12-bach.jar
+f6905000-f6909000 r--s 09f57000 00:2a 42073732                           /nfs/projects/zephyr/deadzone/benchmarks/dacapo-9.12-bach.jar
+f6909000-f6918000 r-xp 00000000 00:2a 38886883                           /nfs/projects/zephyr/deadzone/java/jdk1.6.0_45/jre/lib/i386/libzip.so
+f6918000-f691a000 rw-p 0000e000 00:2a 38886883                           /nfs/projects/zephyr/deadzone/java/jdk1.6.0_45/jre/lib/i386/libzip.so
+f691a000-f6922000 rw-p 00000000 00:00 0 
+f6922000-f6946000 r-xp 00000000 00:2a 38886879                           /nfs/projects/zephyr/deadzone/java/jdk1.6.0_45/jre/lib/i386/libjava.so
+f6946000-f6948000 rw-p 00023000 00:2a 38886879                           /nfs/projects/zephyr/deadzone/java/jdk1.6.0_45/jre/lib/i386/libjava.so
+f6948000-f694b000 ---p 00000000 00:00 0 
+f694b000-f6999000 rwxp 00000000 00:00 0                                  [stack:5247]
+f6999000-f699a000 rw-p 00000000 00:00 0 
+f699a000-f699b000 rw-p 00000000 00:00 0 
+f699b000-f69b2000 r-xp 00000000 08:03 2777630                            /usr/lib/libpthread-2.18.so
+f69b2000-f69b3000 r--p 00016000 08:03 2777630                            /usr/lib/libpthread-2.18.so
+f69b3000-f69b4000 rw-p 00017000 08:03 2777630                            /usr/lib/libpthread-2.18.so
+f69b4000-f69b6000 rw-p 00000000 00:00 0 
+f69b6000-f69b9000 r-xp 00000000 08:03 2777610                            /usr/lib/libdl-2.18.so
+f69b9000-f69ba000 r--p 00002000 08:03 2777610                            /usr/lib/libdl-2.18.so
+f69ba000-f69bb000 rw-p 00003000 08:03 2777610                            /usr/lib/libdl-2.18.so
+f69bb000-f6a00000 r-xp 00000000 08:03 2777612                            /usr/lib/libm-2.18.so
+f6a00000-f6a01000 r--p 00044000 08:03 2777612                            /usr/lib/libm-2.18.so
+f6a01000-f6a02000 rw-p 00045000 08:03 2777612                            /usr/lib/libm-2.18.so
+f6a02000-f6a03000 rw-p 00000000 00:00 0 
+f6a03000-f6a04000 ---p 00000000 00:00 0 
+f6a04000-f6a0f000 r-xp 00000000 00:2a 38886878                           /nfs/projects/zephyr/deadzone/java/jdk1.6.0_45/jre/lib/i386/libverify.so
+f6a0f000-f6a10000 rw-p 0000b000 00:2a 38886878                           /nfs/projects/zephyr/deadzone/java/jdk1.6.0_45/jre/lib/i386/libverify.so
+f6a10000-f6a17000 r-xp 00000000 08:03 2777634                            /usr/lib/librt-2.18.so
+f6a17000-f6a18000 r--p 00006000 08:03 2777634                            /usr/lib/librt-2.18.so
+f6a18000-f6a19000 rw-p 00007000 08:03 2777634                            /usr/lib/librt-2.18.so
+f6a19000-f6a1a000 rw-p 00000000 00:00 0 
+f6a1a000-f7322000 r-xp 00000000 00:2a 45661623                           /nfs/projects/zephyr/deadzone/hotspot/build/linux/linux_i486_compiler1/jvmg/libjvm.so
+f7322000-f7332000 r--p 00908000 00:2a 45661623                           /nfs/projects/zephyr/deadzone/hotspot/build/linux/linux_i486_compiler1/jvmg/libjvm.so
+f7332000-f7344000 rw-p 00918000 00:2a 45661623                           /nfs/projects/zephyr/deadzone/hotspot/build/linux/linux_i486_compiler1/jvmg/libjvm.so
+f7344000-f77b2000 rw-p 00000000 00:00 0 
+f77b2000-f77b3000 rw-p 00000000 00:00 0 
+f77b3000-f77b4000 r-xp 00000000 00:00 0                                  [vdso]
+ff865000-ff884000 rwxp 00000000 00:00 0                                  [stack]
+ff884000-ff886000 rw-p 00000000 00:00 0 
+
+VM Arguments:
+java_command: /projects/zephyr/deadzone/benchmarks/dacapo-9.12-bach.jar -s large avrora
+Launcher Type: gamma
+
+Environment Variables:
+JAVA_HOME=/projects/zephyr/deadzone/java/jdk1.6.0_45
+PATH=/projects/zephyr/deadzone/java/jdk1.6.0_45/bin:/usr/system/bin:/usr/local/bin:/bin:/usr/bin:/usr/bin/X11:/usr/X11R6/bin:/sbin:/usr/sbin:/usr/local/sbin:/tools/matlab/bin
+USERNAME=jgevargi
+LD_LIBRARY_PATH=:/projects/zephyr/deadzone/hotspot/build/linux/linux_i486_compiler1/jvmg
+SHELL=/bin/bash
+DISPLAY=:0
+
+Signal Handlers:
+SIGSEGV: [libjvm.so+0x59bb2f], sa_mask[0]=0x7ffbfeff, sa_flags=0x10000004
+SIGBUS: [libjvm.so+0x59bb2f], sa_mask[0]=0x7ffbfeff, sa_flags=0x10000004
+SIGFPE: [libjvm.so+0x48ef4a], sa_mask[0]=0x7ffbfeff, sa_flags=0x10000004
+SIGPIPE: [libjvm.so+0x48ef4a], sa_mask[0]=0x7ffbfeff, sa_flags=0x10000004
+SIGXFSZ: [libjvm.so+0x48ef4a], sa_mask[0]=0x7ffbfeff, sa_flags=0x10000004
+SIGILL: [libjvm.so+0x48ef4a], sa_mask[0]=0x7ffbfeff, sa_flags=0x10000004
+SIGUSR1: [libjvm.so+0x48c74b], sa_mask[0]=0x7ffbfeff, sa_flags=0x10000004
+SIGUSR2: [libjvm.so+0x48e819], sa_mask[0]=0x00000000, sa_flags=0x10000004
+SIGHUP: [libjvm.so+0x48c74b], sa_mask[0]=0x7ffbfeff, sa_flags=0x10000004
+SIGINT: [libjvm.so+0x48c74b], sa_mask[0]=0x7ffbfeff, sa_flags=0x10000004
+SIGTERM: [libjvm.so+0x48c74b], sa_mask[0]=0x7ffbfeff, sa_flags=0x10000004
+SIGQUIT: [libjvm.so+0x48c74b], sa_mask[0]=0x7ffbfeff, sa_flags=0x10000004
+
+
+---------------  S Y S T E M  ---------------
+
+OS:Fedora release 20 (Heisenbug)
+
+uname:Linux 3.12.7-300.fc20.x86_64 #1 SMP Fri Jan 10 15:35:31 UTC 2014 x86_64
+libc:glibc 2.18 NPTL 2.18 
+rlimit: STACK 8192k, CORE 0k, NPROC 1024, NOFILE 4096, AS infinity
+load average:0.11 0.59 0.47
+
+/proc/meminfo:
+MemTotal:        2048444 kB
+MemFree:          226972 kB
+Buffers:             460 kB
+Cached:           308048 kB
+SwapCached:        37192 kB
+Active:          1011308 kB
+Inactive:         616832 kB
+Active(anon):     920656 kB
+Inactive(anon):   406400 kB
+Active(file):      90652 kB
+Inactive(file):   210432 kB
+Unevictable:           0 kB
+Mlocked:               0 kB
+SwapTotal:        524284 kB
+SwapFree:         246232 kB
+Dirty:                84 kB
+Writeback:             0 kB
+AnonPages:       1300708 kB
+Mapped:            50600 kB
+Shmem:              7320 kB
+Slab:              72792 kB
+SReclaimable:      41260 kB
+SUnreclaim:        31532 kB
+KernelStack:        3520 kB
+PageTables:        51292 kB
+NFS_Unstable:          0 kB
+Bounce:                0 kB
+WritebackTmp:          0 kB
+CommitLimit:     1548504 kB
+Committed_AS:    4610412 kB
+VmallocTotal:   34359738367 kB
+VmallocUsed:      352940 kB
+VmallocChunk:   34359323444 kB
+HardwareCorrupted:     0 kB
+AnonHugePages:    131072 kB
+HugePages_Total:       0
+HugePages_Free:        0
+HugePages_Rsvd:        0
+HugePages_Surp:        0
+Hugepagesize:       2048 kB
+DirectMap4k:       75816 kB
+DirectMap2M:     2019328 kB
+
+
+CPU:total 2 (2 cores per cpu, 1 threads per core) family 6 model 15 stepping 6, cmov, cx8, fxsr, mmx, sse, sse2, sse3, ssse3
+
+Memory: 4k page, physical 2048444k(226972k free), swap 524284k(246232k free)
+
+vm_info: OpenJDK Client VM (21.0-b17-internal-jvmg) for linux-x86 JRE (1.7.0), built on May  2 2014 10:16:43 by "jgevargi" with gcc 4.8.2 20131212 (Red Hat 4.8.2-7)
+
+time: Fri May  2 10:20:28 2014
+elapsed time: 2 seconds
+

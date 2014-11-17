@@ -1,0 +1,1 @@
+- Set path to 'common' and 'include' in ./relay/Makefile
