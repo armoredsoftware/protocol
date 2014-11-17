@@ -34,8 +34,13 @@ executable              Project
                         text,
                         aeson,
                         unordered-containers,
+<<<<<<< HEAD
                         transformers,
                         scotty
+=======
+                        scotty,
+                        transformers
+>>>>>>> abebf91b3c3c01f1fa8e07b49005c2104592dafa
   Main-is:              Main.hs
   ghc-options:          -O
 
@@ -62,7 +67,7 @@ executable tpmi
 
 
 executable              Attestation
-  hs-source-dirs:       api, shell, src, shared, attestation
+  hs-source-dirs:       api, shell, src, shared, attestation, ../attesterCAcomm
   build-depends:        base >= 4,
                         shell >= 1.0,
                         mtl,
@@ -82,7 +87,7 @@ executable              Attestation
                         network-uri < 2.6,
                         VChanUtil
   Main-is:              AttestationMain.hs
-  ghc-options:          -O
+  ghc-options:         
 
 executable              Appraiser
   hs-source-dirs:       api, shell, src, shared, appraisal, provisioning
