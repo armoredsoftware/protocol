@@ -15,6 +15,8 @@ int main(int argc, char **argv)
   int client= 0;
   selfId =getDomId();
   fprintf(stdout,"Client: Domain Id: %d\n", selfId);
+  xentoollog_logger_stdiostream * xc_logger;
+  xc_logger = createDebugLogger();
 
   if(argc != 3){
    fprintf(stderr,"Error: Usage ./Client [server-0, client-1] [other domId]\n");
@@ -25,9 +27,9 @@ int main(int argc, char **argv)
   sscanf(argv[2],"%d",&otherId);
 
   if (!client){
-     chan = server_init(otherId);
+    chan = vchan_server_init((xentoollog_logger *) xc_logger, otherId);
   }else{
-     chan = client_init(otherId);
+    chan = vchan_client_init((xentoollog_logger *) xc_logger, otherId);
   }
    
 
@@ -47,7 +49,7 @@ int main(int argc, char **argv)
 
     //SEND REQUEST TO ATTESTER
     libxenvchan_wait(chan);
-    msg = receive(chan,&size);
+    msg = vchan_receive(chan,&size);
     printf("Received: ");
     for(i = 0; i< size; i++){
       printf("%c",msg[i]);

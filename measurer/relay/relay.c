@@ -27,6 +27,8 @@ int main(int argc, char *argv[])
 	int selfId; // domainID of this node;
 	int otherId;
 	int client= 0;
+	xentoollog_logger_stdiostream * xc_logger;
+	xc_logger = createDebugLogger();
 	selfId =getDomId();
 	fprintf(stdout,"Client: Domain Id: %d\n", selfId);
 
@@ -39,12 +41,10 @@ int main(int argc, char *argv[])
 	sscanf(argv[2],"%d",&otherId);
 
 	if (!client){
-		chan = server_init(otherId);
+	  chan = vchan_server_init((xentoollog_logger *) xc_logger, otherId);
 	}else{
-		chan = client_init(otherId);
+	  chan = vchan_client_init((xentoollog_logger *) xc_logger, otherId);
 	}
-
-
 
 	//Sockets Prep
 
@@ -89,7 +89,7 @@ int main(int argc, char *argv[])
 			int i = 0;
 
 			libxenvchan_wait(chan);
-			msg = receive(chan,&size);
+			msg = vchan_receive(chan,&size);
 			printf("Received: ");
 			for(i = 0; i< size; i++){
 				printf("%c",msg[i]);
