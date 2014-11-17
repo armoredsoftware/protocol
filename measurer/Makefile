@@ -1,6 +1,6 @@
 all: build-hotspot
 
-build-hostpot: 
+build-hotspot: 
 	cd hotspot/make; make jvmg1
 
 build-relay:
