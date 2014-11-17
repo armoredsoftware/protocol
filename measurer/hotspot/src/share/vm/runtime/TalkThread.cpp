@@ -130,8 +130,7 @@ void TalkThread::run() {
 		}
 		else if (strncmp(recvBuff,"{\"WEvidenceDescriptor\":\"DONE\"}", 28)==0)
 		{			
-			std::string result = ExecuteOperation(3);
-			snprintf(sendBuff, sizeof(sendBuff), "{\"WEvidencePiece\":\"OK\"}\n", result.c_str());
+			snprintf(sendBuff, sizeof(sendBuff), "{\"WEvidencePiece\":\"OK\"}\n");
 		}			
 		else
 		{
