@@ -20,7 +20,7 @@ executable              Project
                         containers,
                         bytestring,
                         binary,
-                        network,
+                        network < 2.6,
                         random,
                         --network-bytestring,
                         HsOpenSSL,
@@ -34,8 +34,8 @@ executable              Project
                         text,
                         aeson,
                         unordered-containers,
-                        scotty,
-                        transformers
+                        transformers,
+                        scotty
   Main-is:              Main.hs
   ghc-options:          -O
 
@@ -48,7 +48,7 @@ executable tpmi
                         containers,
                         bytestring,
                         binary,
-                        network,
+                        network < 2.6,
                         random,
                         --network-bytestring,
                         HsOpenSSL,
@@ -62,7 +62,7 @@ executable tpmi
 
 
 executable              Attestation
-  hs-source-dirs:       api, shell, src, shared, attestation
+  hs-source-dirs:       api, shell, src, shared, attestation, ../attesterCAcomm
   build-depends:        base >= 4,
                         shell >= 1.0,
                         mtl,
@@ -70,7 +70,7 @@ executable              Attestation
                         containers,
                         bytestring,
                         binary,
-                        network,
+                        network < 2.6,
                         random,
                         --network-bytestring,
                         HsOpenSSL,
@@ -78,9 +78,11 @@ executable              Attestation
                         RSA,
                         parsec >= 3,
                         filepath,
+                        transformers,
+                        network-uri < 2.6,
                         VChanUtil
   Main-is:              AttestationMain.hs
-  ghc-options:         
+  ghc-options:          -O
 
 executable              Appraiser
   hs-source-dirs:       api, shell, src, shared, appraisal, provisioning
@@ -91,7 +93,7 @@ executable              Appraiser
                         containers,
                         bytestring,
                         binary,
-                        network,
+                        network < 2.6,
                         random,
                         --network-bytestring,
                         HsOpenSSL,
@@ -112,7 +114,7 @@ executable              Measurer
                         containers,
                         bytestring,
                         binary,
-                        network,
+                        network < 2.6,
                         random,
                         --network-bytestring,
                         HsOpenSSL,
@@ -134,7 +136,7 @@ executable              PrivacyCA
                         containers,
                         bytestring,
                         binary,
-                        network,
+                        network < 2.6,
                         random,
                         --network-bytestring,
                         HsOpenSSL,
@@ -149,7 +151,7 @@ executable              PrivacyCA
                         io-streams,
                         http-streams,
                         HTTP,
-                        network-uri
+                        network-uri < 2.6
   Main-is:              PrivacyCAMain.hs
   ghc-options:          -O
 
@@ -162,7 +164,7 @@ executable              Provisioning
                         containers,
                         bytestring,
                         binary,
-                        network,
+                        network < 2.6,
                         random,
                         --network-bytestring,
                         HsOpenSSL,
