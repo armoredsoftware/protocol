@@ -1,0 +1,4 @@
+export JAVA_HOME=/root/Research/jdk1.6.0_45
+export PATH=/root/Research/jdk1.6.0_45/bin:$PATH
+export ALT_BOOTDIR=/root/Research/jdk1.6.0_45
+export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/root/Research/hotspot/build/linux/linux_i486_compiler1/jvmg
