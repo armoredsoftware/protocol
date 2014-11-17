@@ -1,0 +1,113 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<hotspot_log version='160 1' process='29714' time_ms='1400181457094'>
+<vm_version>
+<name>
+OpenJDK Client VM
+</name>
+<release>
+21.0-b17-internal-jvmg
+</release>
+<info>
+OpenJDK Client VM (21.0-b17-internal-jvmg) for linux-x86 JRE (1.7.0), built on May 15 2014 14:10:17 by &quot;jgevargi&quot; with gcc 4.8.2 20131212 (Red Hat 4.8.2-7)
+</info>
+</vm_version>
+<vm_arguments>
+<command>
+test
+</command>
+<launcher>
+gamma
+</launcher>
+<properties>
+java.vm.specification.name=Java Virtual Machine Specification
+java.vm.version=21.0-b17-internal-jvmg
+java.vm.name=OpenJDK Client VM
+java.vm.info=mixed mode, sharing
+java.ext.dirs=/nfs/projects/zephyr/deadzone/java/jdk1.6.0_45/jre/lib/ext:/usr/java/packages/lib/ext
+java.endorsed.dirs=/nfs/projects/zephyr/deadzone/java/jdk1.6.0_45/jre/lib/endorsed
+sun.boot.library.path=/nfs/projects/zephyr/deadzone/java/jdk1.6.0_45/jre/lib/i386
+java.library.path=:/projects/zephyr/deadzone/hotspot/build/linux/linux_i486_compiler1/jvmg:/usr/java/packages/lib/i386:/lib:/usr/lib
+java.home=/nfs/projects/zephyr/deadzone/java/jdk1.6.0_45/jre
+java.class.path=.
+sun.boot.class.path=/nfs/projects/zephyr/deadzone/java/jdk1.6.0_45/jre/lib/resources.jar:/nfs/projects/zephyr/deadzone/java/jdk1.6.0_45/jre/lib/rt.jar:/nfs/projects/zephyr/deadzone/java/jdk1.6.0_45/jre/lib/sunrsasign.jar:/nfs/projects/zephyr/deadzone/java/jdk1.6.0_45/jre/lib/jsse.jar:/nfs/projects/zephyr/deadzone/java/jdk1.6.0_45/jre/lib/jce.jar:/nfs/projects/zephyr/deadzone/java/jdk1.6.0_45/jre/lib/charsets.jar:/nfs/projects/zephyr/deadzone/java/jdk1.6.0_45/jre/classes
+java.vm.specification.vendor=Sun Microsystems Inc.
+java.vm.specification.version=1.0
+java.vm.vendor=Sun Microsystems Inc.
+sun.java.command=test
+sun.java.launcher=gamma
+</properties>
+</vm_arguments>
+<tty>
+<writer thread='-541263040'/>
+
+JG: Entered signal_thread_entry()
+0.456000	0.120000
+done.
+0.537000	0.080000
+done.
+0.496000	0.078000
+done.
+0.494000	0.101000
+done.
+0.329000	0.078000
+done.
+0.461000	0.078000
+done.
+0.448000	0.078000
+done.
+0.459000	0.086000
+done.
+<writer thread='-543691968'/>
+C1 Runtime statistics:
+ _resolve_invoke_virtual_cnt:     0
+ _resolve_invoke_opt_virtual_cnt: 0
+ _resolve_invoke_static_cnt:      0
+ _handle_wrong_method_cnt:        0
+ _ic_miss_cnt:                    0
+ _generic_arraycopy_cnt:          0
+ _generic_arraycopystub_cnt:      0
+ _byte_arraycopy_cnt:             0
+ _short_arraycopy_cnt:            0
+ _int_arraycopy_cnt:              0
+ _long_arraycopy_cnt:             0
+ _primitive_arraycopy_cnt:        0
+ _oop_arraycopy_cnt (C):          0
+ _oop_arraycopy_cnt (stub):       0
+ _arraycopy_slowcase_cnt:         0
+ _arraycopy_checkcast_cnt:        0
+ _arraycopy_checkcast_attempt_cnt:0
+ _new_type_array_slowcase_cnt:    0
+ _new_object_array_slowcase_cnt:  0
+ _new_instance_slowcase_cnt:      0
+ _new_multi_array_slowcase_cnt:   0
+ _monitorenter_slowcase_cnt:      0
+ _monitorexit_slowcase_cnt:       0
+ _patch_code_slowcase_cnt:        0
+ _throw_range_check_exception_count:            0:
+ _throw_index_exception_count:                  0:
+ _throw_div0_exception_count:                   0:
+ _throw_null_pointer_exception_count:           0:
+ _throw_class_cast_exception_count:             0:
+ _throw_incompatible_class_change_error_count:  0:
+ _throw_array_store_exception_count:            0:
+ _throw_count:                                  0:
+
+<statistics type='nmethod'>
+Statistics for 4 bytecoded nmethods:
+ total in heap  = 14376
+ relocation     = 1352
+ main code      = 4320
+ stub code      = 700
+ oops           = 48
+ scopes data    = 2444
+ scopes pcs     = 4480
+ dependencies   = 20
+ nul chk table  = 188
+Debug Data Chunks: 665, shared 74+277, non-SP&apos;s elided 1
+PcDesc Statistics:  41 queries, 11.00 comparisons per query
+  caches=4 queries=41/0, hits=0+0, tests=190+261, adds=41
+</statistics>
+<tty_done stamp='16.681'/>
+</tty>
+<hotspot_log_done stamp='16.681'/>
+</hotspot_log>

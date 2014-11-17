@@ -1,0 +1,97 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<hotspot_log version='160 1' process='17519' time_ms='1415284024109'>
+<vm_version>
+<name>
+OpenJDK Client VM
+</name>
+<release>
+21.0-b17-internal-jvmg
+</release>
+<info>
+OpenJDK Client VM (21.0-b17-internal-jvmg) for linux-x86 JRE (1.7.0), built on Nov  6 2014 08:13:57 by &quot;root&quot; with gcc 4.4.7 20120313 (Red Hat 4.4.7-11)
+</info>
+</vm_version>
+<vm_arguments>
+<command>
+/root/Research/benchmarks/loop/ControlVar.jar
+</command>
+<launcher>
+gamma
+</launcher>
+<properties>
+java.vm.specification.name=Java Virtual Machine Specification
+java.vm.version=21.0-b17-internal-jvmg
+java.vm.name=OpenJDK Client VM
+java.vm.info=mixed mode, sharing
+java.ext.dirs=/root/Research/jdk1.6.0_45/jre/lib/ext:/usr/java/packages/lib/ext
+java.endorsed.dirs=/root/Research/jdk1.6.0_45/jre/lib/endorsed
+sun.boot.library.path=/root/Research/jdk1.6.0_45/jre/lib/i386
+java.library.path=:/root/Research/hotspot/build/linux/linux_i486_compiler1/jvmg:/usr/java/packages/lib/i386:/lib:/usr/lib
+java.home=/root/Research/jdk1.6.0_45/jre
+java.class.path=/root/Research/benchmarks/loop/ControlVar.jar
+sun.boot.class.path=/root/Research/jdk1.6.0_45/jre/lib/resources.jar:/root/Research/jdk1.6.0_45/jre/lib/rt.jar:/root/Research/jdk1.6.0_45/jre/lib/sunrsasign.jar:/root/Research/jdk1.6.0_45/jre/lib/jsse.jar:/root/Research/jdk1.6.0_45/jre/lib/jce.jar:/root/Research/jdk1.6.0_45/jre/lib/charsets.jar:/root/Research/jdk1.6.0_45/jre/classes
+java.vm.specification.vendor=Sun Microsystems Inc.
+java.vm.specification.version=1.0
+java.vm.vendor=Sun Microsystems Inc.
+sun.java.command=/root/Research/benchmarks/loop/ControlVar.jar
+sun.java.launcher=gamma
+</properties>
+</vm_arguments>
+<tty>
+<writer thread='4606832'/>
+
+JG: Entered signal_thread_entry()
+<writer thread='80313200'/>
+C1 Runtime statistics:
+ _resolve_invoke_virtual_cnt:     0
+ _resolve_invoke_opt_virtual_cnt: 0
+ _resolve_invoke_static_cnt:      0
+ _handle_wrong_method_cnt:        0
+ _ic_miss_cnt:                    0
+ _generic_arraycopy_cnt:          0
+ _generic_arraycopystub_cnt:      0
+ _byte_arraycopy_cnt:             0
+ _short_arraycopy_cnt:            0
+ _int_arraycopy_cnt:              0
+ _long_arraycopy_cnt:             0
+ _primitive_arraycopy_cnt:        0
+ _oop_arraycopy_cnt (C):          0
+ _oop_arraycopy_cnt (stub):       0
+ _arraycopy_slowcase_cnt:         0
+ _arraycopy_checkcast_cnt:        0
+ _arraycopy_checkcast_attempt_cnt:0
+ _new_type_array_slowcase_cnt:    0
+ _new_object_array_slowcase_cnt:  0
+ _new_instance_slowcase_cnt:      0
+ _new_multi_array_slowcase_cnt:   0
+ _monitorenter_slowcase_cnt:      0
+ _monitorexit_slowcase_cnt:       0
+ _patch_code_slowcase_cnt:        0
+ _throw_range_check_exception_count:            0:
+ _throw_index_exception_count:                  0:
+ _throw_div0_exception_count:                   0:
+ _throw_null_pointer_exception_count:           0:
+ _throw_class_cast_exception_count:             0:
+ _throw_incompatible_class_change_error_count:  0:
+ _throw_array_store_exception_count:            0:
+ _throw_count:                                  0:
+
+<statistics type='nmethod'>
+Statistics for 3 bytecoded nmethods:
+ total in heap  = 13696
+ relocation     = 1308
+ main code      = 4176
+ stub code      = 648
+ oops           = 44
+ scopes data    = 2376
+ scopes pcs     = 4320
+ dependencies   = 16
+ nul chk table  = 188
+Debug Data Chunks: 655, shared 74+277, non-SP&apos;s elided 1
+PcDesc Statistics:  40 queries, 11.07 comparisons per query
+  caches=3 queries=40/0, hits=0+0, tests=188+255, adds=40
+</statistics>
+<tty_done stamp='1579.296'/>
+</tty>
+<hotspot_log_done stamp='1579.296'/>
+</hotspot_log>

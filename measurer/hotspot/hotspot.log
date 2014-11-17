@@ -1,0 +1,210 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<hotspot_log version='160 1' process='1208' time_ms='1399050662045'>
+<vm_version>
+<name>
+OpenJDK Client VM
+</name>
+<release>
+21.0-b17-internal-jvmg
+</release>
+<info>
+OpenJDK Client VM (21.0-b17-internal-jvmg) for linux-x86 JRE (1.7.0), built on May  2 2014 12:08:36 by &quot;jgevargi&quot; with gcc 4.8.2 20131212 (Red Hat 4.8.2-7)
+</info>
+</vm_version>
+<vm_arguments>
+<command>
+/projects/zephyr/deadzone/benchmarks/dacapo-9.12-bach.jar -s large avrora
+</command>
+<launcher>
+gamma
+</launcher>
+<properties>
+java.vm.specification.name=Java Virtual Machine Specification
+java.vm.version=21.0-b17-internal-jvmg
+java.vm.name=OpenJDK Client VM
+java.vm.info=mixed mode, sharing
+java.ext.dirs=/nfs/projects/zephyr/deadzone/java/jdk1.6.0_45/jre/lib/ext:/usr/java/packages/lib/ext
+java.endorsed.dirs=/nfs/projects/zephyr/deadzone/java/jdk1.6.0_45/jre/lib/endorsed
+sun.boot.library.path=/nfs/projects/zephyr/deadzone/java/jdk1.6.0_45/jre/lib/i386
+java.library.path=:/projects/zephyr/deadzone/hotspot/build/linux/linux_i486_compiler1/jvmg:/usr/java/packages/lib/i386:/lib:/usr/lib
+java.home=/nfs/projects/zephyr/deadzone/java/jdk1.6.0_45/jre
+java.class.path=/projects/zephyr/deadzone/benchmarks/dacapo-9.12-bach.jar
+sun.boot.class.path=/nfs/projects/zephyr/deadzone/java/jdk1.6.0_45/jre/lib/resources.jar:/nfs/projects/zephyr/deadzone/java/jdk1.6.0_45/jre/lib/rt.jar:/nfs/projects/zephyr/deadzone/java/jdk1.6.0_45/jre/lib/sunrsasign.jar:/nfs/projects/zephyr/deadzone/java/jdk1.6.0_45/jre/lib/jsse.jar:/nfs/projects/zephyr/deadzone/java/jdk1.6.0_45/jre/lib/jce.jar:/nfs/projects/zephyr/deadzone/java/jdk1.6.0_45/jre/lib/charsets.jar:/nfs/projects/zephyr/deadzone/java/jdk1.6.0_45/jre/classes
+java.vm.specification.vendor=Sun Microsystems Inc.
+java.vm.specification.version=1.0
+java.vm.vendor=Sun Microsystems Inc.
+sun.java.command=/projects/zephyr/deadzone/benchmarks/dacapo-9.12-bach.jar -s large avrora
+sun.java.launcher=gamma
+</properties>
+</vm_arguments>
+<tty>
+<writer thread='-536487104'/>
+
+JG: Entered signal_thread_entry()
+
+JG: signal_thread_entry(), case 10, custom signal
+JG: signal_thread_entry(), Creating and executing a VM_MonitorAction
+<writer thread='-534004928'/>
+
+JG: Reached VM_MonitorAction:doit
+JG: VM_MonitorAction(), calling trace_stack()
+JG: thread_type = 3
+JG: trace_stack(), function entered
+JG: thread_type = 4
+JG: trace_stack(), function entered
+JG: thread_type = 3
+JG: trace_stack(), function entered
+JG: thread_type = 3
+JG: trace_stack(), function entered
+JG: trace_stack(), passed !has_last_Java_frame check 1 - frame( sp=0xe00ade40, unextended_sp=0xe00ade40, fp=0xe00ade74, pc=0xf460caf9)
+java.lang.Object.wait(Native Method)
+ 2 - frame( sp=0xe00ade7c, unextended_sp=0xe00ade84, fp=0xe00adeb8, pc=0xf4602fc5)
+java.lang.ref.ReferenceQueue.remove(ReferenceQueue.java:118)
+ 3 - frame( sp=0xe00adec0, unextended_sp=0xe00adecc, fp=0xe00adef8, pc=0xf46030ea)
+java.lang.ref.ReferenceQueue.remove(ReferenceQueue.java:134)
+ 4 - frame( sp=0xe00adf00, unextended_sp=0xe00adf00, fp=0xe00adf24, pc=0xf46030ea)
+java.lang.ref.Finalizer$FinalizerThread.run(Finalizer.java:171)
+
+JG: trace_stack(), function exiting..
+JG: thread_type = 3
+JG: trace_stack(), function entered
+JG: trace_stack(), passed !has_last_Java_frame check 1 - frame( sp=0xe00feef0, unextended_sp=0xe00feef0, fp=0xe00fef28, pc=0xf460caf9)
+java.lang.Object.wait(Native Method)
+ 2 - frame( sp=0xe00fef30, unextended_sp=0xe00fef38, fp=0xe00fef64, pc=0xf4602fc5)
+java.lang.Object.wait(Object.java:485)
+ 3 - frame( sp=0xe00fef6c, unextended_sp=0xe00fef6c, fp=0xe00fef98, pc=0xf4602fc5)
+java.lang.ref.Reference$ReferenceHandler.run(Reference.java:116)
+
+JG: trace_stack(), function exiting..
+JG: thread_type = -235802127
+JG: trace_stack(), function entered
+JG: trace_stack(), passed !has_last_Java_frame check 1 - frame( sp=0xf690d880, unextended_sp=0xf690d880, fp=0xf690d8bc, pc=0xf460d437)
+java.lang.Throwable.fillInStackTrace(Native Method)
+ 2 - frame( sp=0xf690d8c4, unextended_sp=0xf690d8cc, fp=0xf690d8f0, pc=0xf46030ea)
+java.lang.Throwable.&lt;init&gt;(Throwable.java:218)
+ 3 - frame( sp=0xf690d8f8, unextended_sp=0xf690d8f8, fp=0xf690d924, pc=0xf4602fc5)
+java.lang.Exception.&lt;init&gt;(Exception.java:59)
+ 4 - frame( sp=0xf690d92c, unextended_sp=0xf690d92c, fp=0xf690d958, pc=0xf4602fc5)
+java.lang.ClassNotFoundException.&lt;init&gt;(ClassNotFoundException.java:65)
+ 5 - frame( sp=0xf690d960, unextended_sp=0xf690d960, fp=0xf690d98c, pc=0xf4602fc5)
+java.net.URLClassLoader$1.run(URLClassLoader.java:202)
+C frame (sp=0xf690d994 unextended sp=0xf690d9a0, fp=0xf690d9b8, pc=0xf46003bd)
+(~Stub::call_stub)
+     BufferBlob (0xf4600288) used for StubRoutines (1)
+
+ 6 - frame( sp=0xf690dd10, unextended_sp=0xf690dd10, fp=0xf690dd48, pc=0xf460caf9)
+java.security.AccessController.doPrivileged(Native Method)
+ 7 - frame( sp=0xf690dd50, unextended_sp=0xf690dd58, fp=0xf690dd80, pc=0xf46030ea)
+java.net.URLClassLoader.findClass(URLClassLoader.java:190)
+ 8 - frame( sp=0xf690dd88, unextended_sp=0xf690dd8c, fp=0xf690ddbc, pc=0xf46030ea)
+org.dacapo.harness.DacapoClassLoader.loadClass(DacapoClassLoader.java:124)
+ 9 - frame( sp=0xf690ddc4, unextended_sp=0xf690ddcc, fp=0xf690ddf8, pc=0xf46030ea)
+java.lang.ClassLoader.loadClass(ClassLoader.java:247)
+C frame (sp=0xf690de00 unextended sp=0xf690de00, fp=0xf690de20, pc=0xf46003bd)
+(~Stub::call_stub)
+     BufferBlob (0xf4600288) used for StubRoutines (1)
+
+10 - frame( sp=0xf690e588, unextended_sp=0xf690e588, fp=0xf690e5a8, pc=0xf46146b6)
+avrora.sim.radio.noise.&lt;clinit&gt;(noise.java:34)
+C frame (sp=0xf690e5b0 unextended sp=0xf690e5b0, fp=0xf690e5cc, pc=0xf46003bd)
+(~Stub::call_stub)
+     BufferBlob (0xf4600288) used for StubRoutines (1)
+
+11 - frame( sp=0xf690e944, unextended_sp=0xf690e944, fp=0xf690e968, pc=0xf46146b6)
+avrora.sim.types.SensorSimulation.createNoise(SensorSimulation.java:366)
+12 - frame( sp=0xf690e970, unextended_sp=0xf690e970, fp=0xf690e994, pc=0xf4602fc5)
+avrora.sim.types.SensorSimulation.process(SensorSimulation.java:343)
+13 - frame( sp=0xf690e99c, unextended_sp=0xf690e9a0, fp=0xf690e9cc, pc=0xf4602fc5)
+avrora.actions.SimAction.run(SimAction.java:89)
+14 - frame( sp=0xf690e9d4, unextended_sp=0xf690e9e0, fp=0xf690ea08, pc=0xf4602fc5)
+avrora.Main.runAction(Main.java:140)
+15 - frame( sp=0xf690ea10, unextended_sp=0xf690ea14, fp=0xf690ea34, pc=0xf4602fc5)
+avrora.Main.main(Main.java:120)
+C frame (sp=0xf690ea3c unextended sp=0xf690ea40, fp=0xf690ea58, pc=0xf46003bd)
+(~Stub::call_stub)
+     BufferBlob (0xf4600288) used for StubRoutines (1)
+
+16 - frame( sp=0xf690ee20, unextended_sp=0xf690ee20, fp=0xf690ee58, pc=0xf460caf9)
+sun.reflect.NativeMethodAccessorImpl.invoke0(Native Method)
+17 - frame( sp=0xf690ee60, unextended_sp=0xf690ee68, fp=0xf690ee94, pc=0xf46030ea)
+sun.reflect.NativeMethodAccessorImpl.invoke(NativeMethodAccessorImpl.java:39)
+18 - frame( sp=0xf690ee9c, unextended_sp=0xf690eea0, fp=0xf690eecc, pc=0xf46030ea)
+sun.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:25)
+19 - frame( sp=0xf690eed4, unextended_sp=0xf690eed4, fp=0xf690ef00, pc=0xf46034dc)
+java.lang.reflect.Method.invoke(Method.java:597)
+20 - frame( sp=0xf690ef08, unextended_sp=0xf690ef20, fp=0xf690ef4c, pc=0xf46030ea)
+org.dacapo.harness.Avrora.iterate(Avrora.java:42)
+21 - frame( sp=0xf690ef54, unextended_sp=0xf690ef54, fp=0xf690ef7c, pc=0xf4602fc5)
+org.dacapo.harness.Benchmark.run(Benchmark.java:166)
+22 - frame( sp=0xf690ef84, unextended_sp=0xf690ef88, fp=0xf690efb4, pc=0xf4603189)
+org.dacapo.harness.TestHarness.runBenchmark(TestHarness.java:218)
+23 - frame( sp=0xf690efbc, unextended_sp=0xf690efcc, fp=0xf690eff8, pc=0xf4602fc5)
+org.dacapo.harness.TestHarness.main(TestHarness.java:171)
+24 - frame( sp=0xf690f000, unextended_sp=0xf690f024, fp=0xf690f048, pc=0xf4602fc5)
+Harness.main(Harness.java:17)
+
+JG: trace_stack(), function exiting..
+JG: VM_MonitorAction(), returned from trace_stack()
+<writer thread='-536487104'/>
+
+JG: signal_thread_entry(), returned from execute of VM_MonitorAction
+<writer thread='-158270656'/>
+C1 Runtime statistics:
+ _resolve_invoke_virtual_cnt:     248
+ _resolve_invoke_opt_virtual_cnt: 329
+ _resolve_invoke_static_cnt:      44
+ _handle_wrong_method_cnt:        0
+ _ic_miss_cnt:                    102
+ _generic_arraycopy_cnt:          0
+ _generic_arraycopystub_cnt:      0
+ _byte_arraycopy_cnt:             0
+ _short_arraycopy_cnt:            0
+ _int_arraycopy_cnt:              0
+ _long_arraycopy_cnt:             0
+ _primitive_arraycopy_cnt:        0
+ _oop_arraycopy_cnt (C):          0
+ _oop_arraycopy_cnt (stub):       0
+ _arraycopy_slowcase_cnt:         0
+ _arraycopy_checkcast_cnt:        0
+ _arraycopy_checkcast_attempt_cnt:0
+ _new_type_array_slowcase_cnt:    37
+ _new_object_array_slowcase_cnt:  0
+ _new_instance_slowcase_cnt:      112
+ _new_multi_array_slowcase_cnt:   0
+ _monitorenter_slowcase_cnt:      4321942
+ _monitorexit_slowcase_cnt:       4328068
+ _patch_code_slowcase_cnt:        0
+ _throw_range_check_exception_count:            0:
+ _throw_index_exception_count:                  0:
+ _throw_div0_exception_count:                   0:
+ _throw_null_pointer_exception_count:           0:
+ _throw_class_cast_exception_count:             0:
+ _throw_incompatible_class_change_error_count:  0:
+ _throw_array_store_exception_count:            0:
+ _throw_count:                                  0:
+
+<statistics type='nmethod'>
+Statistics for 11 native nmethods:
+ N. total size  = 6940
+ N. relocation  = 720
+ N. main code   = 3860
+Statistics for 742 bytecoded nmethods:
+ total in heap  = 1102856
+ relocation     = 93216
+ constants      = 304
+ main code      = 323056
+ stub code      = 58240
+ oops           = 10888
+ scopes data    = 156712
+ scopes pcs     = 271504
+ dependencies   = 4024
+ handler table  = 10296
+ nul chk table  = 18296
+Debug Data Chunks: 41702, shared 5527+13855, non-SP&apos;s elided 419
+PcDesc Statistics:  2560 queries, 8.29 comparisons per query
+  caches=742 queries=2560/0, hits=0+650, tests=8357+12859, adds=1911
+</statistics>
+<tty_done stamp='71.000'/>
+</tty>
+<hotspot_log_done stamp='71.000'/>
+</hotspot_log>
