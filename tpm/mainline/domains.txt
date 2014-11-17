@@ -1,0 +1,3 @@
+Appraiser: 20
+Attester: 23
+Measurer: 22

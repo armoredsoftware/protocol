@@ -88,17 +88,17 @@ appId = ($!)(\x -> x) (getID appName 20) --68 --20    --
 attName :: String
 attName = "Attester"
 attId :: Int
-attId = getID attName 19 --69 --19
+attId = getID attName 23 --69 --19
 
 meaName :: String
 meaName = "Measurer"
 meaId :: Int
-meaId = getID meaName 7 --61 --7
+meaId = getID meaName 22 --61 --7
 
 caName :: String
 caName = "CA"
 caId :: Int
-caId = getID meaName 7 --21
+caId = getID meaName 21 --21
 
 
 

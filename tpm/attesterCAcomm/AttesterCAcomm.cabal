@@ -10,17 +10,20 @@ Cabal-Version:          >= 1.2
 Build-type:             Simple       
 
 
+flag network-uri
+  description: Get Network.URI from the network-uri package
+  default: True
 
 library           
   exposed-modules:      AttesterCAComm
-  hs-source-dirs:       ../mainline/shared, ./, ../mainline/src, ../shell
+  hs-source-dirs:       ./, ../mainline/shared, ../mainline/src
   build-depends:        base >= 4,
                         mtl,
                         directory,
                         containers,
                         bytestring,
                         binary,
-                        network,
+                        network < 2.6,
                         random,
                         --network-bytestring,
                         HsOpenSSL,
@@ -34,7 +37,7 @@ library
                         io-streams,
                         http-streams,
                         HTTP,
-                        network-uri,
+                        network-uri < 2.6,
                         base64-bytestring,
                         aeson,
                         transformers,

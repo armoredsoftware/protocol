@@ -14,7 +14,6 @@ import Control.Monad
 import Control.Monad.Trans.State
 import Control.Monad.Trans
 import Crypto.Cipher.AES
-import System.IO
 
 import OpenSSL (withOpenSSL)
 import AttesterCAComm
@@ -86,11 +85,6 @@ createAndLoadIdentKey = do
        sPass = tpm_digest_pass srkPass
        iPass = tpm_digest_pass "i"
 
-doExportReq :: String -> Request ->  IO ()
-doExportReq fileName comp =
-                   do handle <- openFile fileName WriteMode
-                      hPutStrLn handle $ show comp
-                      hClose handle
 
 --attProcess = process receiveRequest sendResponse mkResponse
 
