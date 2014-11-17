@@ -536,6 +536,41 @@ void VM_MonitorAction::doit() {
 
 		result = temp;
 	}
+	else if (signal == 1001) //Get User Specified Variable
+	{
+		std::string temp = "NA";
+
+		ResourceMark rm;
+		ALL_JAVA_THREADS(p) {
+			//DM - Change Start
+			
+			char* desired_frame = method;
+			int index = local;
+			//char* desired_frame = "main";
+			//int index = 1;
+		
+			//get the result
+			char result[200];
+        		sprintf(result, "not found.\n");
+			//tty->print("calling var_trace_stack with method=%s and local=%d\n", desired_frame, index);
+			p->var_trace_stack(index, desired_frame, result);
+			//print to check
+			//if(result[0] != -1)
+			//  printf("Local (final loc): %s\n", result);
+			std::string r_s = result;
+			if (result[0] != 0)
+			{
+				//result.substr(i, j);
+
+				int s = r_s.find_first_of("=")+1;
+				int l = r_s.find_first_of("(int)") - s;
+				temp = r_s.substr(s,l);
+			}
+			//DM - Change Stop
+  		}
+
+		result = temp;
+	}
 	else if (signal == 30) //force print of call stack
 	{
 		ResourceMark rm;
