@@ -25,10 +25,10 @@ build-fakeattester:
 	cd relay; make build-fakeattester 
 
 run-relay:
-	cd relay; make run-relay ATTESTER_DOMID=$(ATTESTER_DOMID)
+	cd relay; make run-relay DOMID=$(DOMID)
 
 run-fakeattester:
-	cd relay; make run-fakeattester RELAY_DOMID=$(RELAY_DOMID)
+	cd relay; make run-fakeattester DOMID=$(DOMID)
 
 clean:
 	cd hotspot/make; make clean
