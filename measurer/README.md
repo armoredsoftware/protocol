@@ -25,7 +25,9 @@ THE RELAY
 
 
 THE MEASURER (hotspot)
-
+	
+	$make build-hotspot-getlibs	//do this once on each VM to install the necessary libraries
+	
 	$make build-hotspot
 
 	$make run-hotspot APP=<path to application jar>
