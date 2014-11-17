@@ -20,8 +20,6 @@ THE MEASURER (hotspot)
 	$make build-hotspot
 
 	$make run-hotspot APP=<path to application jar>
-	
 	OR
-	
 	$make run-hotspot-hackableloop
 	
