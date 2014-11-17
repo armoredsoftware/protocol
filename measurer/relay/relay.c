@@ -93,7 +93,7 @@ int main(int argc, char *argv[])
 			int i = 0;
 
 			libxenvchan_wait(chan);
-			msg = receive(chan,&size);
+			msg = vchan_receive(chan,&size);
 			printf("Received: ");
 			for(i = 0; i< size; i++){
 				printf("%c",msg[i]);
