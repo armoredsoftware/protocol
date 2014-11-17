@@ -1,10 +1,13 @@
+COMMON_path = /root/Research/code/experiments/vchanTestCentOS_1/common/common.c
+INCLUDE_path = /root/Research/code/experiments/vchanTestCentOS_1/include/
+
 build: build-relay build-fakeattester
 
 build-relay: 
-	gcc relay.c -o relay ../code/experiments/vchanTestCentOS_1/common/common.c -lxenvchan -lxenctrl -I../code/experiments/vchanTestCentOS_1/include/
+	gcc relay.c -o relay $(COMMON_path) -lxenvchan -lxenctrl -I$(INCLUDE_path)
 
 build-fakeattester:
-	gcc fakeattester.c -o fakeattester ../code/experiments/vchanTestCentOS_1/common/common.c -lxenvchan -lxenctrl -I../code/experiments/vchanTestCentOS_1/include/
+	gcc fakeattester.c -o fakeattester $(COMMON_path) -lxenvchan -lxenctrl -I$(INCLUDE_path)
 
 run-relay:
 	./relay 1 $(ATTESTER_DOMID)
