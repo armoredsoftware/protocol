@@ -17,12 +17,6 @@ import Crypto.Cipher.AES
 --import Codec.Crypto.AES
 --withOpenSSL
 
-{-
-caProcess :: PlatformID -> IO ()
-caProcess = process receiveCARequest sendCAResponse mkCAResponse
--}
-
-
 
 caProcess :: LibXenVChan -> IO ()
 caProcess chan = do
@@ -45,32 +39,11 @@ receiveCARequest chan = do
 			   (Right x) -> return (Left ("I wasn't supposed to get this!. I expected a 'CARequest' but I received this: " ++ (show x)))
 
 
-
-
-{-
-receiveCARequest :: LibXenVChan -> IO CARequest
-receiveCARequest chan = do
-  ctrlWait chan
-  req :: CARequest <- receive chan
-  putStrLn $ "\n" ++ "CA Received: "++ (show req) ++ "\n"                   
-  return req
--}
-
-  
-                  
 sendCAResponse :: LibXenVChan -> CAResponse -> IO ()
 sendCAResponse chan caResp = do
 				sendShared' chan (WCAResponse caResp)
                                 putStrLn $ "Sent: " ++ show caResp
 				return ()
-
-{-
-sendCAResponse :: LibXenVChan -> CAResponse -> IO ()
-sendCAResponse chan resp = do
-  putStrLn $ "CA Sending: " ++ show resp ++ "\n"
-  send chan resp
-  return () 
--}
 
 
 mkCAResponse :: Either String CARequest -> IO CAResponse --Need to check idSig!!!!
@@ -83,7 +56,6 @@ mkCAResponse (Right (CARequest id (Signed idContents idSig))) = do
       encBlob =  tpm_rsa_pubencrypt ekPubKey blob
       
       caPriKey = snd generateCAKeyPair
-      --caPriKey = snd generateBadCAKeyPair
       caCert = signPack caPriKey iPubKey
       certBytes = encode caCert
       
