@@ -28,26 +28,26 @@ port=3000
 
 converseWithScottyCA :: AD.CARequest -> IO (Either String AD.CAResponse)
 converseWithScottyCA req = do
-			    Prelude.putStrLn "ENTERING CONVERWITHSCOTTYCA"
+			    --Prelude.putStrLn "ENTERING CONVERWITHSCOTTYCA"
 			    c <- openConnection ip port
-			    Prelude.putStrLn "successfully opened port"
+			    --Prelude.putStrLn "successfully opened port"
 			    q <- buildRequest $ do
 			    	  http POST "/"
 			    	  setAccept "text/html/json"
 			    	  setContentType "application/x-www-form-urlencoded"
-			    Prelude.putStrLn ( "Request: " ++ (show req))
+			    --Prelude.putStrLn ( "Request: " ++ (show req))
 			    let nvs = [("request", (toStrict (AD.jsonEncode req)))]
-			    Prelude.putStrLn "about to send request"
+			    --Prelude.putStrLn "about to send request"
 			    let x = encodedFormBody nvs
-			    print "Made it here yaaaaaaaaaaaay"
+			    --print "Made it here yaaaaaaaaaaaay"
 			    sendRequest c q (x)
-			    Prelude.putStrLn "MADE IT HERE2"
+			    --Prelude.putStrLn "MADE IT HERE2"
 			    receiveResponse c (\p i -> do
 			    			  x <- Streams.read i
 			    			  case x of
 			    			     (Nothing) -> return (Left "Error performing Streams.read")
 			    			     (Just something) -> do
-			    			     			 print something
+			    			     			 --print something
 			    			     			 let caresp = (AD.jsonEitherDecode (fromStrict something) :: Either String AD.CAResponse)
 			    			     			 case caresp of
 			    			     			 	(Left err) -> return (Left ("Error decoding CAResponse. Error was: " ++ err))
@@ -58,14 +58,14 @@ converseWithScottyCA req = do
 			    	       
 
 main = do
-         Prelude.putStrLn "hello"
+         --Prelude.putStrLn "hello"
          c <- openConnection ip port
-         Prelude.putStrLn "Success"
+         --Prelude.putStrLn "Success"
          q <- buildRequest $ do
            http POST "/"
            setAccept "text/html/json"
            setContentType "application/x-www-form-urlencoded"
-         Prelude.putStrLn "Success again"
+         --Prelude.putStrLn "Success again"
         -- sendRequest c q (fileBody "/home/armored/ca2/myinfo.txt")
          let nvs = [("request",(toStrict (AD.jsonEncode [AD.DONE])))
                    ]

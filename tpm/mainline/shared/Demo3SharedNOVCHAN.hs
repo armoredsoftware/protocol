@@ -224,7 +224,10 @@ data Request = Request {
   desiredE :: DesiredEvidence,
   pcrSelect :: TPM_PCR_SELECTION,
   nonce :: TPM_NONCE
-  } deriving (Show)
+  } deriving ({-Show-})
+             
+instance Show Request where
+  show (Request e c q) = "Request {\n\ndesiredE = " ++ (show e) ++ ",\n\npcrSelect = " ++ (show c) ++ ",\n\nnonce = " ++ (show q) ++ "\n}"
              
 type DesiredEvidence = [EvidenceDescriptor]
 data EvidenceDescriptor = D0 | D1 | D2 
@@ -256,7 +259,10 @@ instance Show EvidenceDescriptor where
 data Quote = Quote {
   pcrComposite :: TPM_PCR_COMPOSITE,
   qSig :: Signature
-  } deriving (Show)
+  } deriving ({-Show-})
+             
+instance Show Quote where
+  show (Quote p s) = "Quote {\npcrComposite = " ++ (take 200 (show p)) ++ "\"...} ,\n\n" ++ "qSig = " ++ (take 20 (show s)) ++ "\"..."
 
 --instance Signable TPM_PUBKEY
 
@@ -265,7 +271,10 @@ data Response = Response {
   evPack :: EvidencePackage, 
   caCert :: CACertificate,
   quote :: Quote
-  } deriving (Show)
+  } deriving ({-Show-})
+
+instance Show Response where
+  show (Response e c q) = "Response {\n\nevPack = " ++ (show e) ++ ",\n\ncaCert = " ++ (show c) ++ ",\n\nquote = " ++ (show q) ++ "\n}"
              
 data EvidencePackage = EvidencePackage {
   evList :: Evidence, 
@@ -330,14 +339,26 @@ type Encrypted = ByteString --Is this helpful?
 data CARequest = CARequest {
   pId :: PlatformID, 
   mkIdResult :: MakeIdResult
-  } deriving (Show, Read)
+  } deriving ({-Show, -}Read)
+             
+instance Show CARequest where
+  show (CARequest p (Signed (TPM_IDENTITY_CONTENTS lab (TPM_PUBKEY parms dat)) _ )) = "CARequest {\n\npid = " ++ (show p) ++ ",\n\n" ++ "mkIdResult = Signed TPM_IDENTITY_CONTENTS\n}" {-{dat = TPM_IDENTITY_CONTENTS {" ++ (show lab) ++ "\n identityPubKey = TPM_PUBKEY {" ++ (show parms) ++ (take 10 (show dat)) ++ "..." -}
              
 data CAResponse = CAResponse {
   encCACert :: Encrypted, 
   encActIdInput :: Encrypted
-  } deriving (Show)
+  } deriving ({-Show-})
+             
+instance Show CAResponse where
+  show (CAResponse a b) = 
+    let aShort = take 20 (show a) ++ "\"..."
+        bShort = take 20 (show b) ++ "\"..." in
+    "CAResponse {\n\n" ++ "encryptedCACert= " ++ aShort ++ ",\n\nencryptedActivateIdInput= " ++ bShort ++ "\n}"
 
 type CACertificate = Signed TPM_PUBKEY   
+
+instance Show CACertificate where
+  show _ = "Signed TPM_PUBKEY"{-(Signed  (TPM_PUBKEY parms dat) _ ) = "CACertificate {\n" ++ "TPM_PUBKEY {" ++ (show parms) ++ (take 10 (show dat)) ++ "..." -}
 
 data ActivateIdRequest = ActivateIdRequest {
   sessKey :: SessionKey, 

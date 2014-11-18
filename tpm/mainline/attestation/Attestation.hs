@@ -31,6 +31,7 @@ takeInit = do
   tkShn <- tpm_session_oiap tpm
   tpm_takeownership tpm tkShn pubkey oPass sPass
   tpm_session_close tpm tkShn
+  putStrLn "\n\nTPM OWNERSHIP TAKEN\n"
   return pubkey
  where oPass = tpm_digest_pass ownerPass
        sPass = tpm_digest_pass srkPass
@@ -95,13 +96,13 @@ attProcess bs = do
   apprChan <- getAppChan
   measChan <- getMeaChan
   priCaChan <- getPriChan
-  liftIO $ putStrLn "RECEIVING REQUEST..."
+  liftIO $ putStrLn "\nRECEIVING APPRAISAL REQUEST..."
   req <- liftIO $ receiveRequest apprChan
   put $ AttState bs measChan apprChan priCaChan
   resp <- mkResponse req
-  liftIO $ putStrLn "Sending Response"
+  liftIO $ putStrLn "\nSENDING RESPONSE TO APPRAISER..."
   liftIO $ sendResponse apprChan resp
-  liftIO $ putStrLn "After Send Response"
+  --liftIO $ putStrLn "After Send Response"
   return ()
   
   
@@ -109,6 +110,7 @@ mkResponse :: Either String Request -> Att Response
 mkResponse (Right req) = do
   
   x@(iKeyHandle, iSig) <- liftIO $ createAndLoadIdentKey
+  liftIO $ putStrLn "\nAIK CREATED AND LOADED"
 
   caChan <- getPriChan
   c1b <- c1
@@ -136,18 +138,22 @@ getCACert (iKeyHandle, iSig) caChan = do
   pubKey <- attGetPubKey iKeyHandle iPass
   --sendPubKeyResponse chan pubKey -- TODO:  Maybe send signing pubkey too
   let caRequest = mkCARequest iPass pubKey iSig
-  putStrLn "ABOUT TO CONVERSE WITH SCOTTYCA"
+  --putStrLn "ABOUT TO CONVERSE WITH SCOTTYCA"
+  putStrLn "\nSENDING CA REQUEST..."
   eitherCAResponse <- converseWithScottyCA caRequest
-  putStrLn "I MADE IT PAST CONVERSING WITH SCOTTYCA"
+  putStrLn $ "Sent: " ++ show caRequest
+  --putStrLn "I MADE IT PAST CONVERSING WITH SCOTTYCA"
+  putStrLn "\nRECEIVING CA RESPONSE... "
   case (eitherCAResponse) of
     (Left err) -> error ("Failed to receive CAResponse. Error was: " ++ 
                                         (show err))
-    (Right (CAResponse caCertBytes actIdInput)) -> do
+    (Right r@(CAResponse caCertBytes actIdInput)) -> do
+      putStrLn $ "Received: " ++ show r
       iShn <- tpm_session_oiap tpm
       oShn <- tpm_session_oiap tpm
       sessionKey <- tpm_activateidentity tpm iShn oShn iKeyHandle iPass oPass 
                                                       actIdInput
-      putStrLn $ show sessionKey
+      --putStrLn $ show sessionKey
   
       let keyBytes = tpmSymmetricData sessionKey
           strictKey = toStrict keyBytes
@@ -172,12 +178,12 @@ mkResponse' :: Request -> CACertificate -> TPM_KEY_HANDLE
 mkResponse' (Request desiredE pcrSelect nonce) caCert 
                      qKeyHandle qKeyPass= do
 
-  c5b <- c5
-  c6b <- c6
-  c7b <- c7
-  eList <- case (and [c5b, c6b, c7b]) of 
+  --c5b <- c5
+  --c6b <- c6
+  --c7b <- c7
+  eList <- getEvidence desiredE {- case (and [c5b, c6b, c7b]) of 
     True -> getEvidence desiredE
-    False -> getBadEvidence desiredE
+    False -> getBadEvidence desiredE -}
                         
                     
   c3b <- c3
@@ -205,7 +211,7 @@ mkResponse' (Request desiredE pcrSelect nonce) caCert
   let eSig = empty --TEMPORARY
       evPack = (EvidencePackage eList qnonce eSig)
   liftIO $ tpm_flushspecific tpm qKeyHandle tpm_rt_key  --Evict loaded key
-  liftIO $ putStrLn "End of MkResponse"
+ -- liftIO $ putStrLn "End of MkResponse"
   return (Response evPack caCert quote)       
         
  where key = tpm_key_create_identity tpm_auth_priv_use_only
@@ -231,6 +237,15 @@ mkBadQuote pcrSelect exData = do
 getEvidence :: DesiredEvidence -> Att [EvidencePiece]  
 getEvidence desiredE = do
   chan <- getMeaChan
+  c5b <- c5
+  c6b <- c6
+  c7b <- c7
+  case (not $ and [c5b, c6b, c7b]) of 
+    True -> do
+      liftIO $ putStrLn "\n\nPress any key to gather measurements.\n\n"
+      liftIO $ getChar
+      return ()
+    False -> do liftIO $ return ()
   eitherElist' <- liftIO $ mapM (getEvidencePiece chan) (desiredE ++ [DONE])
   let eitherElist = init eitherElist'
 
@@ -248,6 +263,7 @@ getEvidence desiredE = do
    extractRight :: Either String a -> a
    extractRight (Right x) = x
 
+{-
 getBadEvidence :: DesiredEvidence -> Att [EvidencePiece]  
 getBadEvidence desiredE = do
   m0Val <- do c5b <- c5
@@ -266,6 +282,7 @@ getBadEvidence desiredE = do
                 False -> return $ cons (bit 1) empty 
 
   return [M0 m0Val, M1 m1Val, M2 m2Val] 
+-}
 
 mkQuote :: TPM_KEY_HANDLE -> TPM_DIGEST -> TPM_PCR_SELECTION 
                   -> ByteString -> IO Quote 
@@ -274,7 +291,7 @@ mkQuote qKeyHandle qKeyPass pcrSelect exData = do
    (pcrComp, sig) <- tpm_quote tpm quoteShn qKeyHandle 
                              (TPM_NONCE exData) pcrSelect qKeyPass
    tpm_session_close tpm quoteShn    
-   putStrLn "Quote generated"
+   putStrLn "\nQuote generated"
    return (Quote pcrComp sig)
         
         
@@ -286,7 +303,7 @@ pcrReset = do
   tot <- tpm_getcap_pcrs tpm
   tpm_pcr_reset tpm (fromIntegral tot) [fromIntegral pcrNum]
   val <- tpm_pcr_read tpm (fromIntegral 23)
-  putStrLn $ show val
+  --putStrLn $ show val
   return val
 
 pcrNum :: Int
@@ -383,13 +400,3 @@ sendPubKeyResponse chan iPubKey = do
 -}
 
 
-
-expectedM0Val :: M0Rep
-expectedM0Val = decodeFromTextL' (T.pack "357893594")
--- "560146190" --cons (bit 0) empty
-
-expectedM1Val :: M1Rep
-expectedM1Val = decodeFromTextL' (T.pack "560146190") --cons (bit 0) empty
-
-expectedM2Val :: M2Rep
-expectedM2Val = decodeFromTextL' (T.pack "929611828") --cons (bit 2) empty
