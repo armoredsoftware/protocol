@@ -11,6 +11,7 @@ import Data.Word
 import Data.Binary
 import Data.ByteString.Lazy (ByteString, pack, append, empty, cons, fromStrict, length)
 import Data.Bits
+import qualified Data.Text as T
 import Control.Monad
 import Data.Digest.Pure.SHA (bytestringDigest, sha1)
 import qualified Data.Map.Lazy as M (fromList, lookup, empty)
@@ -154,13 +155,14 @@ expectedEvidence =
   [M0 expectedM0Val , M1 expectedM1Val, M2 expectedM2Val]
   
 expectedM0Val :: M0Rep
-expectedM0Val = cons (bit 0) empty
+expectedM0Val = decodeFromTextL' (T.pack "357893594")
+-- "560146190" --cons (bit 0) empty
 
 expectedM1Val :: M1Rep
-expectedM1Val = cons (bit 0) empty
+expectedM1Val = decodeFromTextL' (T.pack "560146190") --cons (bit 0) empty
 
 expectedM2Val :: M2Rep
-expectedM2Val = cons (bit 2) empty
+expectedM2Val = decodeFromTextL' (T.pack "929611828") --cons (bit 2) empty
 
 
 readPubCA :: IO PubKey

@@ -10,7 +10,7 @@ import qualified Data.ByteString as B (ByteString)
 import Codec.Crypto.RSA hiding (sign, verify)
 import System.Random
 import Crypto.Cipher.AES
-import qualified Control.Monad.Trans.State as T
+import qualified Control.Monad.Trans.State as T hiding (pack)
 import Control.Monad.Trans
 import Data.Aeson (toJSON, parseJSON, ToJSON,FromJSON, object , (.=), (.:) )
 import qualified Data.Aeson as DA (Value(..), encode, decode, eitherDecode)
@@ -317,6 +317,7 @@ ePack'  = foldr f empty
   where f (M0 x) y = x `append` y -- (i.e. (toByteString x) `append` y )
         f (M1 x) y = x `append` y
         f (M2 x) y = x `append` y          
+        f (OK) y = y
          
          
       
@@ -710,14 +711,17 @@ instance FromJSON Shared where
 encodeToText :: B.ByteString -> T.Text
 encodeToText = TE.decodeUtf8 . Base64.encode
 
-decodeFromText :: (Monad m) => T.Text -> m B.ByteString
-decodeFromText = either fail return . Base64.decode . TE.encodeUtf8
+decodeFromText :: T.Text -> B.ByteString
+decodeFromText = {-either fail return .-} Base64.decodeLenient . TE.encodeUtf8
 
 decodeFromTextL :: (Monad m) => T.Text -> m ByteString
-decodeFromTextL x = do bs <- decodeFromText x
+decodeFromTextL x = let bs = decodeFromText x in
 		       return (fromStrict bs)  
 
 
+decodeFromTextL' :: T.Text -> ByteString
+decodeFromTextL' x = let bs = decodeFromText x in
+		       fromStrict bs  
 -- {-
 
 

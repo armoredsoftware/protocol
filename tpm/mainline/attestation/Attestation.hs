@@ -15,6 +15,7 @@ import Control.Monad.Trans.State
 import Control.Monad.Trans
 import Crypto.Cipher.AES
 import System.IO
+import qualified Data.Text as T hiding (cons, empty)
 
 import OpenSSL (withOpenSSL)
 import AttesterCAComm
@@ -251,17 +252,17 @@ getBadEvidence :: DesiredEvidence -> Att [EvidencePiece]
 getBadEvidence desiredE = do
   m0Val <- do c5b <- c5
               case c5b of 
-                True -> return $ cons (bit 0) empty
+                True -> return $ expectedM0Val --cons (bit 0) empty
                 False -> return $ cons (bit 1) empty 
 
   m1Val <- do c6b <- c6
               case c6b of 
-                True -> return $ cons (bit 0) empty
+                True -> return $ expectedM1Val -- cons (bit 0) empty
                 False -> return $ cons (bit 1) empty
 
   m2Val <- do c7b <- c7 
               case c7b of 
-                True -> return $ cons (bit 2) empty
+                True -> return $  expectedM2Val --cons (bit 2) empty
                 False -> return $ cons (bit 1) empty 
 
   return [M0 m0Val, M1 m1Val, M2 m2Val] 
@@ -294,18 +295,21 @@ pcrNum = 23
 isDone :: EvidenceDescriptor -> Bool
 isDone ed = case ed of DONE -> True
                        _ -> False
-                       
+                   
 getEvidencePiece :: LibXenVChan -> EvidenceDescriptor -> IO (Either String EvidencePiece)
-getEvidencePiece chan ed = do
+getEvidencePiece chan ed = 
+  case isDone ed of 
+    True -> return $ (Right OK)
+    False -> do
       putStrLn $ "\n" ++ "Attestation Agent Sending: " ++ show ed
       sendShared' chan (WEvidenceDescriptor ed) 
       eitherSharedEvidence <- receiveShared chan 
       case (eitherSharedEvidence) of
-        (Left err) -> return (Left err)
-        (Right (WEvidencePiece ep)) -> do
-          putStrLn $ "Received: " ++ show ep
-          return (Right (ep))
-        (Right x) -> return (Left ("I expected EvidencePiece but received: " ++ (show x)))
+                            (Left err) -> return (Left err)
+                            (Right (WEvidencePiece ep)) -> do
+                              putStrLn $ "Received: " ++ show ep
+                              return (Right (ep))
+                            (Right x) -> return (Left ("I expected EvidencePiece but received: " ++ (show x)))
 
 receiveRequest :: LibXenVChan -> IO (Either String Request)
 receiveRequest chan = do
@@ -377,3 +381,15 @@ sendPubKeyResponse chan iPubKey = do
   send chan iPubKey
   return () 
 -}
+
+
+
+expectedM0Val :: M0Rep
+expectedM0Val = decodeFromTextL' (T.pack "357893594")
+-- "560146190" --cons (bit 0) empty
+
+expectedM1Val :: M1Rep
+expectedM1Val = decodeFromTextL' (T.pack "560146190") --cons (bit 0) empty
+
+expectedM2Val :: M2Rep
+expectedM2Val = decodeFromTextL' (T.pack "929611828") --cons (bit 2) empty
