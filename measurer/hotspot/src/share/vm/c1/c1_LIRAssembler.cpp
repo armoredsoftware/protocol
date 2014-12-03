@@ -51,6 +51,9 @@
 # include "vmreg_ppc.inline.hpp"
 #endif
 
+//JG - Change Start
+#include "jr_custom_classes/papiManager.hpp"
+//JG - Change End
 
 void LIR_Assembler::patching_epilog(PatchingStub* patch, LIR_PatchCode patch_code, Register obj, CodeEmitInfo* info) {
   // we must have enough patching space so that call can be inserted
