@@ -115,6 +115,11 @@
     assert(_rsp_offset >= 0, "stack offset underflow");
   }
 
+  //JG - Change Start
+  void build_frame(int frame_size_in_bytes, Address our_our_compiled_run_status, char* m_name);
+  void remove_frame(int frame_size_in_bytes, Address our_our_compiled_run_status);
+  //JG - Change End
+
   void invalidate_registers(bool inv_rax, bool inv_rbx, bool inv_rcx, bool inv_rdx, bool inv_rsi, bool inv_rdi) PRODUCT_RETURN;
 
 #endif // CPU_X86_VM_C1_MACROASSEMBLER_X86_HPP

@@ -37,6 +37,9 @@
 #include "nativeInst_x86.hpp"
 #include "oops/objArrayKlass.hpp"
 #include "runtime/sharedRuntime.hpp"
+//JG - Change Start
+#include "jr_custom_classes/methodCheckIn.hpp"
+//JG - Change End
 
 
 // These masks are used to provide 128-bit aligned bitmasks to the XMM
@@ -627,6 +630,52 @@ void LIR_Assembler::return_op(LIR_Opr result) {
   if (!result->is_illegal() && result->is_float_kind() && !result->is_xmm_register()) {
     assert(result->fpu() == 0, "result must already be on TOS");
   }
+
+  //JG - Change Start
+  if (JRMethodDeoptCheckIn && method()->is_method()) {
+    address addr = method()->get_our_compile_run_status_addr();
+    ExternalAddress addr2(addr);
+    
+    __ movb(__ as_Address(addr2), MethodCheckInHandler::compile_seen_recent);
+    //__ nop(3);
+    //__ align(wordSize);
+    //__ remove_frame(initial_frame_size_in_bytes(), __ as_Address(addr2));
+  }
+  
+  if(method() != NULL && method()->is_method()) {
+    if (CompileCommandFile == NULL || method()->should_papi_instrument()) {
+      if (/*PAPI::is_papi_ready() &&*/PAPIEventFile != NULL && (method()->code_size() >= PAPIBytecodeSizeCutoff || (PAPIRequireLoopProfile && method()->has_loops()))) {
+	__ pusha();
+	// Push all xmm registers to the stack since we are not sure which
+	// ones are in use.
+	__ subptr(rsp, 8*2*wordSize);
+	__ movdbl(Address(rsp, 0), xmm0);
+	__ movdbl(Address(rsp, 2*wordSize), xmm1);
+	__ movdbl(Address(rsp, 2*2*wordSize), xmm2);
+	__ movdbl(Address(rsp, 3*2*wordSize), xmm3);
+	__ movdbl(Address(rsp, 4*2*wordSize), xmm4);
+	__ movdbl(Address(rsp, 5*2*wordSize), xmm5);
+	__ movdbl(Address(rsp, 6*2*wordSize), xmm6);
+	__ movdbl(Address(rsp, 7*2*wordSize), xmm7);
+	__ call(RuntimeAddress(CAST_FROM_FN_PTR(address, PapiThreadShadow::pop_method)));
+	// Pop all xmm registers from the stack.
+	__ movdbl(xmm0, Address(rsp, 0));
+	__ movdbl(xmm1, Address(rsp, 2*wordSize));
+	__ movdbl(xmm2, Address(rsp, 2*2*wordSize));
+	__ movdbl(xmm3, Address(rsp, 3*2*wordSize));
+	__ movdbl(xmm4, Address(rsp, 4*2*wordSize));
+	__ movdbl(xmm5, Address(rsp, 5*2*wordSize));
+	__ movdbl(xmm6, Address(rsp, 6*2*wordSize));
+	__ movdbl(xmm7, Address(rsp, 7*2*wordSize));
+	__ addptr(rsp, 8*2*wordSize);
+	__ popa();
+      }
+    }
+  }
+  else {
+    tty->print_cr("PAPI: Failed to instrument method");
+  }
+  //JG - Change End
 
   // Pop the stack before the safepoint code
   __ remove_frame(initial_frame_size_in_bytes());

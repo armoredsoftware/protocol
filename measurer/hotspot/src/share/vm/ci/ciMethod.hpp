@@ -76,6 +76,10 @@ class ciMethod : public ciObject {
   bool _is_c2_compilable;
   bool _can_be_statically_bound;
 
+  //JG - Change Start
+  address our_compile_run_status_addr;
+  //JG - Change End
+
   // Lazy fields, filled in on demand
   address              _code;
   ciExceptionHandler** _exception_handlers;
@@ -116,6 +120,9 @@ class ciMethod : public ciObject {
   }
 
  public:
+  //JG - Change Start
+  address get_our_compile_run_status_addr() { return our_compile_run_status_addr; }
+  //JG - Change End
   // Basic method information.
   ciFlags flags() const                          { check_is_loaded(); return _flags; }
   ciSymbol* name() const                         { return _name; }
@@ -232,6 +239,9 @@ class ciMethod : public ciObject {
                  ciKlass* declared_method_holder,
                  Bytecodes::Code bc);
   bool should_exclude();
+  //JG - Change Start
+  bool should_papi_instrument();
+  //JG - Change End
   bool should_inline();
   bool should_not_inline();
   bool should_print_assembly();
