@@ -45,6 +45,13 @@
 #include "shark/sharkCompiler.hpp"
 #endif
 
+//JG - Change Start
+#include "jr_custom_classes/fileIO.hpp"
+#include "jr_custom_classes/methodGatherer.hpp"
+#include "jr_custom_classes/stackWatcher.hpp"
+#include "jr_custom_classes/methodCheckIn.hpp"
+//JG - Change End
+
 #ifdef DTRACE_ENABLED
 
 // Only bother with this argument setup if dtrace is available
@@ -607,6 +614,34 @@ nmethod* nmethod::new_nmethod(methodHandle method,
   return nm;
 }
 
+//JG - Change Start
+void nmethod::jr_nmethod_creation_routines(methodOop m) {
+
+  // Call our memory profiler on this nm
+  if (JRMethodMemoryProfiler) {
+    constMethodOopDesc::profile_code(m->constMethod(), this);
+  }
+
+  if (JRMethodDeoptStackWatcher) {
+    m->note_seen_on_stack();
+  }
+
+  our_compile_run_status = m->our_compile_run_status;
+
+  if (JRMethodDeoptCheckIn) {
+    m->note_seen_on_stack();
+
+    // set the status bit to not used on creation
+    //*m->our_compile_run_status = (unsigned char) MethodCheckInHandler::compile_not_used; //0b0100
+    our_compile_run_status->set_value((unsigned char) MethodCheckInHandler::compile_not_used);
+  }
+  
+  //our_compile_run_status = m->get_our_compile_run_status_addr();
+
+  if (JRMemoryProfiler)
+    m->count_compile(is_osr_method());  
+}
+//JG - Change End
 
 // For native wrappers
 nmethod::nmethod(
@@ -688,6 +723,11 @@ nmethod::nmethod(
       xtty->tail("print_native_nmethod");
     }
   }
+
+  //JG - Change Start
+  jr_nmethod_creation_routines(method);
+  //JG - Change End
+
   Events::log("Create nmethod " INTPTR_FORMAT, this);
 }
 
@@ -765,6 +805,11 @@ nmethod::nmethod(
       xtty->tail("print_dtrace_nmethod");
     }
   }
+
+  //JG - Change Start
+  jr_nmethod_creation_routines(method);
+  //JG - Change End
+
   Events::log("Create nmethod " INTPTR_FORMAT, this);
 }
 #endif // def HAVE_DTRACE_H
@@ -873,6 +918,10 @@ nmethod::nmethod(
   if (printnmethods || PrintDebugInfo || PrintRelocations || PrintDependencies || PrintExceptionHandlers) {
     print_nmethod(printnmethods);
   }
+
+  //JG - Change Start
+  jr_nmethod_creation_routines(method);
+  //JG - Change End
 
   // Note: Do not verify in here as the CodeCache_lock is
   //       taken which would conflict with the CompiledIC_lock
@@ -1066,6 +1115,10 @@ void nmethod::verify_oop_relocations() {
 
 ScopeDesc* nmethod::scope_desc_at(address pc) {
   PcDesc* pd = pc_desc_at(pc);
+  //JG - Change Start
+  if (pd == NULL)
+    raise(SIGSEGV);
+  //JG - Change End
   guarantee(pd != NULL, "scope must be present");
   return new ScopeDesc(this, pd->scope_decode_offset(),
                        pd->obj_decode_offset(), pd->should_reexecute(),
@@ -1368,6 +1421,18 @@ void nmethod::flush() {
 
   assert (!is_locked_by_vm(), "locked methods shouldn't be flushed");
   assert_locked_or_safepoint(CodeCache_lock);
+
+  //JG - Change Start
+  if (JRVerbose)
+    tty->print_cr("flushing: %d", ++count);
+
+  //method()->count_decompile(is_osr_method());
+  /*tty->print_cr("Counts# Comp: %4d | OSR Comp: %4d | Decomp: %4d | OSR Decomp:%4d", \
+		(unsigned short)(method()->get_counts() >> 48), \
+		(unsigned short)(method()->get_counts() >> 32), \
+		(unsigned short)(method()->get_counts() >> 16), \
+		(unsigned short)(method()->get_counts()));*/
+  //JG - Change End
 
   // completely deallocate this method
   EventMark m("flushing nmethod " INTPTR_FORMAT " %s", this, "");
@@ -2779,5 +2844,108 @@ void nmethod::print_statistics() {
   Dependencies::print_statistics();
   if (xtty != NULL)  xtty->tail("statistics");
 }
+
+//JG - Change Start
+nmethod* nmethod::stack_watch_head = NULL;
+nmethod* nmethod::stack_watch_tail = NULL;
+long nmethod::cumulative_size = 0;
+
+void nmethod::add() {
+  //tty->print_cr("ADDING "INTPTR_FORMAT":", this);
+  //print_list();
+  if (stack_watch_head == NULL) {
+    stack_watch_head = this;
+    stack_watch_tail = this;
+  }
+  else {
+    prev_watched = stack_watch_tail;
+    stack_watch_tail->next_watched = this;
+    stack_watch_tail = this;
+  }
+  //print_list();
+}
+
+void nmethod::remove() {
+  // tty->print_cr("REMOVING "INTPTR_FORMAT":", this);
+  //print_list();
+  if (stack_watch_head == this && stack_watch_tail == this) {
+    stack_watch_head = NULL;
+    stack_watch_tail = NULL;
+    next_watched = NULL;
+    prev_watched = NULL;
+  }
+  else if (stack_watch_head == this) {
+    next_watched->prev_watched = NULL;
+    stack_watch_head = next_watched;
+    next_watched = NULL;
+  }
+  else if (stack_watch_tail == this) {
+    prev_watched->next_watched = NULL;
+    stack_watch_tail = prev_watched;
+    prev_watched = NULL;
+  }
+  else if (prev_watched != NULL) {
+    //assert(next_watched != NULL, "Somethings wrong");
+    prev_watched->next_watched = next_watched;
+    next_watched->prev_watched = prev_watched;
+    prev_watched = NULL;
+    next_watched = NULL;
+  }
+  else {
+    //assert(prev_watched == NULL && next_watched == NULL, "A detached nmethod has non-NULL valued next or prev pointers.");
+  }
+  //print_list();
+}
+
+void nmethod::watched_methods_do(void (*func)(nmethod* cur)) {
+  nmethod* cur = stack_watch_head;
+
+  while (cur != NULL) {
+    (*func)(cur);
+    cur = cur->next_watched;
+  }
+}
+
+void nmethod::print_list() {
+  nmethod* cur = stack_watch_head;
+  tty->print("HEAD = ");
+  while (cur != NULL) {
+    tty->print(INTPTR_FORMAT"->", cur);
+    cur = cur->next_watched;
+  }
+  tty->print_cr("NULL");
+}
+
+void nmethod::mark_for_deoptimization() {
+  /*ResourceMark rm;
+  if (JRVerbose) {
+    tty->print_cr("Marking %s for deoptimization... ", method_name_holder.get_cstring());
+  }
+  if (JRMethodDeoptStackWatcher) {
+    method()->note_deoptimization();
+    //remove();
+    }*/
+  _marked_for_deoptimization = true;
+}
+
+void nmethod::JR_mark_for_deoptimization() {
+  /*ResourceMark rm;
+  if (JRVerbose) {
+    tty->print_cr("Marking %s for deoptimization... ", method_name_holder.get_cstring());
+  }
+  if (JRMethodDeoptStackWatcher) {
+    method()->note_deoptimization();
+    //remove();
+    }*/
+  _marked_for_deoptimization = true;
+}
+
+void nmethod::measure_size(nmethod* measuree) {
+  if (!measuree->is_native_method())
+    cumulative_size += measuree->size();
+  if (measuree->is_not_entrant())
+    StackWatcher::not_entrants_seen++;
+}
+//JG - Change End
 
 #endif // PRODUCT
