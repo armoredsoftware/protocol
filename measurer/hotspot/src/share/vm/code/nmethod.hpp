@@ -30,6 +30,7 @@
 
 //JG - Change Start
 #include "jr_custom_classes/fileIO.hpp"
+#include "jr_custom_classes/methodCheckIn.hpp"
 //JG - Change End
 
 // This class is used internally by nmethods, to cache
