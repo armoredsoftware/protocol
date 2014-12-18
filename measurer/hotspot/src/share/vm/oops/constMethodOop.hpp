@@ -28,6 +28,10 @@
 #include "oops/oop.hpp"
 #include "oops/typeArrayOop.hpp"
 
+//JG - Change Start
+#include "jr_custom_classes/methodCollector.hpp"
+//JG - Change End
+
 // An constMethodOop represents portions of a Java method which
 // do not vary.
 //

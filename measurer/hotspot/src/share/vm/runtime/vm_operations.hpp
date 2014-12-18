@@ -100,6 +100,8 @@
   template(JRStackWatcherDeopt)                   \
   template(Exit)                                  \
 
+//JG - Change : above the line with "template(JRMethodCountTraceVMOP)" is new
+
 class VM_Operation: public CHeapObj {
  public:
   enum Mode {
