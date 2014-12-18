@@ -463,7 +463,7 @@ class nmethod : public CodeBlob {
 
   bool  is_marked_for_deoptimization() const      { return _marked_for_deoptimization; }
   //JG - Change Start
-  void  mark_for_deoptimization()//                 { _marked_for_deoptimization = true; }
+  void  mark_for_deoptimization();//                 { _marked_for_deoptimization = true; }
   void  JR_mark_for_deoptimization();//                 { _marked_for_deoptimization = true; }
   //original line:  void  mark_for_deoptimization()                 { _marked_for_deoptimization = true; }
   //JG - Change End
