@@ -77,7 +77,7 @@ void MethodCallGatherer::print_statistics_and_output_data() {
   tty->cr();
   tty->print_cr ("Check the above histogram and verify that the accuracy is acceptable.");
   if (!JRMethodCountTraceSupressOutput) {
-    output_our_final_method_invocation_histogram();
+    //output_our_final_method_invocation_histogram();
   }
 }
 
