@@ -305,6 +305,13 @@ bool CompilerOracle::should_exclude(methodHandle method, bool& quietly) {
   return false;
 }
 
+//JG - Change Start
+bool CompilerOracle::should_papi_instrument(methodHandle method) {
+  //_quiet = true;
+  return lists[PapiInstrumentCommand] != NULL &&
+    lists[PapiInstrumentCommand]->match(method);
+}
+//JG - Change End
 
 bool CompilerOracle::should_inline(methodHandle method) {
   return (check_predicate(InlineCommand, method));

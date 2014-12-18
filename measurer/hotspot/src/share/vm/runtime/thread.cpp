@@ -4645,3 +4645,38 @@ void Threads::verify() {
   VMThread* thread = VMThread::vm_thread();
   if (thread != NULL) thread->verify();
 }
+
+//JG - Change Start
+int scan_counts = 0;
+bool slow_scan = true;
+const int FAST_SCAN_COUNT = 100;
+
+void Threads::our_stack_sweeper() {
+  ALL_JAVA_THREADS(p) {    
+    //tty->print_cr("Thread name: %s", p->name());
+    if (!sigsetjmp(StackWatcher::exception_env, 1)) {
+      StackWatcher::sweep_stack(p);
+    }
+    else {
+      //tty->print_cr("Jump succeeded");
+      MethodCallGatherer::_is_doing_collection = false;
+      //break;
+    }
+    //StackWatcher::delete_garbage_vframe();
+  }
+
+  /*if (slow_scan) {
+    slow_scan = false;
+    StackWatcher::set_scan_depth(3);
+  }
+  else {
+    if (scan_counts >= FAST_SCAN_COUNT) {
+      slow_scan = true;
+      scan_counts = 0;
+      StackWatcher::set_scan_depth(10000);
+    }
+    scan_counts++;
+    }*/
+  //tty->print_cr("Ended loop");
+}
+//JG - Change End
