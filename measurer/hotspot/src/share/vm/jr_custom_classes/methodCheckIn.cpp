@@ -8,7 +8,7 @@
 #include "jr_custom_classes/gcPauser.hpp"
 
 class MethodCheckInTask : public PeriodicTask {
-  friend MethodCheckInHandler;
+  friend class MethodCheckInHandler;
 private:
   static bool did_mark;
   static jlong tick_time;
