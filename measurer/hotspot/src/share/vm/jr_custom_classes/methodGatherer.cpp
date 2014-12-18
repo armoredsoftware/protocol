@@ -138,7 +138,7 @@ void MethodCallGatherer::collect_nodes() {
     _gathererTimeHistogram[ms]++;
 
     // Call entry method for method data collector (actually in java.hpp)
-    method_histogram_gatherer();
+   // method_histogram_gatherer();
 
     is_queued = false;
     
