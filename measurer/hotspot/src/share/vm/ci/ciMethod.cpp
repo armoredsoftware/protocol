@@ -58,6 +58,10 @@
 #include "oops/methodOop.hpp"
 #endif
 
+//JG - Change Start
+#include "jr_custom_classes/methodCheckIn.hpp"
+//JG - Change End
+
 // ciMethod
 //
 // This class represents a methodOop in the HotSpot virtual

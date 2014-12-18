@@ -2170,6 +2170,10 @@ methodOop instanceKlass::method_at_itable(klassOop holder, int index, TRAPS) {
 
 // On-stack replacement stuff
 void instanceKlass::add_osr_nmethod(nmethod* n) {
+//JG - Change Start
+  if (JRVerbose)
+    tty->print_cr("osr %8x | %1d | belongs to %s", n, (n->method()->code() != NULL), n->method()->name_and_sig_as_C_string()); 
+ //JG - Change End
   // only one compilation can be active
   NEEDS_CLEANUP
   // This is a short non-blocking critical region, so the no safepoint check is ok.
@@ -2199,6 +2203,10 @@ void instanceKlass::add_osr_nmethod(nmethod* n) {
 
 void instanceKlass::remove_osr_nmethod(nmethod* n) {
   // This is a short non-blocking critical region, so the no safepoint check is ok.
+//JG - Change Start
+  if (JRVerbose)
+    tty->print_cr("removing osr %8x | %1d | belongs to %s", n, (n->method()->code() != NULL), n->method()->name_and_sig_as_C_string()); 
+//JG - Change End
   OsrList_lock->lock_without_safepoint_check();
   assert(n->is_osr_method(), "wrong kind of nmethod");
   nmethod* last = NULL;

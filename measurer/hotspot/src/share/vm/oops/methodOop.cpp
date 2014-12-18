@@ -51,6 +51,11 @@
 #include "runtime/signature.hpp"
 #include "utilities/xmlstream.hpp"
 
+//JG - Change Start
+#include "jr_custom_classes/methodGatherer.hpp"
+#include "jr_custom_classes/stackWatcher.hpp"
+#include "jr_custom_classes/methodCheckIn.hpp"
+//JG - Change End
 
 // Implementation of methodOopDesc
 

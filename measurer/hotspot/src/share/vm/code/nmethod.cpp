@@ -658,6 +658,9 @@ nmethod::nmethod(
              nmethod_size, offsets->value(CodeOffsets::Frame_Complete), frame_size, oop_maps),
   _native_receiver_sp_offset(basic_lock_owner_sp_offset),
   _native_basic_lock_sp_offset(basic_lock_sp_offset)
+	//JG - Change Start
+	, method_name_holder(method->name_and_sig_as_C_string()), next_watched(NULL), prev_watched(NULL)
+	//JG - Change End
 {
   {
     debug_only(No_Safepoint_Verifier nsv;)
@@ -743,6 +746,10 @@ nmethod::nmethod(
              nmethod_size, offsets->value(CodeOffsets::Frame_Complete), frame_size, NULL),
   _native_receiver_sp_offset(in_ByteSize(-1)),
   _native_basic_lock_sp_offset(in_ByteSize(-1))
+	//JG - Change Start
+	,
+    method_name_holder(method->name_and_sig_as_C_string()), next_watched(NULL), prev_watched(NULL)
+	//JG - Change End
 {
   {
     debug_only(No_Safepoint_Verifier nsv;)
@@ -842,6 +849,10 @@ nmethod::nmethod(
              nmethod_size, offsets->value(CodeOffsets::Frame_Complete), frame_size, oop_maps),
   _native_receiver_sp_offset(in_ByteSize(-1)),
   _native_basic_lock_sp_offset(in_ByteSize(-1))
+	//JG - Change Start
+	,
+  method_name_holder(method->name_and_sig_as_C_string()), next_watched(NULL), prev_watched(NULL)
+	//JG - Change End
 {
   assert(debug_info->oop_recorder() == code_buffer->oop_recorder(), "shared OR");
   {
@@ -1414,6 +1425,9 @@ bool nmethod::make_not_entrant_or_zombie(unsigned int state) {
   return true;
 }
 
+//JG - Change Start
+int count = 0;
+//JG - Change End
 void nmethod::flush() {
   // Note that there are no valid oops in the nmethod anymore.
   assert(is_zombie() || (is_osr_method() && is_unloaded()), "must be a zombie method");

@@ -40,6 +40,11 @@
 # include "thread_windows.inline.hpp"
 #endif
 
+//JG - Change Start
+#include "jr_custom_classes/methodGatherer.hpp"
+#include "jr_custom_classes/memoryCollector.hpp"
+#include "jr_custom_classes/gcPauser.hpp"
+//JG - Change End
 
 #ifdef ASSERT
 int CollectedHeap::_fire_out_of_memory_count = 0;
@@ -402,7 +407,26 @@ void CollectedHeap::resize_all_tlabs() {
   }
 }
 
+//JG - Change Start
+bool GCPauser::gc_running = false;
+bool GCPauser::pauser_running = false;
+//JG - Change End
+
 void CollectedHeap::pre_full_gc_dump() {
+//JG - Change Start
+  // This variable will block data collection during a the dump of the 
+  // gc to prevent segmentation faults.
+  if ((JRMethodCountTrace || JRMethodDeoptStackWatcher) && !MethodCallGatherer::_is_waiting_on_gc) {
+    // Spinlock - should probably change at some point
+    while (MethodCallGatherer::_is_doing_collection) usleep(100);
+
+    MethodCallGatherer::_is_waiting_on_gc = true;
+  }
+
+  //while (GCPauser::get_pauser_running()) usleep(10);
+  //GCPauser::set_gc_running(true);
+//JG - Change End
+
   if (HeapDumpBeforeFullGC) {
     TraceTime tt("Heap Dump: ", PrintGCDetails, false, gclog_or_tty);
     // We are doing a "major" collection and a heap dump before
@@ -417,6 +441,21 @@ void CollectedHeap::pre_full_gc_dump() {
 }
 
 void CollectedHeap::post_full_gc_dump() {
+//JG - Change Start
+  // Unblocks the data collector
+  if ((JRMethodCountTrace || JRMethodDeoptStackWatcher) && MethodCallGatherer::_is_waiting_on_gc) {
+    MethodCallGatherer::_is_waiting_on_gc = false;
+  }
+
+  //GCPauser::set_gc_running(false);
+
+  // Collects the memory profile after a full gc dump. This is the
+  // profile that includes the heap and code cache map.
+  if (JRMemoryProfiler) {
+    OurMemoryCollector::do_collect();
+  }
+//JG - Change End
+
   if (HeapDumpAfterFullGC) {
     TraceTime tt("Heap Dump", PrintGCDetails, false, gclog_or_tty);
     HeapDumper::dump_heap();

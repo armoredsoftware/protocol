@@ -96,6 +96,10 @@
   template(HeapWalkOperation)                     \
   template(HeapIterateOperation)                  \
   template(ReportJavaOutOfMemory)                 \
+\*JG - Change Start*\							\ 
+ template(JRMethodCountTraceVMOP)                \
+\*JG - Change End*\								\ 
+  template(JRStackWatcherDeopt)                   \
   template(Exit)                                  \
 
 class VM_Operation: public CHeapObj {
@@ -420,6 +424,42 @@ class VM_MonitorAction: public VM_Operation {
   VMOp_Type type() const             	{ return VMOp_Dummy; }
   virtual void doit();
 };
-//JG - Change Stop
+//JG - Change End
+
+//JG - Change Start
+// This is used to wait for the garbage collector to finish before collecting
+// the profile data. It is horribly inaccurate with respect to time and may be
+// worthwhile to abandon completely. Simply skipping collection during garbage
+// collection seems to produce far more accurate results
+
+// The implementation of this class can be found in
+// "jr_custom_classes/methodCollectorVMOp.cpp" along with comment for used
+// functions. At the time I made this class, I wasn't sure what functions I
+// would need so I just included all of the virtual ones.
+class VM_Our_CallMethodCollector : public VM_Operation {
+ public:
+  VM_Our_CallMethodCollector();
+
+  Mode evaluation_mode() const;
+  
+  // Returns the type of VMOp this is. This value is created from a template
+  // table at the top of this hpp file.
+  VMOp_Type type() const { return VMOp_JRMethodCountTraceVMOP; }
+
+  void doit();
+};
+
+// Forces a safepoint and executes Threads::our_stack_sweeper. If any methods
+// were marked for deoptimization, then the VM_Deoptimize operation is called. 
+class VM_Our_CallStackWatcher : public VM_Operation {
+ public:
+  VM_Our_CallStackWatcher() {}
+
+  VMOp_Type type() const { return VMOp_JRStackWatcherDeopt; }
+  void doit();
+  void doit_epilogue();
+  bool allow_nested_vm_operations() const;
+};
+//JG - Change End
 
 #endif // SHARE_VM_RUNTIME_VM_OPERATIONS_HPP

@@ -85,6 +85,21 @@ class CodeBlob_sizes {
                   scopes_oop_size         * 100 / total_size,
                   scopes_data_size        * 100 / total_size,
                   scopes_pcs_size         * 100 / total_size);
+
+    //JG - Change Start
+    // prints the data as actual kilo-byte sizes rather than percentages
+    tty->print_cr(" #%d %s = %dK (hdr %dK,  loc %dK, code %dK, stub %dK, [oops %dK, data %dK, pcs %dK])",
+                  count,
+                  title,
+                  total() / K,
+                  header_size / K,
+                  relocation_size / K,
+                  code_size / K,
+                  stub_size / K,
+                  scopes_oop_size / K,
+                  scopes_data_size / K,
+                  scopes_pcs_size / K);
+    //JG - Change End
   }
 
   void add(CodeBlob* cb) {
@@ -689,6 +704,12 @@ int CodeCache::mark_for_evol_deoptimization(instanceKlassHandle dependee) {
     methodOop old_method = (methodOop) old_methods->obj_at(i);
     nmethod *nm = old_method->code();
     if (nm != NULL) {
+      //JG - Change Start
+      // find where deopt is being called in dacapo. Doesn't seem to be
+      // the cause...
+      tty->print_cr("\nMARK ENTRY POINT A\n");
+      //JG - Change End
+
       nm->mark_for_deoptimization();
       number_of_marked_CodeBlobs++;
     }
@@ -699,6 +720,12 @@ int CodeCache::mark_for_evol_deoptimization(instanceKlassHandle dependee) {
       // ...Already marked in the previous pass; don't count it again.
     } else if (nm->is_evol_dependent_on(dependee())) {
       ResourceMark rm;
+      //JG - Change Start
+      // find where deopt is being called in dacapo. Doesn't seem to be
+      // the cause...
+      tty->print_cr("\nMARK ENTRY POINT B\n");
+      //JG - Change End
+
       nm->mark_for_deoptimization();
       number_of_marked_CodeBlobs++;
     } else  {
@@ -716,6 +743,12 @@ int CodeCache::mark_for_evol_deoptimization(instanceKlassHandle dependee) {
 void CodeCache::mark_all_nmethods_for_deoptimization() {
   MutexLockerEx mu(CodeCache_lock, Mutex::_no_safepoint_check_flag);
   FOR_ALL_ALIVE_NMETHODS(nm) {
+    //JG - Change Start
+    // find where deopt is being called in dacapo. Doesn't seem to be
+    // the cause...
+    tty->print_cr("\nMARK ENTRY POINT C\n");
+    //JG - Change End
+
     nm->mark_for_deoptimization();
   }
 }
@@ -728,6 +761,12 @@ int CodeCache::mark_for_deoptimization(methodOop dependee) {
   FOR_ALL_ALIVE_NMETHODS(nm) {
     if (nm->is_dependent_on_method(dependee)) {
       ResourceMark rm;
+      //JG - Change Start
+      // find where deopt is being called in dacapo. Doesn't seem to be
+      // the cause...
+      tty->print_cr("\nMARK ENTRY POINT C\n");
+      //JG - Change End
+      
       nm->mark_for_deoptimization();
       number_of_marked_CodeBlobs++;
     }

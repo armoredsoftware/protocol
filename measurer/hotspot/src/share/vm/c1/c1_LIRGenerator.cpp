@@ -2994,7 +2994,9 @@ void LIRGenerator::increment_event_counter_impl(CodeEmitInfo* info,
                                                 int bci, bool backedge, bool notify) {
   assert(frequency == 0 || is_power_of_2(frequency + 1), "Frequency must be x^2 - 1 or 0");
   int level = _compilation->env()->comp_level();
-  assert(level > CompLevel_simple, "Shouldn't be here");
+	//JG - Change Start
+  	//original line : //assert(level > CompLevel_simple, "Shouldn't be here");
+	//JG - Change End
 
   int offset = -1;
   LIR_Opr counter_holder = new_register(T_OBJECT);

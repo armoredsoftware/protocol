@@ -907,6 +907,9 @@ bool os::create_thread(Thread* thread, ThreadType thr_type, size_t stack_size) {
       case os::vm_thread:
       case os::pgc_thread:
       case os::cgc_thread:
+	//JG - Change Start
+      case os::stack_watcher_thread: /*/// JR Custom Content - this line \\\*/
+	//JG - Change End
       case os::watcher_thread:
         if (VMThreadStackSize > 0) stack_size = (size_t)(VMThreadStackSize * K);
         break;
@@ -997,6 +1000,16 @@ bool os::create_attached_thread(JavaThread* thread) {
   if (osthread == NULL) {
     return false;
   }
+
+	//JG - Change Start
+	  // JR Custom Content - create and start PapiThreadShadow
+  /*if (PAPI::is_papi_ready()) {
+    // TODO: Error check
+    PapiThreadShadow* pts = thread->get_papi_thread_shadow();
+    PapiThreadShadow::profile_thread(pts);
+    PapiThreadShadow::push_method((address)"[ROOT]");
+    }*/
+	//JG - Change End
 
   // Store pthread info into the OSThread
   osthread->set_thread_id(os::Linux::gettid());

@@ -211,6 +211,9 @@ enum OracleCommand {
   UnknownCommand = -1,
   OracleFirstCommand = 0,
   BreakCommand = OracleFirstCommand,
+//JG - Change Start
+  PapiInstrumentCommand,
+//JG - Change End
   PrintCommand,
   ExcludeCommand,
   InlineCommand,
@@ -226,6 +229,9 @@ enum OracleCommand {
 // this must parallel the enum OracleCommand
 static const char * command_names[] = {
   "break",
+//JG - Change Start
+  "papi",
+//JG - Change End
   "print",
   "exclude",
   "inline",

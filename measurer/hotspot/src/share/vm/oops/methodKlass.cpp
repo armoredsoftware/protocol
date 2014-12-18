@@ -39,6 +39,11 @@
 #include "oops/symbol.hpp"
 #include "runtime/handles.inline.hpp"
 
+//JG - Change Start
+#include "jr_custom_classes/methodCollector.hpp"
+#include "jr_custom_classes/methodCheckIn.hpp"
+//JG - Change End
+
 klassOop methodKlass::create_klass(TRAPS) {
   methodKlass o;
   KlassHandle h_this_klass(THREAD, Universe::klassKlassObj());
@@ -108,6 +113,19 @@ methodOop methodKlass::allocate(constMethodHandle xconst,
   m->set_prev_event_count(0);
   m->set_prev_time(0);
 #endif
+
+//JG - Change Start
+  // Initializes our variables in methodOop for our StackWatcher 
+  // class.
+  m->last_seen_on_stack = -1;
+
+  // JR Custom Content - next line
+  //m->our_compile_run_status = new unsigned char(MethodCheckInHandler::not_compiled);
+  m->our_compile_run_status = new MethodCheckInStatus((unsigned char) 0);//MethodCheckInHandler::not_compiled);
+
+  //tty->print_cr("%8x", m->our_compile_run_status);
+  //printf("0x%08x\n", (jint)m->get_our_compile_run_status_addr());
+//JG - Change End
 
   assert(m->is_parsable(), "must be parsable here.");
   assert(m->size() == size, "wrong size for object");

@@ -113,6 +113,10 @@ private:
   volatile bool     _is_conc_safe; // if true, safe for concurrent GC processing
 
 public:
+//JG - Change Start
+  MethodDataCollector* _method_collector;
+//JG - Change End
+
   oop* oop_block_beg() const { return adr_method(); }
   oop* oop_block_end() const { return adr_exception_table() + 1; }
 
@@ -149,7 +153,42 @@ private:
                                                  // but this may change with redefinition
   u2                _generic_signature_index;    // Generic signature (index in constant pool, 0 if absent)
 
+//JG - Change Start
+  // These variables are used for our memory profiling in the code cache
+  // to allow us to see how much space compiled methods occupy without
+  // counting the same compilation tier of the nmethods more than once 
+  // (incase of deopt). I am considering tiers to be: OSR C1 compile, and
+  // regular C1 compile. We can add more if needed later.
+  bool has_osr_c1_compile;
+  bool has_reg_c1_compile;
+  bool has_nat_compile;
+
+  // Adds the size of new unique nmethods to these fields when the code is
+  // added to the methodOop
+  static int osr_c1_compile_size;
+  static int reg_c1_compile_size;
+  static int nat_compile_size;
+
+  static int num_recompiles;
+//JG - Change End
+
 public:
+
+//JG - Change Start
+  // These functions are used by our memory profiling of the nmethods
+  // in the code cache.
+
+  static int get_osr_c1_compile_size()      { return osr_c1_compile_size; }
+  static int get_reg_c1_compile_size()      { return reg_c1_compile_size; }
+  static int get_nat_compile_size()         { return nat_compile_size; }
+
+  static int get_num_recompiles()           { return num_recompiles; }
+
+  // Adds the nmethod code size to the corresponding memory count
+  static bool profile_code(constMethodOop cm, nmethod* code);
+  static void print_memory_stats();
+//JG - Change End
+
   // Inlined tables
   void set_inlined_tables_length(int checked_exceptions_len,
                                  int compressed_line_number_size,

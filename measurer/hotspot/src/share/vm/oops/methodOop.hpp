@@ -105,6 +105,10 @@ class LocalVariableTableElement;
 class AdapterHandlerEntry;
 class methodDataOopDesc;
 
+//JG - Change Start
+class MethodCheckInStatus;
+//JG - Change End
+
 class methodOopDesc : public oopDesc {
  friend class methodKlass;
  friend class VMStructs;
@@ -129,6 +133,12 @@ class methodOopDesc : public oopDesc {
   InvocationCounter _invocation_counter;         // Incremented before each activation of the method - used to trigger frequency-based optimizations
   InvocationCounter _backedge_counter;           // Incremented before each backedge taken - used to trigger frequencey-based optimizations
 
+//JG - Change Start
+  // PK: custom invocation/backedge counts that are never reset
+  InvocationCounter _our_invocation_counter;           // Incremented before each activation of the method - used to count the number of times each method is invoked before compilation(it is never reset)
+  InvocationCounter _our_backedge_counter;           // Incremented before each backedge taken - used to count the number of times each method is in loop before compilation(it is never reset)
+//JG - Change End
+
 #ifdef TIERED
   jlong             _prev_time;                   // Previous time the rate was acquired
   float             _rate;                        // Events (invocation and backedge counter increments) per millisecond
@@ -152,7 +162,55 @@ class methodOopDesc : public oopDesc {
   nmethod* volatile _code;                       // Points to the corresponding piece of native code
   volatile address           _from_interpreted_entry; // Cache of _code ? _adapter->i2c_entry() : _i2i_entry
 
+//JG - Change Start
+  // The system time the method last returned from the stack.
+  // This is used by our StackWatcher class to know when a method
+  // has gone stale.
+  jlong last_seen_on_stack;
+
+  // This variable stores 4 counts with 16-bits each in the following format:
+  //   Compiled-Count, OSR-Compiled-Count, Decompile-Count, OSR-Decompile-Count
+  jlong counts;
+
+  // This int is incremented in the JavaCallWrapper constructor and decremented
+  // in the JavaCallWrapper descructor. A cleaner way to indicate whether the 
+  // omethod is on the stack than constantly scanning the stack. (Hopefully)
+  volatile jint on_stack;
+  bool request_time;
+//JG - Change End
+
  public:
+
+//JG - Change Start
+  MethodCheckInStatus* our_compile_run_status;
+
+  //address our_compile_run_status;
+  
+  //address get_our_compile_run_status_addr() { return our_compile_run_status; }
+  //void set_our_compile_run_status(unsigned char status) { *our_compile_run_status = status; }
+
+  void count_compile(bool is_osr);
+  void count_decompile(bool is_osr);
+
+  jlong get_counts();
+      
+  void note_deoptimization();
+  void note_seen_on_stack();
+
+  bool being_watched() { return last_seen_on_stack != -1; }
+
+  // Returns the system time this method last returned from the stack.
+  // If the method is currently on the stack then return -1.
+  jlong get_last_time() { return last_seen_on_stack; }
+  
+  // sets the on_stack value
+  void note_entry();
+  void note_return();
+  
+  // returns whether this method is present on a stack
+  bool is_on_stack();
+
+//JG - Change End
 
   // accessors for instance variables
   constMethodOop constMethod() const             { return _constMethod; }
@@ -314,6 +372,12 @@ class methodOopDesc : public oopDesc {
   InvocationCounter* invocation_counter() { return &_invocation_counter; }
   InvocationCounter* backedge_counter()   { return &_backedge_counter; }
 
+//JG - Change Start
+  // Get our invocation counters
+  InvocationCounter* our_invocation_counter()    { return &_our_invocation_counter; }
+  InvocationCounter* our_backedge_counter()      { return &_our_backedge_counter; }
+//JG - Change End
+
 #ifdef TIERED
   // We are reusing interpreter_invocation_count as a holder for the previous event count!
   // We can do that since interpreter_invocation_count is not used in tiered.
@@ -327,6 +391,19 @@ class methodOopDesc : public oopDesc {
 
   int invocation_count();
   int backedge_count();
+
+//JG - Change Start
+  // Getter functions for the current value of our counters
+  unsigned int our_invocation_count() const               { return _our_invocation_counter.count(); }
+  unsigned int our_backedge_count() const                 { return _our_backedge_counter.count(); }  
+  // NOTE: There are also offset methods for each of these counters at the bottom of the page
+
+  // returns invocation + backedge count
+  unsigned int get_total_count();
+
+  // Collect this method's total_count
+  void collect_data();
+//JG - Change End
 
   bool was_executed_more_than(int n);
   bool was_never_executed()                      { return !was_executed_more_than(0); }
@@ -550,6 +627,10 @@ class methodOopDesc : public oopDesc {
   static ByteSize code_offset()                  { return byte_offset_of(methodOopDesc, _code); }
   static ByteSize invocation_counter_offset()    { return byte_offset_of(methodOopDesc, _invocation_counter); }
   static ByteSize backedge_counter_offset()      { return byte_offset_of(methodOopDesc, _backedge_counter); }
+//JG - Change Start
+  static ByteSize our_invocation_counter_offset(){ return byte_offset_of(methodOopDesc, _our_invocation_counter); }
+  static ByteSize our_backedge_counter_offset()  { return byte_offset_of(methodOopDesc, _our_backedge_counter); }
+ //JG - Change End
   static ByteSize method_data_offset()           {
     return byte_offset_of(methodOopDesc, _method_data);
   }

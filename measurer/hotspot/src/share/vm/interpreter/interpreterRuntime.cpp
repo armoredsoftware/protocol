@@ -75,6 +75,12 @@
 #include "opto/runtime.hpp"
 #endif
 
+//JG - Create Start
+#include "jr_custom_classes/papiThreadShadow.hpp"
+
+class PapiThreadShadow;
+//JG - Change End
+
 class UnlockFlagSaver {
   private:
     JavaThread* _thread;
@@ -831,6 +837,26 @@ nmethod* InterpreterRuntime::frequency_counter_overflow(JavaThread* thread, addr
   }
   return nm;
 }
+
+//JG - Change Start
+// Jamie: Will jump here on every method call from the interpreter if PapiEventFile is set
+nmethod* InterpreterRuntime::isBetweenIterations(JavaThread * thread){
+  frame fr = thread->last_frame();
+  methodOop method = fr.interpreter_frame_method();
+  { ResourceMark rm;
+    if (strcmp(method->name()->as_utf8(), "pk_VM_indicator") == 0) {
+      while (!CompileBroker::is_idle()) {
+	tty->print_cr("Total compiles: %ld", CompileBroker::total_compilation_ticks());
+	usleep(1000);
+      }
+
+      CompileBroker::set_should_compile_new_jobs(CompileBroker::stop_compilation);
+
+      PapiThreadShadow::enable_collection();
+    }
+  }
+}
+//JG - Change End
 
 IRT_ENTRY(nmethod*,
           InterpreterRuntime::frequency_counter_overflow_inner(JavaThread* thread, address branch_bcp))

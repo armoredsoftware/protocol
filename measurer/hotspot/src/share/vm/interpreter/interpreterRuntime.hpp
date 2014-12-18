@@ -167,6 +167,11 @@ class InterpreterRuntime: AllStatic {
   // Interpreter's frequency counter overflow
   static nmethod* frequency_counter_overflow(JavaThread* thread, address branch_bcp);
 
+//JG - Change Start
+  // Jamie: Will jump here on every method call from the interpreter if PapiEventFile is set
+  static nmethod* isBetweenIterations(JavaThread * thread);
+//JG - Change End
+
   // Interpreter profiling support
   static jint    bcp_to_di(methodOopDesc* method, address cur_bcp);
   static void    profile_method(JavaThread* thread);

@@ -26,6 +26,10 @@
 #include "oops/constMethodOop.hpp"
 #include "oops/methodOop.hpp"
 
+//JG - Change Start
+#include "jr_custom_classes/memoryCollector.hpp"
+//JG - Change End
+
 // Static initialization
 const u2 constMethodOopDesc::MAX_IDNUM   = 0xFFFE;
 const u2 constMethodOopDesc::UNSET_IDNUM = 0xFFFF;
@@ -129,3 +133,92 @@ LocalVariableTableElement* constMethodOopDesc::localvariable_table_start() const
   addr -= length * sizeof(LocalVariableTableElement) / sizeof(u2);
   return (LocalVariableTableElement*) addr;
 }
+
+//JG - Change Start
+// I am adding this tool here as opposed to methodOop since methodOop seems to cause
+// collection problems when accessed concurrent to a GC. Hopefully constMethodOop will
+// avoid this.
+
+int constMethodOopDesc::osr_c1_compile_size = 0;
+int constMethodOopDesc::reg_c1_compile_size = 0;
+int constMethodOopDesc::nat_compile_size = 0;
+
+int constMethodOopDesc::num_recompiles = 0;
+
+// adds the nmethod size to its respective category if the nmethod is unique
+// with respect to its category
+bool constMethodOopDesc::profile_code(constMethodOop cm, nmethod* code) {
+  // This will become true if an nmethod is not unique. I have observed that for
+  // OSRs this may not necessarily mean the previous one was deleted. Nevertheless
+  // I am not counting multiple OSRs due to the fact that it COULD have been deleted.
+  bool recompile_detected = false;
+
+  if (code->is_native_method()) {
+    // count a native method
+    cm->has_nat_compile = true;
+    assert(code->insts_size() != 0, "No code size in native method?");
+    nat_compile_size += code->size();
+  }
+  else if (!cm->has_nat_compile) { // Native methods should not be overwritten, right?
+    if (code->is_osr_method()) {
+      if (!cm->has_osr_c1_compile && code->is_compiled_by_c1()) {
+	// count an osr c1 compile
+	cm->has_osr_c1_compile = true;
+	osr_c1_compile_size += code->size();
+      }
+      else {
+	recompile_detected = true;
+      }
+    }
+    else if (code->is_nmethod()) { // Should always be true unless there is a segmentation fault
+      if (!cm->has_reg_c1_compile && code->is_compiled_by_c1()) {
+	// count a regular c1 compile
+	cm->has_osr_c1_compile = true;
+	reg_c1_compile_size += code->size();
+      }
+      else {
+	recompile_detected = true;
+      }
+    }
+  }
+  else {
+    // If our assumption that native code is not overwritten fails we will be notified here.
+    // May cause us to miss some profiling if the assumption is incorrect
+    tty->print_cr("\nNote: Native code can infact be overwritten.\n");
+  }
+
+  // make sure this was not compiled by another compiler
+  if (!code->is_compiled_by_c1() && !code->is_native_method()) {
+    tty->print_cr("\nWarning: Our memory profile is incomplete. \n Alternate compiler %d detected!\n", (code->is_native_method() << 5 | code->is_compiled_by_c1() << 2 | code->is_compiled_by_c2() << 1 | code->is_compiled_by_shark()));
+    return false;
+  }
+
+  // count the number of duplicate nmethods appear without adding them to the collective
+  // nmethod size
+  if (recompile_detected) {
+    num_recompiles++;
+  }
+  else {
+    // Add method to MethodMemoryProfiler
+    MethodMemoryProfiler::add_nmethod(code);
+  }
+
+  return recompile_detected;
+}
+
+// Prints our data to the terminal
+void constMethodOopDesc::print_memory_stats() {
+  tty->print_cr("========== Total Compiled Method Memory Profile ============");
+  tty->print_cr("C1 compiler:");
+  tty->print_cr("  OSRs occupy:                %10d B", get_osr_c1_compile_size());
+  tty->print_cr("  Native methods occupy:      %10d B", get_nat_compile_size());
+  tty->print_cr("  Regular compiles occupy:    %10d B", get_reg_c1_compile_size());
+  tty->cr();
+  tty->print_cr("General Stats:");
+  tty->print_cr("  Total space occupied:       %10d B", (get_osr_c1_compile_size() +
+						     get_nat_compile_size()     +
+						     get_reg_c1_compile_size()));
+  tty->print_cr("  Number of recompiles:       %10d  ", get_num_recompiles());
+  tty->print_cr("============================================================");
+}
+//JG - Change Start

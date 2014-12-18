@@ -462,9 +462,10 @@ class nmethod : public CodeBlob {
   void  set_unload_reported()                     { _unload_reported = true; }
 
   bool  is_marked_for_deoptimization() const      { return _marked_for_deoptimization; }
-  void  mark_for_deoptimization()                 { _marked_for_deoptimization = true; }
   //JG - Change Start
+  void  mark_for_deoptimization()//                 { _marked_for_deoptimization = true; }
   void  JR_mark_for_deoptimization();//                 { _marked_for_deoptimization = true; }
+  //original line:  void  mark_for_deoptimization()                 { _marked_for_deoptimization = true; }
   //JG - Change End
 
   void  make_unloaded(BoolObjectClosure* is_alive, oop cause);
