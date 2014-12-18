@@ -821,3 +821,171 @@ void JDK_Version::to_string(char* buffer, size_t buflen) const {
     }
   }
 }
+
+//JG - Change Start
+// This is used to store the list of all methods that have been registered
+GrowableArray<methodOop>* our_collected_invoked_methods;
+
+// This adds a reference to a method to our_collected_invoked_methods if it
+// has been invoked. 
+void our_collect_invoked_methods(methodOop m) {
+  // maybe need to check if m is NULL
+  //methodHandle h(m);
+  if (m->get_total_count() >= 1 ) {
+    our_collected_invoked_methods->push(/*h()*/m);
+  }
+}
+
+// used to sort the methods (top: most invocations | bottom: least invocations)
+int our_compare_methods(methodOop* a, methodOop* b) {
+  // %%% there can be 32-bit overflow here
+  return ((*b)->get_total_count()) - ((*a)->get_total_count());
+}
+
+// ----- NOT USED -----
+// prints the method invocation histogram we have collected. Similar to their
+// print_method_invocation_histogram() above but is less verbose
+void print_our_method_invocation_histogram() {
+  ResourceMark rm;
+  HandleMark hm;
+  our_collected_invoked_methods = new GrowableArray<methodOop>(1024);
+  SystemDictionary::methods_do(our_collect_invoked_methods);
+  //collected_invoked_methods->sort(&compare_methods);
+  for (int index = 0; index < our_collected_invoked_methods->length(); index++) {
+    if (our_collected_invoked_methods->at(index) != NULL) {
+      methodHandle m(our_collected_invoked_methods->at(index));
+      int c = m()->get_total_count();
+      if (c >= MethodHistogramCutoff)
+	tty->print_cr("%s: %d", m()->name_and_sig_as_C_string(), m()->our_invocation_count());
+    }
+  }
+}
+
+// collects a tick of our invocation histogram. This only collects for methods
+// whose count has changed since the last tick
+void collect_our_method_invocation_histogram() {
+  ResourceMark rm;
+  HandleMark hm;
+  //DeoptimizationMarker dm;
+  //MutexLocker ml(Heap_lock);
+  //while (Universe::heap()->is_gc_active()) usleep(10);
+  
+  our_collected_invoked_methods = new GrowableArray<methodOop>(1024);
+
+  SystemDictionary::methods_do(our_collect_invoked_methods);
+  for (int index = 0; index < our_collected_invoked_methods->length(); index++) {
+    our_collected_invoked_methods->at(index)->collect_data();
+  }
+  
+  //MutexUnlocker mul(Heap_lock);
+}
+
+// ----- NOT USED -----
+// Prints out the data we have collected this run
+void print_our_final_method_invocation_histogram() {
+  ResourceMark rm;
+  HandleMark hm;
+  {
+    our_collected_invoked_methods = new GrowableArray<methodOop>(1024);
+    SystemDictionary::methods_do(our_collect_invoked_methods);
+    for (int index = 0; index < our_collected_invoked_methods->length(); index++) {
+      methodOop m = our_collected_invoked_methods->at(index);
+      int c = m->get_total_count();
+      if (c >= MethodHistogramCutoff) {
+	tty->print_cr(m->name_and_sig_as_C_string());
+	//m->constMethod()->_method_collector->print_data_collector();
+	tty->cr();
+	tty->cr();
+      }
+    }
+  }
+}
+
+// Outputs our data to a file.
+void output_our_final_method_invocation_histogram() {
+  ResourceMark rm;
+  HandleMark hm;
+  our_collected_invoked_methods = new GrowableArray<methodOop>(1024);
+  SystemDictionary::methods_do(our_collect_invoked_methods);
+  our_collected_invoked_methods->sort(&our_compare_methods);
+  //OurFileStream::initialize_our_output_stream();
+
+  OurFileStream* OFS = OurFileStream::hot_fstream = OurFileStream::initialize_our_output_stream("Methods");
+  
+  OFS->write_cstring("@ + heading standard");
+  OFS->new_line();
+  OFS->write_heading();
+  OFS->write_cstring("@ - heading");
+  OFS->new_line();
+  OFS->new_line();
+  OFS->write_cstring("@ + data CMTD");
+  OFS->new_line();
+  
+  //OurFileStream::cold_fstream = OurFileStream::initialize_our_output_stream("Cold");
+  for (int index = 0; index < our_collected_invoked_methods->length(); index++) {
+    methodOop m = our_collected_invoked_methods->at(index);
+    MethodDataCollector* col = m->constMethod()->_method_collector;
+
+    col->output_data_collector(OFS, m);
+  }
+  
+  OFS->write_cstring("@ - data");
+  OFS->new_line();
+  OFS->write_cstring("@ + EOF");
+
+  OurFileStream::hot_fstream->end_our_output_stream();
+  //OurFileStream::cold_fstream->end_our_output_stream();
+}
+
+// This is an entry point method for the method collector. Not overly necessary
+// although it is declared in the header and can add functionality to the tick
+// collection if necessary, for example we could print out the collection as
+// well.
+void method_histogram_gatherer() {
+  if (JRMethodCountTrace) {
+    collect_our_method_invocation_histogram();
+    //print_method_invocation_histogram();
+  }
+}
+
+void print_method_compiles_and_decompiles() {
+  ResourceMark rm;
+  HandleMark hm;
+  {
+    our_collected_invoked_methods = new GrowableArray<methodOop>(1024);
+    SystemDictionary::methods_do(our_collect_invoked_methods);
+    unsigned int total_compiled = 0;
+    unsigned int total_osr_compiled = 0;
+    unsigned int total_decompiled = 0;
+    unsigned int total_osr_decompiled = 0;
+    for (int index = 0; index < our_collected_invoked_methods->length(); index++) {
+      methodOop m = our_collected_invoked_methods->at(index);
+      if (m->get_total_count() >= CompileThreshold) {
+	jlong c = m->get_counts();
+	total_compiled += (unsigned short)(c >> 48);
+	total_osr_compiled += (unsigned short)(c >> 32);
+	total_decompiled += (unsigned short)(c >> 16);
+	total_osr_decompiled += (unsigned short)(c);
+	
+	tty->print_cr("Counts# Comp: %4d | OSR Comp: %4d | Decomp: %4d | OSR Decomp:%4d ||| Has code? %1d ||| Name: %s", \
+		      (unsigned short)(c >> 48), \
+		      (unsigned short)(c >> 32), \
+		      (unsigned short)(c >> 16), \
+		      (unsigned short)(c), \
+		      m->code() != NULL, \
+		      m->name_and_sig_as_C_string());
+      }
+    }
+    tty->print_cr("Totals:");
+    tty->print_cr("  Compiled:       %8d", total_compiled);
+    tty->print_cr("  OSR Compiled:   %8d", total_osr_compiled);
+    tty->print_cr("  Decompiled:     %8d", total_decompiled);
+    tty->print_cr("  OSR Decompiled: %8d", total_osr_decompiled);
+    tty->print_cr(" Grand Total:     %8d", (total_compiled + total_osr_compiled + total_decompiled + total_osr_decompiled));
+    tty->cr();
+    tty->print_cr("Code Cache Capacity:  %dB", CodeCache::capacity());
+    tty->cr();
+    tty->print_cr("Largest Collective Nmethod Size: %dB", StackWatcher::get_largest_size());
+  }
+}
+//JG - Change End
