@@ -96,9 +96,7 @@
   template(HeapWalkOperation)                     \
   template(HeapIterateOperation)                  \
   template(ReportJavaOutOfMemory)                 \
-\*JG - Change Start*\							\ 
- template(JRMethodCountTraceVMOP)                \
-\*JG - Change End*\								\ 
+  template(JRMethodCountTraceVMOP)                \ \*JG - Change Line*\	
   template(JRStackWatcherDeopt)                   \
   template(Exit)                                  \
 
