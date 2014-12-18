@@ -1646,3 +1646,99 @@ void BreakpointInfo::clear(methodOop method) {
   assert(method->number_of_breakpoints() > 0, "must not go negative");
   method->decr_number_of_breakpoints();
 }
+
+//JG - Change Start
+// returns the sum of the backedge + invocation count
+unsigned int methodOopDesc::get_total_count() {
+  return our_invocation_count() + our_backedge_count();
+}
+
+// mark for delete
+// marks osrs owned by this methodOop's instaceKlass to be deoptimized if
+// the final compiled code exists. (probably will change)
+void find_and_mark_method_osrs(methodOop m) {
+  /*nmethod* cur = instanceKlass::cast(m->method_holder())->osr_nmethods_head();
+  while(cur != NULL) {
+    if (cur->method()->code() != NULL) {
+      cur->mark_for_deoptimization();
+    }
+    cur = cur->osr_link();
+    }*/
+}
+
+// collects the total count (invocation + backedge) of a method if the 
+// count has changed from the previous PeriodicTask tick
+void methodOopDesc::collect_data()
+{
+  unsigned int count = get_total_count();
+  if (_constMethod->_method_collector->check_for_count_change(count)) {
+    /*if (UseCompiler && _code != NULL && !_code->is_marked_for_deoptimization()) {
+      _code->mark_for_deoptimization();
+      find_and_mark_method_osrs(this);
+
+      _invocation_counter.reset();
+      _backedge_counter.reset();
+    }*/
+
+    _constMethod->_method_collector->add_node(count, MethodCallGatherer::_gathererTicks);
+  }
+}
+
+void methodOopDesc::note_seen_on_stack() {
+  if (JRMethodDeoptStackWatcher) {
+    last_seen_on_stack = StackWatcher::current_tick();
+  }
+  else if (JRMethodDeoptCheckIn) {
+    last_seen_on_stack = MethodCheckInHandler::current_tick();
+    //tty->print_cr("%20d", last_seen_on_stack);
+  }
+
+  if (on_stack == 0) {
+    //tty->print_cr("Noting return");
+    request_time = false;
+  }
+}
+
+void methodOopDesc::note_deoptimization() {
+  last_seen_on_stack = -1;
+}
+
+void methodOopDesc::count_compile(bool is_osr) {
+  if (is_osr) {
+    counts += ((jlong)1) << 32;
+  }
+  else {
+    counts += ((jlong)1) << 48;
+  }
+}
+
+void methodOopDesc::count_decompile(bool is_osr) {
+  // JR Custom Content - count decompile disable
+  /*if (is_osr) {
+    counts += ((jlong)1);
+  }
+  else {
+    counts += ((jlong)1) << 16;
+    }*/
+}
+
+jlong methodOopDesc::get_counts() { return counts; }
+
+void methodOopDesc::note_entry() {
+  //if (!request_time) {
+    tty->print_cr("Noting new entry %d", code() != NULL && !code()->is_native_method());
+    //}
+  request_time = true;
+  Atomic::inc(&on_stack);
+  //on_stack++;
+}
+
+void methodOopDesc::note_return() {
+  Atomic::dec(&on_stack);
+  //on_stack--;
+}
+
+bool methodOopDesc::is_on_stack() {
+  return request_time;
+}
+//JG - Change End
