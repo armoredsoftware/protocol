@@ -562,10 +562,13 @@ void PapiThreadShadow::output_data(FILE* out) {
 
   if (out == NULL)
     return;
-
+int i = 0;
   while (temp != NULL) {
+printf("Thread %d {\n", i);
     temp->output_data_thread(out);
+i++;
     temp = temp->next;
+printf("}\n", i);
   }
   
   if (out != stdout)
