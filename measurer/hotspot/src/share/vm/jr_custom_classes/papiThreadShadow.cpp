@@ -560,6 +560,7 @@ void PapiThreadShadow::pop_method() {
 void PapiThreadShadow::output_data(FILE* out) {
   PapiThreadShadow* temp = head;
 
+printf("===Thread Shadows===\n");
   if (out == NULL)
     return;
 int i = 0;
@@ -570,6 +571,7 @@ i++;
     temp = temp->next;
 printf("}\n", i);
   }
+printf("============\n");
   
   if (out != stdout)
     tty->print_cr("\nPAPI: Wrote data to %s", PAPIOutputFile);
