@@ -20,9 +20,9 @@ typedef struct MethodWatchNode {
 
 class StackWatcher: AllStatic
 {
-  friend StackWatcherTask;
-  friend VM_Our_CallStackWatcher;
-  friend OurStackWatcherDeoptThread;
+  friend class StackWatcherTask;
+  friend class VM_Our_CallStackWatcher;
+  friend class OurStackWatcherDeoptThread;
  private:
   //static JavaThread* stack_watcher_thread_ptr;
 
