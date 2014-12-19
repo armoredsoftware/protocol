@@ -22,7 +22,7 @@ bool PAPI::overflow = false;
 int* PAPI::Events = NULL;
 int PAPI::num_events = 0;
 
-int not_implemented(...) {
+void *not_implemented(...) {
   return 0;
 }
 
