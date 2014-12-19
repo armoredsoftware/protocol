@@ -285,6 +285,8 @@ void PapiThreadShadow::push_method_thread(char* method_name) {
   int errval;
   papi_cntr temp_cntr[PAPI::get_num_events()];
 
+  tty->print_cr("REACHED PUSH");  
+
   // Handle stack previously empty
   if (empty) {
     if ((errval = PAPI::reset(event_set)) != PAPI_OK)
@@ -343,6 +345,8 @@ void PapiThreadShadow::pop_method_thread() {
   int errval;
   int num_events = PAPI::get_num_events();
   papi_cntr temp_cntr[num_events];
+
+  tty->print_cr("REACHED POP");
 
   // Store the counters first thing. 
   if ((errval = PAPI::read(event_set, temp_cntr)) != PAPI_OK)
