@@ -27,36 +27,36 @@ private:
   static int num_events;
   
   // Types of PAPI library functions
-  typedef int (*library_init_fp)(int);
-  typedef int (*thread_init_fp)(unsigned long int (*handle)());
-  typedef int (*multiplex_init_fp)();
+  typedef int (*library_init_fp)(...);
+  typedef int (*thread_init_fp)(...);
+  typedef int (*multiplex_init_fp)(...);
 
-  typedef int (*num_cmp_hwctrs_fp)(int);
+  typedef int (*num_cmp_hwctrs_fp)(...);
 
-  typedef int (*register_thread_fp)();
-  typedef int (*unregister_thread_fp)();
-  typedef int (*set_cmp_granularity_fp)(int, int);
+  typedef int (*register_thread_fp)(...);
+  typedef int (*unregister_thread_fp)(...);
+  typedef int (*set_cmp_granularity_fp)(...);
 
-  typedef int (*assign_eventset_component_fp)(int, int);
-  typedef int (*set_multiplex_fp)(int);
-  typedef int (*create_eventset_fp)(int*);
-  typedef int (*add_event_fp)(int, int);
-  typedef int (*remove_event_fp)(int, int);
-  typedef int (*cleanup_eventset_fp)(int);
-  typedef int (*destroy_eventset_fp)(int*);
+  typedef int (*assign_eventset_component_fp)(...);
+  typedef int (*set_multiplex_fp)(...);
+  typedef int (*create_eventset_fp)(...);
+  typedef int (*add_event_fp)(...);
+  typedef int (*remove_event_fp)(...);
+  typedef int (*cleanup_eventset_fp)(...);
+  typedef int (*destroy_eventset_fp)(...);
 
-  typedef int (*start_fp)(int);
-  typedef int (*stop_fp)(int, papi_cntr*);
-  typedef int (*read_fp)(int, papi_cntr*);
-  typedef int (*reset_fp)(int);
-  typedef int (*accum_fp)(int, papi_cntr*);
+  typedef int (*start_fp)(...);
+  typedef int (*stop_fp)(...);
+  typedef int (*read_fp)(...);
+  typedef int (*reset_fp)(...);
+  typedef int (*accum_fp)(...);
 
-  typedef int (*query_event_fp)(int);
-  typedef int (*event_code_to_name_fp)(int, char*);
-  typedef int (*event_name_to_code_fp)(char*, int*);
+  typedef int (*query_event_fp)(...);
+  typedef int (*event_code_to_name_fp)(...);
+  typedef int (*event_name_to_code_fp)(...);
 
-  typedef int (*shutdown_fp)();
-  typedef char* (*strerror_fp)(int);
+  typedef int (*shutdown_fp)(...);
+  typedef char* (*strerror_fp)(...);
 
 
   /* Library interface functions */
