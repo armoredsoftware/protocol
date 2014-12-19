@@ -26,9 +26,10 @@ int not_implemented(...) {
   return 0;
 }
 
-char* not_implemented(...) {
+char* not_implemented2(...) {
   return 0;
 }
+
 
 PAPI::library_init_fp              PAPI::library_init = &not_implemented;
 PAPI::thread_init_fp               PAPI::thread_init = &not_implemented;
@@ -59,7 +60,7 @@ PAPI::event_code_to_name_fp        PAPI::event_code_to_name = &not_implemented;
 PAPI::event_name_to_code_fp        PAPI::event_name_to_code = &not_implemented;
 
 PAPI::shutdown_fp                  PAPI::shutdown = &not_implemented;
-PAPI::strerror_fp                  PAPI::strerror = &not_implemented;
+PAPI::strerror_fp                  PAPI::strerror = &not_implemented2;
 
 static const char papi_library_name[] = "libpapi";
 static const char papi_not_enabled[] = "Using PAPI library without authorization.";
