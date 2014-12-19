@@ -11,47 +11,51 @@
 /* Static initializations */
 
 void* PAPI::_library = NULL;
-bool PAPI::tried_to_load_papi = false;
-bool PAPI::initialized = false;
+bool PAPI::tried_to_load_papi = true;
+bool PAPI::initialized = true;
 bool PAPI::ready = false;
 
-bool PAPI::enabled = false;
+bool PAPI::enabled = true;
 bool PAPI::multiplex = false;
 bool PAPI::overflow = false;
 
 int* PAPI::Events = NULL;
 int PAPI::num_events = 0;
 
-PAPI::library_init_fp              PAPI::library_init = NULL;
-PAPI::thread_init_fp               PAPI::thread_init = NULL;
-PAPI::multiplex_init_fp            PAPI::multiplex_init = NULL;
+int not_implemented(...) {
+  return 0;
+}
 
-PAPI::num_cmp_hwctrs_fp            PAPI::num_cmp_hwctrs = NULL;
+PAPI::library_init_fp              PAPI::library_init = &not_implemented;
+PAPI::thread_init_fp               PAPI::thread_init = &not_implemented;
+PAPI::multiplex_init_fp            PAPI::multiplex_init = &not_implemented;
 
-PAPI::register_thread_fp           PAPI::register_thread = NULL;
-PAPI::unregister_thread_fp         PAPI::unregister_thread = NULL;
-PAPI::set_cmp_granularity_fp       PAPI::set_cmp_granularity = NULL;
+PAPI::num_cmp_hwctrs_fp            PAPI::num_cmp_hwctrs = &not_implemented;
 
-PAPI::assign_eventset_component_fp PAPI::assign_eventset_component = NULL;
-PAPI::set_multiplex_fp             PAPI::set_multiplex = NULL;
-PAPI::create_eventset_fp           PAPI::create_eventset = NULL;
-PAPI::add_event_fp                 PAPI::add_event = NULL;
-PAPI::remove_event_fp              PAPI::remove_event = NULL;
-PAPI::cleanup_eventset_fp          PAPI::cleanup_eventset = NULL;
-PAPI::destroy_eventset_fp          PAPI::destroy_eventset = NULL;
+PAPI::register_thread_fp           PAPI::register_thread = &not_implemented;
+PAPI::unregister_thread_fp         PAPI::unregister_thread = &not_implemented;
+PAPI::set_cmp_granularity_fp       PAPI::set_cmp_granularity = &not_implemented;
 
-PAPI::start_fp                     PAPI::start = NULL;
-PAPI::stop_fp                      PAPI::stop = NULL;
-PAPI::read_fp                      PAPI::read = NULL;
-PAPI::reset_fp                     PAPI::reset = NULL;
-PAPI::accum_fp                     PAPI::accum = NULL;
+PAPI::assign_eventset_component_fp PAPI::assign_eventset_component = &not_implemented;
+PAPI::set_multiplex_fp             PAPI::set_multiplex = &not_implemented;
+PAPI::create_eventset_fp           PAPI::create_eventset = &not_implemented;
+PAPI::add_event_fp                 PAPI::add_event = &not_implemented;
+PAPI::remove_event_fp              PAPI::remove_event = &not_implemented;
+PAPI::cleanup_eventset_fp          PAPI::cleanup_eventset = &not_implemented;
+PAPI::destroy_eventset_fp          PAPI::destroy_eventset = &not_implemented;
 
-PAPI::query_event_fp               PAPI::query_event = NULL;
-PAPI::event_code_to_name_fp        PAPI::event_code_to_name = NULL;
-PAPI::event_name_to_code_fp        PAPI::event_name_to_code = NULL;
+PAPI::start_fp                     PAPI::start = &not_implemented;
+PAPI::stop_fp                      PAPI::stop = &not_implemented;
+PAPI::read_fp                      PAPI::read = &not_implemented;
+PAPI::reset_fp                     PAPI::reset = &not_implemented;
+PAPI::accum_fp                     PAPI::accum = &not_implemented;
 
-PAPI::shutdown_fp                  PAPI::shutdown = NULL;
-PAPI::strerror_fp                  PAPI::strerror = NULL;
+PAPI::query_event_fp               PAPI::query_event = &not_implemented;
+PAPI::event_code_to_name_fp        PAPI::event_code_to_name = &not_implemented;
+PAPI::event_name_to_code_fp        PAPI::event_name_to_code = &not_implemented;
+
+PAPI::shutdown_fp                  PAPI::shutdown = &not_implemented;
+PAPI::strerror_fp                  PAPI::strerror = &not_implemented;
 
 static const char papi_library_name[] = "libpapi";
 static const char papi_not_enabled[] = "Using PAPI library without authorization.";
@@ -59,18 +63,18 @@ static const char papi_not_enabled[] = "Using PAPI library without authorization
 // Set variables that should be checked before doing certain things
 // with papi
 void PAPI::set_enables() {
-  enabled = PAPIEventFile != NULL;
+  //enabled = PAPIEventFile != &not_implemented;
   multiplex = enabled && PAPIMultiplexInterval != 0;
   overflow = enabled && PAPIOverflowThreshold != 0;
 }
 
 // Loads the papi shared object file
 int PAPI::load_papi() {
-  assert(is_papi_enabled(), papi_not_enabled);
+  /*assert(is_papi_enabled(), papi_not_enabled);
   
   bool failed = false;
   
-  if (_library != NULL) {
+  if (_library != &not_implemented) {
     // Already succeeded.
     return -1;
   }
@@ -94,7 +98,7 @@ int PAPI::load_papi() {
     const char* base = buf;
     const char* p = strrchr(buf, '/');
     p = strstr(p ? p : base, "jvm");
-    if (p != NULL)  jvm_offset = p - base;
+    if (p != &not_implemented)  jvm_offset = p - base;
   }
 
   if (jvm_offset >= 0) {
@@ -104,7 +108,7 @@ int PAPI::load_papi() {
     _library = os::dll_load(buf, ebuf, sizeof ebuf);
   }
 
-  if (_library == NULL) {
+  if (_library == &not_implemented) {
     // Try a free-floating lookup.
     strcpy(&buf[0], papi_library_name);
     strcat(&buf[0], os::dll_file_extension());
@@ -113,29 +117,29 @@ int PAPI::load_papi() {
 
   tried_to_load_papi = true;
 
-  if (_library == NULL) {
+  if (_library == &not_implemented) {
     tty->print_cr("PAPI: ERROR: \"%s\": %s", buf, ebuf);
     return -1;
   }
 
   // Success.
-  tty->print_cr("PAPI: Loaded PAPI from %s", buf);
+  tty->print_cr("PAPI: Loaded PAPI from %s", buf);*/
   return 0;
 }
 
 // Macro to link shared object method to interface pointer
 #define PAPI_LINK_FUNC(IF, PF)						\
-  if ((IF = CAST_TO_FN_PTR(IF##_fp, os::dll_lookup(_library, PF))) == NULL) { \
+  if ((IF = CAST_TO_FN_PTR(IF##_fp, os::dll_lookup(_library, PF))) == &not_implemented) { \
     tty->print_cr("PAPI: ERROR: Failed to link %s to %s", #IF, PF);	\
     failed = true;							\
   }
 
 // Link all interface functions to shared object functions
 int PAPI::link_interface() {
-  assert(is_papi_enabled(), papi_not_enabled);
+  /*  assert(is_papi_enabled(), papi_not_enabled);
   bool failed = false;
   
-  if (_library == NULL) {
+  if (_library == &not_implemented) {
     tty->print_cr("PAPI: ERROR: Papi library has not been loaded.");
     return -1;
   }
@@ -178,7 +182,7 @@ int PAPI::link_interface() {
   }
   else {
     tty->print_cr("PAPI: Interface Successful");
-  }
+    }*/
 
   return 0;
 }
@@ -188,17 +192,17 @@ int PAPI::link_interface() {
 // Read the event file specified by PAPIEventFile and select
 // profilable methods. Handle unprofilable methods accordingly.
 int PAPI::read_events(int EventSet) {
-  const int MAX_EVENTS = 1024;
-  FILE* event_file = NULL;
-  FILE* retry_event_file = NULL;
+  /*const int MAX_EVENTS = 1024;
+  FILE* event_file = &not_implemented;
+  FILE* retry_event_file = &not_implemented;
 
   int errval;
   int temp_events[MAX_EVENTS];
   char retry_filename[strlen(PAPIEventFile)+3];
   
-  char* line = NULL; //(char*) malloc(sizeof(char)*1024);
-  //assert(line != NULL, "OUT OF MEMORY");
-  char* read_string = NULL;
+  char* line = &not_implemented; //(char*) malloc(sizeof(char)*1024);
+  //assert(line != &not_implemented, "OUT OF MEMORY");
+  char* read_string = &not_implemented;
   size_t len = 0;
   ssize_t readlen = 0;
   
@@ -209,7 +213,7 @@ int PAPI::read_events(int EventSet) {
   strcat(retry_filename, ".r");
 
   // Open file
-  if ((event_file = fopen(PAPIEventFile, "r")) == NULL) {
+  if ((event_file = fopen(PAPIEventFile, "r")) == &not_implemented) {
     tty->print_cr("PAPI: Failed to open event list file \"%s\": %s", PAPIEventFile, ::strerror(errno));
     return -1;
   }
@@ -264,8 +268,8 @@ int PAPI::read_events(int EventSet) {
 
       // Another event is conflicting with this one. Send it to the
       // retry file.
-      if (retry_event_file == NULL) {
-	if ((retry_event_file = fopen(retry_filename, "w")) == NULL) {
+      if (retry_event_file == &not_implemented) {
+	if ((retry_event_file = fopen(retry_filename, "w")) == &not_implemented) {
 	  tty->print_cr("PAPI: Failed to open retry event list file \"%s\": %s", PAPIEventFile, ::strerror(errno));
 	  fclose(event_file);
 	  ShouldNotReachHere();
@@ -283,17 +287,17 @@ int PAPI::read_events(int EventSet) {
       // Write to file
       fprintf(retry_event_file, "%s", read_string);
     }
-  }
+    }*/
   
   // FIXME: This for some reason breaks everything
   /*free(line);
 
   // Close opened files
   fclose(event_file);
-  if (retry_event_file != NULL) {
+  if (retry_event_file != &not_implemented) {
     fclose(retry_event_file);
     }*/
-
+  /*
   // Allocate Events now that we know the exact number of events we
   // will need
   Events = new int[num_events];
@@ -302,20 +306,20 @@ int PAPI::read_events(int EventSet) {
   for (int i = 0; i < num_events; i++) {
     Events[i] = temp_events[i];
   }
-
+  */
   return 0;
 }
 
 // Figure out which events play nice together and store them for later
 // use throughout the run
 int PAPI::setup_events() {
-  assert(is_papi_enabled(), papi_not_enabled);
-  assert(Events == NULL, "An attempt to resolve Events has already been made.");
+  /*assert(is_papi_enabled(), papi_not_enabled);
+  assert(Events == &not_implemented, "An attempt to resolve Events has already been made.");
   assert(initialized, "PAPI library was not initialized yet.");
 
   int errval;
   
-  int EventSet = PAPI_NULL;
+  int EventSet = PAPI_&not_implemented;
 
   // Create a fake eventset so that it can be pre-determined which
   // events play well together. This saves each thread the work of
@@ -347,14 +351,14 @@ int PAPI::setup_events() {
   if ((errval = destroy_eventset(&EventSet)) != PAPI_OK) {
     tty->print_cr("PAPI: ERROR: Failed to destroy temporary eventset during setup: %s", strerror(errval));
     return -1;
-  }
+    }*/
 
   return 0;
 }
 
 // Sets up the papi environment
 int PAPI::papi_setup_helper() {
-  assert(is_papi_enabled(), papi_not_enabled);
+  /*assert(is_papi_enabled(), papi_not_enabled);
   assert(!tried_to_load_papi && !ready && !initialized, "PAPI cannot be initialized twice.");
 
   int errval = PAPI_OK;
@@ -401,7 +405,7 @@ int PAPI::papi_setup_helper() {
   }
 
   tty->print_cr("PAPI: Initialization Successful");
-  ready = true;
+  ready = true;*/
 
   return 0;
 }
@@ -430,9 +434,9 @@ int PAPI::papi_setup() {
 
 // Cleans up the papi environment 
 int PAPI::papi_tear_down() {
-  assert(is_papi_enabled(), papi_not_enabled);
+  /*assert(is_papi_enabled(), papi_not_enabled);
 
-  delete [] Events;
+    delete [] Events;*/
 
   return 0;
 }
