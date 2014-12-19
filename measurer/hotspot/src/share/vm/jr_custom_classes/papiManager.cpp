@@ -420,6 +420,7 @@ int PAPI::papi_setup() {
   int errval;
   set_enables();
   errval = papi_setup_helper();
+  PapiThreadShadow::enable_collection();
   if (errval == 0) {
     return 0;
   }
