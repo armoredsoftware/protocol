@@ -9,12 +9,14 @@ import Control.Monad
 
 --main = do replicateM_ 10 $ main'
 main = do 
-  putStrLn "START main of Appraiser"
+  putStrLn "START main of Appraiser\n"
   (pcrSelect, nonce) <- mkTPMRequest ([0..23]::[Word8])
   let mReq = mkMeasureReq [0..2]
       req = (Request mReq pcrSelect nonce)
-  putStrLn "\nSENDING REQUEST TO ATTESTATION AGENT..."
+  putStrLn $ show req
+  enterP "send Request"
   chan <- sendRequest req
+  putStrLn "\nSENT REQUEST TO ATTESTATION AGENT...\n"
   putStrLn "\nRECEIVING RESPONSE..."
   result <- receiveResponse chan
   case (result) of

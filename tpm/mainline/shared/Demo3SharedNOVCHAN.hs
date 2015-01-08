@@ -31,6 +31,9 @@ import System.IO.Unsafe (unsafePerformIO) --LOL
 tpm :: TPMSocket
 tpm = tpm_socket "/var/run/tpm/tpmd_socket:0"
 
+enterP :: String -> IO ()
+enterP s = putStrLn ("Press enter to " ++ s) >> getChar >> return ()
+
 {-
 q :: Att ()
 q = do b <- done
@@ -231,7 +234,7 @@ instance Show Request where
              
 type DesiredEvidence = [EvidenceDescriptor]
 data EvidenceDescriptor = D0 | D1 | D2 
-                        | DONE deriving(Eq, Ord) --for now
+                        | DONE deriving(Eq, Ord, Show) --for now
 
 instance Binary EvidenceDescriptor where
   put D0 = put (0::Word8)
@@ -245,12 +248,12 @@ instance Binary EvidenceDescriptor where
                1 -> return D1
                2 -> return D2
                3 -> return DONE
-                    
+ {-                   
 instance Show EvidenceDescriptor where
   show D0 = "Desired: Measurement #0"
   show D1 = "Desired: Measurement #1"
   show D2 = "Desired: Measurement #2"
-  show DONE = "DONE DESCRIPTOR"
+  show DONE = "DONE DESCRIPTOR" -}
 
 
 --type Quote = (TPM_PCR_COMPOSITE, Signature)
@@ -342,7 +345,7 @@ data CARequest = CARequest {
   } deriving ({-Show, -}Read)
              
 instance Show CARequest where
-  show (CARequest p (Signed (TPM_IDENTITY_CONTENTS lab (TPM_PUBKEY parms dat)) _ )) = "CARequest {\n\npid = " ++ (show p) ++ ",\n\n" ++ "mkIdResult = Signed TPM_IDENTITY_CONTENTS\n}" {-{dat = TPM_IDENTITY_CONTENTS {" ++ (show lab) ++ "\n identityPubKey = TPM_PUBKEY {" ++ (show parms) ++ (take 10 (show dat)) ++ "..." -}
+  show (CARequest p (Signed (TPM_IDENTITY_CONTENTS lab (TPM_PUBKEY parms dat)) _ )) = "CARequest {\n\npid = " ++ (show p) ++ ",\n\n" ++ "mkIdResult = " {-Signed-} ++ "TPM_IDENTITY_CONTENTS\n}" {-{dat = TPM_IDENTITY_CONTENTS {" ++ (show lab) ++ "\n identityPubKey = TPM_PUBKEY {" ++ (show parms) ++ (take 10 (show dat)) ++ "..." -}
              
 data CAResponse = CAResponse {
   encCACert :: Encrypted, 
@@ -353,7 +356,7 @@ instance Show CAResponse where
   show (CAResponse a b) = 
     let aShort = take 20 (show a) ++ "\"..."
         bShort = take 20 (show b) ++ "\"..." in
-    "CAResponse {\n\n" ++ "encryptedCACert= " ++ aShort ++ ",\n\nencryptedActivateIdInput= " ++ bShort ++ "\n}"
+    "CAResponse {\n\n" ++ "CACert(encrypted with K)= " ++ aShort ++ ",\n\nActivateIdInput(encrypted with EK)= " ++ bShort ++ "\n}"
 
 type CACertificate = Signed TPM_PUBKEY   
 
