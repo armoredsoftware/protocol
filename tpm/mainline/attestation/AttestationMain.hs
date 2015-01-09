@@ -17,7 +17,7 @@ main = do
   measChan <- client_init meaId
   priCaChan <- client_init caId
   
-  forever $ runAtt attLoop $ AttState checksInit measChan apprChan priCaChan
+  forever $ runAtt attLoop $ AttState checksInit measChan apprChan priCaChan True
   
   putStrLn "CLOSING CHAN"
   close apprChan

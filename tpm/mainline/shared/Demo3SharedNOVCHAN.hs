@@ -31,8 +31,7 @@ import System.IO.Unsafe (unsafePerformIO) --LOL
 tpm :: TPMSocket
 tpm = tpm_socket "/var/run/tpm/tpmd_socket:0"
 
-enterP :: String -> IO ()
-enterP s = putStrLn ("Press enter to " ++ s) >> getChar >> return ()
+
 
 {-
 q :: Att ()

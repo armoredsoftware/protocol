@@ -15,10 +15,11 @@ main = do
       req = (Request mReq pcrSelect nonce)
   putStrLn $ show req
   putStrLn ""
-  enterP "send Request"
+  putStrLn $ "Press enter to send Request"
+  getChar
   chan <- sendRequest req
   putStrLn "\nSENT REQUEST TO ATTESTATION AGENT...\n"
-  putStrLn "\nRECEIVING RESPONSE..."
+  putStrLn "\nRECEIVING RESPONSE...\nReceived: "
   result <- receiveResponse chan
   case (result) of
 	(Left err) -> putStrLn ("Error getting response. Error was: " ++ err)
@@ -38,7 +39,8 @@ appLoop chan i = do
   let mReq = mkMeasureReq [0..2]
       req = (Request mReq pcrSelect nonce)
   putStrLn ""
-  enterP "send Request"
+  putStrLn $ "Press enter to send Request"
+  getChar
   sendShared' chan (WRequest req)
   putStrLn "\nSENT REQUEST TO ATTESTATION AGENT..."
   putStrLn "\nRECEIVING RESPONSE..."

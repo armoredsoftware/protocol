@@ -101,10 +101,11 @@ attProcess bs = do
   req <- liftIO $ receiveRequest apprChan
   {-liftIO $ putStrLn "Received Request: "
   liftIO $ putStrLn $ show req -}
-  put $ AttState bs measChan apprChan priCaChan
+  let stopsBool = and bs
+  put $ AttState bs measChan apprChan priCaChan stopsBool
   resp <- mkResponse req
   --liftIO $ putStrLn "\nSENDING RESPONSE TO APPRAISER..."
-  liftIO $ enterP "send response to Appraiser"
+  enterP "send response to Appraiser"
   liftIO $ sendResponse apprChan resp
   --liftIO $ putStrLn "After Send Response"
   return ()
@@ -113,16 +114,16 @@ attProcess bs = do
 mkResponse :: Either String Request -> Att Response
 mkResponse (Right req) = do
   
-  liftIO $ enterP "request AIK from TPM"
+  enterP "request AIK from TPM"
   x@(iKeyHandle, iSig) <- liftIO $ createAndLoadIdentKey
   liftIO $ putStrLn "AIK CREATED AND LOADED. "
-  liftIO $ putStrLn $ "Handle: " ++ show iKeyHandle
+  liftIO $ putStrLn $ "Handle: " ++ show iKeyHandle ++ "\n"
 
   caChan <- getPriChan
   c1b <- c1
-  caCert <-liftIO $  case c1b of 
+  caCert <-case c1b of 
     True -> getCACert x caChan
-    False ->getBadCACert iKeyHandle
+    False -> liftIO $ getBadCACert iKeyHandle
                                     
   resp <- mkResponse' req caCert iKeyHandle iPass
   return resp
@@ -139,30 +140,31 @@ getBadCACert iKeyHandle = do
         iPass = tpm_digest_pass "i"
   
 getCACert :: (TPM_KEY_HANDLE, ByteString) -> LibXenVChan 
-                    -> IO CACertificate
+                    -> Att CACertificate
 getCACert (iKeyHandle, iSig) caChan = do
-  pubKey <- attGetPubKey iKeyHandle iPass
+  pubKey <- liftIO $ attGetPubKey iKeyHandle iPass
   --sendPubKeyResponse chan pubKey -- TODO:  Maybe send signing pubkey too
   let caRequest = mkCARequest iPass pubKey iSig
   --putStrLn "ABOUT TO CONVERSE WITH SCOTTYCA"
   --putStrLn "\nSENDING CA REQUEST...\n"
-  enterP "send CA Request"
-  eitherCAResponse <- converseWithScottyCA caRequest
-  putStrLn $ "Sent: " ++ show caRequest
+  liftIO $ putStrLn $ show caRequest
+  enterP "send CA Request:"
+  eitherCAResponse <- liftIO $ converseWithScottyCA caRequest
+  liftIO $ putStrLn $ "SENT CA REQUEST"
   --putStrLn "I MADE IT PAST CONVERSING WITH SCOTTYCA"
-  putStrLn "\nRECEIVING CA RESPONSE... \n"
+  liftIO $ putStrLn "\nRECEIVING CA RESPONSE... \n"
   case (eitherCAResponse) of
     (Left err) -> error ("Failed to receive CAResponse. Error was: " ++ 
                                         (show err))
     (Right r@(CAResponse caCertBytes actIdInput)) -> do
-      putStrLn $ "Received: " ++ show r
-      iShn <- tpm_session_oiap tpm
-      oShn <- tpm_session_oiap tpm
+      liftIO $ putStrLn $ "Received: " ++ show r
+      iShn <- liftIO $ tpm_session_oiap tpm
+      oShn <- liftIO $ tpm_session_oiap tpm
       enterP $ "release session key K by calling tpm_activate_identity" ++
-        "with arguments:\n" ++ "\tHandle: " ++ (show iKeyHandle) ++ ",\n\tActivateIdInput(encrypted with EK): " ++ (take 20 (show actIdInput)) ++ "..."
-      sessionKey <- tpm_activateidentity tpm iShn oShn iKeyHandle iPass oPass 
+        " with inputs:\n" ++ "\tHandle: " ++ (show iKeyHandle) ++ ",\n\tActivateIdInput(encrypted with EK): " ++ (take 20 (show actIdInput)) ++ "..."
+      sessionKey <- liftIO $ tpm_activateidentity tpm iShn oShn iKeyHandle iPass oPass 
                                                       actIdInput
-      putStrLn $ "Released K: " ++ (take 20 (show $ tpmSymmetricData sessionKey)) ++ "..."
+      liftIO $ putStrLn $ "Released K: " ++ (take 20 (show $ tpmSymmetricData sessionKey)) ++ "..."
   
       let keyBytes = tpmSymmetricData sessionKey
           strictKey = toStrict keyBytes
@@ -174,8 +176,8 @@ getCACert (iKeyHandle, iSig) caChan = do
           lazy = fromStrict decryptedCertBytes 
           decodedCACert = (decode lazy {-decryptedCertBytes-}) :: CACertificate
           caCert = decodedCACert
-      tpm_session_close tpm iShn
-      tpm_session_close tpm oShn
+      liftIO $ tpm_session_close tpm iShn
+      liftIO $ tpm_session_close tpm oShn
       
       return caCert
 
@@ -194,7 +196,7 @@ mkResponse' (Request desiredE pcrSelect nonce) caCert
                        
                        
                        
-  liftIO $ enterP "request evidence from Measurer"                     
+  enterP "request evidence from Measurer"                     
   eList <- getEvidence desiredE {- case (and [c5b, c6b, c7b]) of 
     True -> getEvidence desiredE
     False -> getBadEvidence desiredE -}
@@ -218,13 +220,13 @@ mkResponse' (Request desiredE pcrSelect nonce) caCert
     False -> pcrModify "a" --Change PCRS here for bad pcr check
                    
   c2b <- c2
-  quote <- liftIO $ case c2b of 
+  quote <- case c2b of 
     True -> do 
       enterP $ "call tpm_quote with arguments:\n" ++ 
-            "    Handle: " ++ show qKeyHandle ++ "\n    " ++ show pcrSelect ++
-            "\n    SHA1( " ++ show eList ++ ",\n    " ++ "nonce: " ++ show qnonce ++ ",\n    " ++ show caCert ++ " )"
-      mkQuote qKeyHandle qKeyPass pcrSelect evBlobSha1
-    False -> mkBadQuote pcrSelect evBlobSha1
+            "    Handle: " ++ show qKeyHandle ++ ",\n    " ++ "pcrSelect: " ++ show pcrSelect ++
+            ",\n    exData: \n     SHA1( " ++ show eList ++ ",\n     " ++ "nonce: " ++ show qnonce ++ ",\n     " ++ show caCert ++ " )"
+      liftIO $ mkQuote qKeyHandle qKeyPass pcrSelect evBlobSha1
+    False -> liftIO $ mkBadQuote pcrSelect evBlobSha1
              
   let eSig = empty --TEMPORARY
       evPack = (EvidencePackage eList qnonce eSig)
@@ -324,7 +326,11 @@ dd xs = let zipped = zip [0..23] xs in do
        dd' (i,s) = let space = case (i < 10) of 
                          True -> " "
                          False -> "" in
-                   putStrLn $ "PCR " ++ (show i) ++ ": " ++ space ++ s
+                   case (i < 2 || i > 17) of 
+                     True -> putStrLn $ "PCR " ++ (show i) ++ ": " ++ space ++ s
+                     False -> case (i == 2) of 
+                       True -> putStrLn ".\n.\n."
+                       False -> return ()
         
 pcrModify :: String -> IO TPM_PCRVALUE
 pcrModify val = tpm_pcr_extend_with tpm (fromIntegral pcrNum) val      
