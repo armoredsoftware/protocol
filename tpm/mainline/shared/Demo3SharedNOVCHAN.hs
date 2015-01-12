@@ -68,17 +68,17 @@ updateTrue ind bs
 appName :: String
 appName = "Appraiser"
 appId :: Int
-appId = ($!)(\x -> x) (getID appName 20) --68 --20    --		
+appId = ($!)(\x -> x) (getID appName 1) --68 --20    --		
 
 attName :: String
 attName = "Attester"
 attId :: Int
-attId = getID attName 23 --69 --19
+attId = getID attName 3 --69 --19
 
 meaName :: String
 meaName = "Measurer"
 meaId :: Int
-meaId = getID meaName 22 --61 --7
+meaId = getID meaName 2 --61 --7
 
 caName :: String
 caName = "CA"
