@@ -20,6 +20,7 @@ import Database.HDBC
 import Database.HDBC.Sqlite3
 import Control.Monad.Reader
 
+
 --0= nothing
 --1= basic
 --2= heavy
@@ -28,7 +29,7 @@ outputlevel = 1
 --type MyReader a b= ReaderT (IO a) b
 scottyCAMain :: Int -> Int -> IO ()
 scottyCAMain port verbosity = scotty port $ do
-    Web.Scotty.get "/" $ text "foobar"  --a quick way to check if the CA is 
+    Web.Scotty.get "/" $ text "CA serving\n"  --a quick way to check if the CA is 
     				 	--serving, client should see "foobar" 
     				 	--(Note: unqualified get is ambiguous).
 
@@ -160,8 +161,8 @@ editTPM_PUBKEYentry id newtpmkey = do
 				    conn <- connectSqlite3 databaseName
 				    return (Left "nothing yet. TODO")
 
-myprint' ::(Monad m) => String -> Int -> m (IO ())
-myprint' str i = return (myprint str i)
+--myprint' ::(Monad m) => String -> Int -> m (IO ())
+myprint' str i = liftIO (myprint str i)
 
 myprint :: String -> Int -> IO ()
 myprint msg i | i<= outputlevel = putStrLn msg

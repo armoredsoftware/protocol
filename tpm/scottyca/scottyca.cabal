@@ -40,34 +40,9 @@ executable              ScottyCA
                         aeson,
                         base64-bytestring,
                         scotty,
-                        transformers
+                        transformers,
+                        regex-compat
   Main-is:              ScottyCAMain.hs
   ghc-options:          
 
-library           
-  exposed-modules:      AttesterCAComm
-  hs-source-dirs:       shared, ./, ../mainline/src, ../shell
-  build-depends:        base >= 4,
-                        mtl,
-                        directory,
-                        containers,
-                        bytestring,
-                        binary,
-                        network,
-                        random,
-                        --network-bytestring,
-                        HsOpenSSL,
-                        SHA,
-                        RSA,
-                        parsec >= 3,
-                        filepath,
-                        cipher-aes,
-                        HDBC,
-                        HDBC-sqlite3,
-                        io-streams,
-                        http-streams,
-                        HTTP,
-                        network-uri
-  other-extensions:     ForeignFunctionInterface
- -- Main-is:              AttesterCACommMain.hs
-  ghc-options:          -O
+

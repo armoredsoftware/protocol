@@ -8,7 +8,7 @@ import Text.Regex
 import Text.Read
 
 defaultPort = 3000
-
+version = "0.0.01"
 main = do 
 	args <- getArgs
 	helpprinted <- handleHelp args
@@ -16,7 +16,8 @@ main = do
 	  False -> do
 		port <- handlePort args
 	    	verbosity <- handleVerbosity args
-	    	putStrLn ("port: " ++ (show port) ++ " verbosity: " ++ (show verbosity))
+	    	--putStrLn ("port: " ++ (show port) ++ " verbosity: " ++ (show verbosity))
+	    	putStrLn ("CA version: " ++ version)
 	    	scottyCAMain port verbosity	  
 	  True  -> do
 	    return ()
