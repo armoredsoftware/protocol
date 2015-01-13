@@ -120,8 +120,8 @@ struct libxenvchan * createReceiveChanP (xentoollog_logger * xc_logger, int id, 
   sprintf(p, "%s_%d",p,id);
 
   // We act as a server for our RX.
-  fprintf(stdout, "receiveChan: vchan init for xs=%s to domId=%d,\n",
-	  p, id );
+  // fprintf(stdout, "receiveChan: vchan init for xs=%s to domId=%d,\n",
+  //	  p, id );
   rxCtrl = libxenvchan_server_init(xc_logger,
                                    id, p, 0, 0);
 
@@ -164,8 +164,8 @@ struct libxenvchan * createTransmitChanP(xentoollog_logger * xc_logger, int dest
           p);
 
   // We act as a client so the servers Rx is our Tx.
-  fprintf(stdout, "transmitChan: vchan init for xs=%s to domId=%d,\n",
-          serverRxXS, sourceId );
+  // fprintf(stdout, "transmitChan: vchan init for xs=%s to domId=%d,\n",
+  //  serverRxXS, sourceId );
   txCtrl = libxenvchan_client_init((xentoollog_logger *)xc_logger,
                                    destId, serverRxXS);
 

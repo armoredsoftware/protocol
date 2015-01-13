@@ -33,7 +33,8 @@ import Control.Monad.Trans
 data AttState = AttState {checks::[Bool],
 meaChan :: LibXenVChan,
 appChan :: LibXenVChan,
-priChan :: LibXenVChan}
+priChan :: LibXenVChan, 
+stops :: Bool}
 
 
 type Att = T.StateT AttState IO
@@ -57,6 +58,15 @@ c6 :: Att Bool
 c6 = getAt 6
 c7 :: Att Bool
 c7 = getAt 7
+
+enterP :: String -> Att ()
+enterP s = do
+  st <- T.get
+  let stopsBool = stops st
+  case stopsBool of 
+    True -> liftIO $ putStrLn ("\nPress enter to " ++ s) >> getChar >> return ()
+    False -> return ()
+                
 
 
 getMeaChan :: Att LibXenVChan

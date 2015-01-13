@@ -12,12 +12,12 @@ import Control.Monad.Trans
 main :: IO ()
 main = do
   putStrLn "START main of Attestation"
-  putStrLn "OPENING CHAN(Server chan for Appraiser)"
+  --putStrLn "OPENING CHAN(Server chan for Appraiser)"
   apprChan <- server_init appId
   measChan <- client_init meaId
   priCaChan <- client_init caId
   
-  forever $ runAtt attLoop $ AttState checksInit measChan apprChan priCaChan
+  forever $ runAtt attLoop $ AttState checksInit measChan apprChan priCaChan True
   
   putStrLn "CLOSING CHAN"
   close apprChan
