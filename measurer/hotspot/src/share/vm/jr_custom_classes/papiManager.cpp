@@ -418,6 +418,7 @@ int PAPI::papi_setup_helper() {
 // Call papi_setup_helper and handle failures gracefully 
 int PAPI::papi_setup() {
   int errval;
+
   set_enables();
   errval = papi_setup_helper();
   PapiThreadShadow::enable_collection();

@@ -1487,7 +1487,7 @@ DirtyCardQueueSet JavaThread::_dirty_card_queue_set;
 #endif // !SERIALGC
 
 JavaThread::JavaThread(bool is_attaching) :
-  Thread()
+  Thread(), _pts(NULL) //JG - Change added _pts(NULL)
 #ifndef SERIALGC
   , _satb_mark_queue(&_satb_mark_queue_set),
   _dirty_card_queue(&_dirty_card_queue_set)
@@ -1540,7 +1540,7 @@ void JavaThread::block_if_vm_exited() {
 static void compiler_thread_entry(JavaThread* thread, TRAPS);
 
 JavaThread::JavaThread(ThreadFunction entry_point, size_t stack_sz) :
-  Thread()
+  Thread(), _pts(NULL) //JG - Change added _pts(NULL)
 #ifndef SERIALGC
   , _satb_mark_queue(&_satb_mark_queue_set),
   _dirty_card_queue(&_dirty_card_queue_set)

@@ -140,14 +140,14 @@ int PapiThreadShadow::stop_collection() {
       pop_method_thread();
     }
 
-    if ((errval = PAPI::stop(event_set, NULL)) != PAPI_OK)
+    /*if ((errval = PAPI::stop(event_set, NULL)) != PAPI_OK)
       PAPI_ERROR_REPORTING("Stop Failed", errval);
 
     if ((errval = PAPI::cleanup_eventset(event_set)) != PAPI_OK)
       PAPI_ERROR_REPORTING("Eventset Cleanup Failed", errval);
 
     if ((errval = PAPI::destroy_eventset(&event_set)) != PAPI_OK)
-      PAPI_ERROR_REPORTING("Eventset Destroy Failed", errval);
+    PAPI_ERROR_REPORTING("Eventset Destroy Failed", errval);*/
 
     //if ((errval = PAPI::unregister_thread()) != PAPI_OK)
     //  PAPI_ERROR_REPORTING("Unregister Thread Failed", errval);
@@ -166,7 +166,7 @@ int PapiThreadShadow::profile_thread(JavaThread* java_thread) {
   int errval;
   bool thread_reused = false;
   pid_t tid = java_thread->osthread()->thread_id();
-  
+
   operation_count++;
 
   // Check if this thread is already registered under a different name
@@ -182,13 +182,13 @@ int PapiThreadShadow::profile_thread(JavaThread* java_thread) {
   // New threads need initializing otherwise skip this
   if (!thread_reused) {
     // Tells papi to watch the thread
-    if ((errval = PAPI::register_thread()) != PAPI_OK)
-      PAPI_ERROR_REPORTING("Register Thread Failed", errval);
+    /*if ((errval = PAPI::register_thread()) != PAPI_OK)
+      PAPI_ERROR_REPORTING("Register Thread Failed", errval);*/
   
     pts = new PapiThreadShadow();
 
     // Setup the eventset
-    if ((errval = PAPI::create_eventset(&pts->event_set)) != PAPI_OK)
+    /*if ((errval = PAPI::create_eventset(&pts->event_set)) != PAPI_OK)
       PAPI_ERROR_REPORTING("Eventset Create Failed", errval);
   
     // Add events
@@ -199,7 +199,7 @@ int PapiThreadShadow::profile_thread(JavaThread* java_thread) {
 
     // Start counting events
     if ((errval = PAPI::start(pts->event_set)) != PAPI_OK)
-      PAPI_ERROR_REPORTING("Start Failed", errval);
+    PAPI_ERROR_REPORTING("Start Failed", errval);*/
   }
   else {
     tty->print("%s ---> ", pts->thread_name);
@@ -285,7 +285,7 @@ void PapiThreadShadow::push_method_thread(char* method_name) {
   int errval;
   papi_cntr temp_cntr[PAPI::get_num_events()];
 
-  tty->print_cr("REACHED PUSH");  
+  tty->print_cr("REACHED PapiThreadShadow::push_method_thread() - %s", method_name);
 
   // Handle stack previously empty
   if (empty) {
@@ -296,8 +296,8 @@ void PapiThreadShadow::push_method_thread(char* method_name) {
   }
   else {
     // Store the number counts in prev function
-    if ((errval = PAPI::read(event_set, temp_cntr)) != PAPI_OK)
-      PAPI_ERROR_REPORTING("Accum Failed", errval);
+    /*if ((errval = PAPI::read(event_set, temp_cntr)) != PAPI_OK)
+      PAPI_ERROR_REPORTING("Accum Failed", errval);*/
 
     // Accumulate totals and head_stack counters for all events
     for (int i = 0; i < PAPI::get_num_events(); i++) {
@@ -328,8 +328,8 @@ void PapiThreadShadow::push_method_thread(char* method_name) {
   head_stack->entry = operation_count;
 
   // Ignore counts in this function reset papi's counters
-  if ((errval = PAPI::reset(event_set)) != PAPI_OK)
-    PAPI_ERROR_REPORTING("Reset Failed", errval);
+  /*if ((errval = PAPI::reset(event_set)) != PAPI_OK)
+    PAPI_ERROR_REPORTING("Reset Failed", errval);*/
 }
 
 // Thread specific method exit data collector
@@ -343,14 +343,14 @@ void PapiThreadShadow::pop_method_thread() {
 
   PapiNode* temp;
   int errval;
-  int num_events = PAPI::get_num_events();
-  papi_cntr temp_cntr[num_events];
+  //int num_events = PAPI::get_num_events();
+  //papi_cntr temp_cntr[num_events];
 
-  tty->print_cr("REACHED POP");
+  tty->print_cr("REACHED PapiThreadShadow::pop_method_thread()  - %s", head_stack->m_name);
 
   // Store the counters first thing. 
-  if ((errval = PAPI::read(event_set, temp_cntr)) != PAPI_OK)
-    PAPI_ERROR_REPORTING("Accum Failed", errval);
+  /*if ((errval = PAPI::read(event_set, temp_cntr)) != PAPI_OK)
+    PAPI_ERROR_REPORTING("Accum Failed", errval);*/
 
   head_stack->exit = operation_count;
   
@@ -376,17 +376,17 @@ void PapiThreadShadow::pop_method_thread() {
   
   // Accumulate counts into the the total counts and into the popped
   // node's counters
-  for (int i = 0; i < num_events; i++) {
+  /*for (int i = 0; i < num_events; i++) {
     temp->counters[i] += temp_cntr[i];
     totals[i] += temp_cntr[i];
-  }
+    }*/
 
   if (head_stack != NULL) {
 #ifndef METHOD_PARTS
     // Add the popped node counts to the next node.
-    for (int i = 0; i < num_events; i++) {
+    /*for (int i = 0; i < num_events; i++) {
       head_stack->counters[i] += temp->counters[i];
-    }
+      }*/
 #endif
   }
   else {
@@ -397,8 +397,8 @@ void PapiThreadShadow::pop_method_thread() {
   
   // Ignore counts in this funcion
   // This might be too expensive
-  if ((errval = PAPI::reset(event_set)) != PAPI_OK)
-    PAPI_ERROR_REPORTING("Reset Failed", errval);
+  /*if ((errval = PAPI::reset(event_set)) != PAPI_OK)
+    PAPI_ERROR_REPORTING("Reset Failed", errval);*/
 }
 
 // TODO: Implement
@@ -526,6 +526,7 @@ void PapiThreadShadow::push_method(char* method_name) {
   if (Thread::current()->is_Java_thread()) {
     JavaThread* jt = JavaThread::current();
     PapiThreadShadow* pts = jt->get_papi_thread_shadow();
+
     if (pts == NULL && should_collect) {
       PapiThreadShadow::profile_thread(jt);
       pts = jt->get_papi_thread_shadow();
@@ -564,18 +565,18 @@ void PapiThreadShadow::pop_method() {
 void PapiThreadShadow::output_data(FILE* out) {
   PapiThreadShadow* temp = head;
 
-printf("===Thread Shadows===\n");
+  printf("===Thread Shadows===\n");
   if (out == NULL)
     return;
-int i = 0;
+  int i = 0;
   while (temp != NULL) {
-printf("Thread %d {\n", i);
+    printf("Thread %d {\n", i);
     temp->output_data_thread(out);
-i++;
+    i++;
     temp = temp->next;
-printf("}\n", i);
+    printf("}\n", i);
   }
-printf("============\n");
+  printf("============\n");
   
   if (out != stdout)
     tty->print_cr("\nPAPI: Wrote data to %s", PAPIOutputFile);

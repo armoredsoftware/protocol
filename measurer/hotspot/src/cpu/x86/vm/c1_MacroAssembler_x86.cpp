@@ -396,11 +396,11 @@ void C1_MacroAssembler::build_frame(int frame_size_in_bytes, Address our_compile
   // Write a compile_on_stack bit and a compile_seen_recent bit to the
   // address holding the method's our_compiled_run_status flag. This should
   // reset all other bits to 0.
-  if (JRMethodDeoptCheckIn)
+  /*if (JRMethodDeoptCheckIn)
     movb(our_compiled_run_status, MethodCheckInHandler::compile_seen_recent |
-	 MethodCheckInHandler::compile_active);
+    MethodCheckInHandler::compile_active);*/
   
-  if (PAPI::is_papi_ready() && m_name != NULL) {
+  if (m_name != NULL) {
     pusha();
     // Push all xmm registers to the stack since we are not sure which
     // ones are in use.
