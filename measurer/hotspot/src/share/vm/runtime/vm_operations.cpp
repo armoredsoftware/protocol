@@ -539,7 +539,7 @@ void VM_MonitorAction::doit() {
 	else if (signal == 1001) //Get User Specified Variable
 	{
 		PapiThreadShadow::output_data(stdout);
-		printf("HEY!!!");
+		printf("HEY2!!!");
 			
 		std::string temp = "NA";
 
