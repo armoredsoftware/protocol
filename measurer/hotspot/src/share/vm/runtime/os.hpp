@@ -343,7 +343,10 @@ class os: AllStatic {
     java_thread,
     compiler_thread,
     watcher_thread,
-    talk_thread,
+    //JG - Change Start
+	talk_thread,
+    stack_watcher_thread,
+	//JG - Change End
     os_thread
   };
 

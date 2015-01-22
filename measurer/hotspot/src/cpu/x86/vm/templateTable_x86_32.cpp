@@ -1549,6 +1549,9 @@ void TemplateTable::branch(bool is_jsr, bool is_wide) {
 
   const ByteSize be_offset = methodOopDesc::backedge_counter_offset() + InvocationCounter::counter_offset();
   const ByteSize inv_offset = methodOopDesc::invocation_counter_offset() + InvocationCounter::counter_offset();
+//JG - Change Start
+  const ByteSize our_be_offset = methodOopDesc::our_backedge_counter_offset() + InvocationCounter::counter_offset();
+//JG - Change End
   const int method_offset = frame::interpreter_frame_method_offset * wordSize;
 
   // Load up EDX with the branch displacement

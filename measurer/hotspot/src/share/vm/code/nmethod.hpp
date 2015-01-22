@@ -28,6 +28,11 @@
 #include "code/codeBlob.hpp"
 #include "code/pcDesc.hpp"
 
+//JG - Change Start
+#include "jr_custom_classes/fileIO.hpp"
+#include "jr_custom_classes/methodCheckIn.hpp"
+//JG - Change End
+
 // This class is used internally by nmethods, to cache
 // exception/pc/handler information.
 
@@ -282,7 +287,49 @@ class nmethod : public CodeBlob {
   // Initailize fields to their default values
   void init_defaults();
 
+  //JG - Change Start
+  // Points to the corresponding value in methodOop. This should make
+  // access to this value simpler from our scanner.
+  //address our_compile_run_status;
+  MethodCheckInStatus* our_compile_run_status;
+
+  static nmethod* stack_watch_head;
+  static nmethod* stack_watch_tail;
+
+  nmethod* next_watched;
+  nmethod* prev_watched;
+  //JG - Change End
+
  public:
+  //JG - Change Start
+  void jr_nmethod_creation_routines(methodOop m);
+
+  /*address get_our_compile_run_status_addr() { 
+    return our_compile_run_status; 
+  }
+
+  void set_our_compile_run_status(char status) {
+    *our_compile_run_status = status;
+  }
+  */
+
+  MethodCheckInStatus* get_our_compile_run_status() {
+    return our_compile_run_status;
+  }
+
+  void add();
+  void remove();
+
+  static void watched_methods_do(void (*func)(nmethod* cur));
+  static void print_list();
+  
+  static long cumulative_size;
+  
+  static void measure_size(nmethod* measuree);
+
+  CStringHolder method_name_holder;
+  //JG - Change End
+
   // create nmethod with entry_bci
   static nmethod* new_nmethod(methodHandle method,
                               int compile_id,
@@ -415,7 +462,11 @@ class nmethod : public CodeBlob {
   void  set_unload_reported()                     { _unload_reported = true; }
 
   bool  is_marked_for_deoptimization() const      { return _marked_for_deoptimization; }
-  void  mark_for_deoptimization()                 { _marked_for_deoptimization = true; }
+  //JG - Change Start
+  void  mark_for_deoptimization();//                 { _marked_for_deoptimization = true; }
+  void  JR_mark_for_deoptimization();//                 { _marked_for_deoptimization = true; }
+  //original line:  void  mark_for_deoptimization()                 { _marked_for_deoptimization = true; }
+  //JG - Change End
 
   void  make_unloaded(BoolObjectClosure* is_alive, oop cause);
 

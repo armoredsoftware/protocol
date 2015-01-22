@@ -33,6 +33,9 @@
 #include "oops/oop.inline2.hpp"
 #include "runtime/handles.inline.hpp"
 
+//JG - Change Start
+#include "jr_custom_classes/methodCollector.hpp"
+//JG - Change End
 
 klassOop constMethodKlass::create_klass(TRAPS) {
   constMethodKlass o;
@@ -88,6 +91,16 @@ constMethodOop constMethodKlass::allocate(int byte_code_size,
   cm->set_inlined_tables_length(checked_exceptions_length,
                                 compressed_line_number_size,
                                 localvariable_table_length);
+  
+//JG - Change Start
+  /*/// JR Custom Content - begin \\\*/
+  if (JRMethodCountTrace) {
+    // Creates our method invocation count collector for each method
+    cm->_method_collector = new MethodDataCollector();
+  }
+  /*/// JR Custom Content - end \\\*/
+  //JG - Change End
+
   assert(cm->size() == size, "wrong size for object");
   cm->set_is_conc_safe(is_conc_safe);
   cm->set_partially_loaded();

@@ -327,7 +327,15 @@ frame frame::sender_for_entry_frame(RegisterMap* map) const {
   // Java frame called from C; skip all C frames and return top C
   // frame of that chunk as the sender
   JavaFrameAnchor* jfa = entry_frame_call_wrapper()->anchor();
+//JG - Change Start
+  if (entry_frame_is_first())
+    raise(SIGSEGV);
+//JG - Change End
   assert(!entry_frame_is_first(), "next Java fp must be non zero");
+//JG - Change Start
+  if (jfa->last_Java_sp() <= sp())
+    raise(SIGSEGV);
+//JG - Change End
   assert(jfa->last_Java_sp() > sp(), "must be above this frame on stack");
   map->clear();
   assert(map->include_argument_oops(), "should be set by clear");

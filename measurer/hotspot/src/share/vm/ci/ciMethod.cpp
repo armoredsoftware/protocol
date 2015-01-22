@@ -58,6 +58,10 @@
 #include "oops/methodOop.hpp"
 #endif
 
+//JG - Change Start
+#include "jr_custom_classes/methodCheckIn.hpp"
+//JG - Change End
+
 // ciMethod
 //
 // This class represents a methodOop in the HotSpot virtual
@@ -93,6 +97,10 @@ ciMethod::ciMethod(methodHandle h_m) : ciObject(h_m) {
   _flow               = NULL;
   _bcea               = NULL;
 #endif // COMPILER2 || SHARK
+
+  //JG - Change Start
+  our_compile_run_status_addr = h_m()->our_compile_run_status->get_address();
+  //JG - Change End
 
   ciEnv *env = CURRENT_ENV;
   if (env->jvmti_can_hotswap_or_post_breakpoint() && can_be_compiled()) {
@@ -895,6 +903,19 @@ bool ciMethod::should_exclude() {
   bool ignore;
   return CompilerOracle::should_exclude(mh, ignore);
 }
+
+// JG - Change Start
+// ------------------------------------------------------------------
+// ciMethod::should_papi_instrument
+//
+// Should this method be instrumented by PAPI?
+bool ciMethod::should_papi_instrument() {
+  check_is_loaded();
+  VM_ENTRY_MARK;
+  methodHandle mh(THREAD, get_methodOop());
+  return CompilerOracle::should_papi_instrument(mh);
+}
+// JG - Change End
 
 // ------------------------------------------------------------------
 // ciMethod::should_inline

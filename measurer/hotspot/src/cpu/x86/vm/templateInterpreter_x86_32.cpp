@@ -153,6 +153,37 @@ address TemplateInterpreterGenerator::generate_return_entry_for(TosState state, 
   TosState incoming_state = state;
   address entry = __ pc();
 
+  //JG - Change Start
+  //__ get_method(rbx);
+  
+  //if (/*PAPI::is_papi_ready() &&*/PAPIEventFile != NULL && (method()->code_size() >= PAPIBytecodeSizeCutoff || (PAPIRequireLoopProfile && method()->has_loops()))) {
+  /*__ pusha();
+    // Push all xmm registers to the stack since we are not sure which
+    // ones are in use.
+    __ subptr(rsp, 8*2*wordSize);
+    __ movdbl(Address(rsp, 0), xmm0);
+    __ movdbl(Address(rsp, 2*wordSize), xmm1);
+    __ movdbl(Address(rsp, 2*2*wordSize), xmm2);
+    __ movdbl(Address(rsp, 3*2*wordSize), xmm3);
+    __ movdbl(Address(rsp, 4*2*wordSize), xmm4);
+    __ movdbl(Address(rsp, 5*2*wordSize), xmm5);
+    __ movdbl(Address(rsp, 6*2*wordSize), xmm6);
+    __ movdbl(Address(rsp, 7*2*wordSize), xmm7);
+    __ call(RuntimeAddress(CAST_FROM_FN_PTR(address, PapiThreadShadow::pop_method)));
+    // Pop all xmm registers from the stack.
+    __ movdbl(xmm0, Address(rsp, 0));
+    __ movdbl(xmm1, Address(rsp, 2*wordSize));
+    __ movdbl(xmm2, Address(rsp, 2*2*wordSize));
+    __ movdbl(xmm3, Address(rsp, 3*2*wordSize));
+    __ movdbl(xmm4, Address(rsp, 4*2*wordSize));
+    __ movdbl(xmm5, Address(rsp, 5*2*wordSize));
+    __ movdbl(xmm6, Address(rsp, 6*2*wordSize));
+    __ movdbl(xmm7, Address(rsp, 7*2*wordSize));
+    __ addptr(rsp, 8*2*wordSize);
+    __ popa();
+    }*/
+  //JG - Change End
+
 #ifdef COMPILER2
   // The FPU stack is clean if UseSSE >= 2 but must be cleaned in other cases
   if ((incoming_state == ftos && UseSSE < 1) || (incoming_state == dtos && UseSSE < 2)) {

@@ -211,6 +211,9 @@ enum OracleCommand {
   UnknownCommand = -1,
   OracleFirstCommand = 0,
   BreakCommand = OracleFirstCommand,
+//JG - Change Start
+  PapiInstrumentCommand,
+//JG - Change End
   PrintCommand,
   ExcludeCommand,
   InlineCommand,
@@ -226,6 +229,9 @@ enum OracleCommand {
 // this must parallel the enum OracleCommand
 static const char * command_names[] = {
   "break",
+//JG - Change Start
+  "papi",
+//JG - Change End
   "print",
   "exclude",
   "inline",
@@ -299,6 +305,13 @@ bool CompilerOracle::should_exclude(methodHandle method, bool& quietly) {
   return false;
 }
 
+//JG - Change Start
+bool CompilerOracle::should_papi_instrument(methodHandle method) {
+  //_quiet = true;
+  return lists[PapiInstrumentCommand] != NULL &&
+    lists[PapiInstrumentCommand]->match(method);
+}
+//JG - Change End
 
 bool CompilerOracle::should_inline(methodHandle method) {
   return (check_predicate(InlineCommand, method));

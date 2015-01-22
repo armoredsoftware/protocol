@@ -154,9 +154,9 @@ class javaVFrame: public vframe {
   std::string get_value_PConly() const;
   std::string get_activation_PConly(int index) const;
   //JG - Change End
-  //DM - Edit Start
+  //JG - Change Start
   void var_print(int index, char* desired_frame, char* result) const;
-  //DM - Edit Stop
+  //JG - Change End
 
   // verify operations
   virtual void verify() const;

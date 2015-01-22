@@ -95,6 +95,11 @@
 #define SPELL_REG_FP "ebp"
 #endif // AMD64
 
+//JG - Change Start
+#include "jr_custom_classes/stackWatcher.hpp"
+#include "runtime/vframe.hpp"
+//JG - Change End
+
 address os::current_stack_pointer() {
 #ifdef SPARC_WORKS
   register void *esp;
@@ -508,6 +513,18 @@ JVM_handle_linux_signal(int sig,
   if (os::Linux::chained_handler(sig, info, ucVoid)) {
      return true;
   }
+
+	//JG - Change Start
+#if 0
+  if (sig == SIGSEGV && pthread_self() == StackWatcher::SWDT_pthread_ptr) {
+    siglongjmp(StackWatcher::exception_env, 1);
+    return 1;
+  }
+  else if (sig == SIGSEGV) {
+    tty->print_cr("Not Handling");
+  }
+#endif
+	//JG - Change End
 
   if (!abort_if_unrecognized) {
     // caller wants another chance, so give it to him

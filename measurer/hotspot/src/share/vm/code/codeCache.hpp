@@ -31,6 +31,10 @@
 #include "oops/instanceKlass.hpp"
 #include "oops/oopsHierarchy.hpp"
 
+//JG - Change Start
+#include "jr_custom_classes/memoryCollector.hpp"
+//JG - Change End
+
 // The CodeCache implements the code cache for various pieces of generated
 // code, e.g., compiled java methods, runtime stubs, transition frames, etc.
 // The entries in the CodeCache are all CodeBlob's.
@@ -45,6 +49,9 @@ class DepChange;
 
 class CodeCache : AllStatic {
   friend class VMStructs;
+//JG - Change Start
+  friend class OurMemoryCollector;
+//JG - Change End
  private:
   // CodeHeap is malloc()'ed at startup and never deleted during shutdown,
   // so that the generated assembly code is always there when it's needed.

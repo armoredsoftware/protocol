@@ -412,7 +412,93 @@ class CommandLineFlags {
   lp64_product(bool, UseCompressedOops, false,                              \
             "Use 32-bit object references in 64-bit VM. "                   \
             "lp64_product means flag is always constant in 32 bit VM")      \
+  /*JG - Change Start*/                                                     \
+  product(bool, JRVerbose, true,                                            \
+	  "Prints out events in the vm we wish to monitor.")                \
                                                                             \
+  product(bool, JRDoDeopt, true,                                            \
+	  "Prevents deoptimization periodic tasks from starting. Used for " \
+	  "debugging.")                                                     \
+                                                                            \
+  product(ccstr, PAPIEventFile, NULL,                                       \
+	  "Enables PAPI and specifies the file which contains all events "  \
+	  "the user wishes to count.")                                      \
+                                                                            \
+  product(ccstr, PAPIOutputFile, NULL,                                      \
+	  "Specify the file to which PAPI data will output.")               \
+                                                                            \
+  product(uintx, PAPIMultiplexInterval, 0,                                  \
+	  "Enables multiplexing the eventset to allow for many events to "  \
+	  "be profiled in one run. This interval specifies how long to "    \
+	  "sample each set of events(in microseconds, recomended 100000).") \
+                                                                            \
+  product(uintx, PAPIOverflowThreshold, 0,                                  \
+	  "Enables counter overflow handling and sets the value at which "  \
+	  "an overflow interupt will be triggered for a particular event."  \
+	  "The event that detects the overflow shall be the first event "   \
+	  "listed by the file specified by the PAPIEventFile flag.")        \
+                                                                            \
+  product(uintx, PAPIBytecodeSizeCutoff, 0,                                 \
+	  "Tells the compiler not to instrument with PAPI if the bytecode " \
+	  "is too small.")                                                  \
+                                                                            \
+  product(bool, PAPIRequireLoopProfile, false,                              \
+	  "Ensures that the compiler will always instrument a method with " \
+	  "PAPI if it has a backedge in its body.")                         \
+                                                                            \
+  product(bool, JRMethodDeoptCheckIn, false,                                \
+	  "Compiled methods write a constant to memory on each invocation " \
+	  "to detect when a compiled method is in use" )                    \
+                                                                            \
+  product(uintx, JRMethodDeoptCheckInMarkTimer, 1000,		            \
+          "Time to wait in milliseconds for a method check in on "          \
+	  "invocation before it is marked for deoptimization.")		    \
+                                                                            \
+  product(uintx, JRMethodDeoptCheckInInterval, 100,		            \
+          "The interval between each periodic task in milliseconds where "  \
+	  "we check JRMethodDeoptCheckInMarkTimer to see if it is time to " \
+	  "deoptimize yet.")						    \
+                                                                            \
+  product(bool, JRMethodDeoptStackWatcher, false,			    \
+          "Method calls and returns are recorded. If a method is not"       \
+	  "seen on the stack in JRMethodDeoptStackWatcherMarkTimer "        \
+	  "time, then it is marked for deoptimization.")                    \
+                                                                            \
+  product(uintx, JRMethodDeoptStackWatcherMarkTimer, 1000,		    \
+          "Time to wait in milliseconds for a method to reappear on "       \
+	  "the stack before it is marked for deoptimization.")		    \
+                                                                            \
+  product(uintx, JRMethodDeoptStackWatcherInterval, 1000,		    \
+          "The interval between each sweep check in microseconds.")	    \
+                                                                            \
+  product(bool, JRMemoryProfiler, false,                                    \
+	  "Collects memory statistics from the code cache and heap in "     \
+	  "several ways. Prints and outputs data when required.")           \
+                                                                            \
+  product(bool, JRMethodMemoryProfiler, false,				    \
+          "Collects memory statistics from nmethods on creation")           \
+                                                                            \
+  product(bool, JRMethodMemoryProfilerCCMap, false,			    \
+          "Collects a map of the code cache each time our memory "          \
+	  "profiler is collected.")                                         \
+    									    \
+  product(bool, JRMethodCountTrace, false,                                  \
+          "Print method counters in each time interval")                    \
+                                                                            \
+  product(uintx, JRMethodCountTraceTaskInterval, 50,			    \
+          "Sets the interval for the gathering of methods. (value >= 10 "   \
+	  "and <= 10000 and the value must be a multiple of 10)")           \
+                                                                            \
+  product(bool, JRMethodCountTraceSupressOutput, false,                     \
+	  "A true value will supress invocation count file output")         \
+                                                                            \
+  product(bool, JRMethodCountTraceUseVMOP, true,			    \
+          "Use the VM opperation to collect data when the GC is finished")  \
+                                                                            \
+  product(ccstr, JRMethodCountTraceOutputFile, NULL,                        \
+          "Specifies the file the method count trace should be "            \
+          "written to.")                                                    \
+  /*JG - Change End*/                                                       \
   notproduct(bool, CheckCompressedOops, true,                               \
             "generate checks in encoding/decoding code in debug VM")        \
                                                                             \

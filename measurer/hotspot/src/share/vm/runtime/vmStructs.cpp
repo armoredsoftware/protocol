@@ -1265,6 +1265,9 @@ static inline uint64_t cast_uint64_t(size_t x)
            declare_type(Thread, ThreadShadow)                             \
            declare_type(NamedThread, Thread)                              \
            declare_type(WatcherThread, Thread)                            \
+  /*JG - Change Start*/                              					\
+           declare_type(OurStackWatcherDeoptThread, Thread)		 		 \
+  /*JG - Change Stop*/													\
            declare_type(JavaThread, Thread)                               \
            declare_type(JvmtiAgentThread, JavaThread)                     \
            declare_type(ServiceThread, JavaThread)                        \

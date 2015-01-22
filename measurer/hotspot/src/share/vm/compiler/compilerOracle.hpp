@@ -42,6 +42,11 @@ class CompilerOracle : AllStatic {
   // Tells whether we to exclude compilation of method
   static bool should_exclude(methodHandle method, bool& quietly);
 
+//JG - Change Start
+  // Tells whether we want papi to instrument a method
+  static bool should_papi_instrument(methodHandle method);
+//JG - Change End
+
   // Tells whether we want to inline this method
   static bool should_inline(methodHandle method);
 

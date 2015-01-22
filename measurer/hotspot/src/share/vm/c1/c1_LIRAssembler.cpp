@@ -51,6 +51,9 @@
 # include "vmreg_ppc.inline.hpp"
 #endif
 
+//JG - Change Start
+#include "jr_custom_classes/papiManager.hpp"
+//JG - Change End
 
 void LIR_Assembler::patching_epilog(PatchingStub* patch, LIR_PatchCode patch_code, Register obj, CodeEmitInfo* info) {
   // we must have enough patching space so that call can be inserted
@@ -755,7 +758,46 @@ void LIR_Assembler::emit_op2(LIR_Op2* op) {
 
 
 void LIR_Assembler::build_frame() {
+  //JG - Change Start
+  // Choses whether to use the JRMethodDeoptCheckIn version of
+  // build_frame or whether to use the original build frame. Only
+  // the x86 version is implemented as of now
+#ifdef TARGET_ARCH_x86
+  if ((JRMethodDeoptCheckIn || PAPIEventFile != NULL)
+      && (method() != NULL && method()->is_method()) ) {
+    address a = method()->get_our_compile_run_status_addr();
+
+    if ( (CompileCommandFile == NULL || method()->should_papi_instrument())
+	 && (CompileCommandFile != NULL || (method()->code_size() >= PAPIBytecodeSizeCutoff || (PAPIRequireLoopProfile && method()->has_loops()))) ) {
+      char* name_and_sig = new char[method()->name()->utf8_length() + method()->holder()->name()->utf8_length() /*+ method()->signature()->as_symbol()->utf8_length()*/ + 2];
+
+      name_and_sig[0] = '\0';
+
+      strcat(name_and_sig, method()->holder()->name()->as_utf8());
+      strcat(name_and_sig, ".");
+      strcat(name_and_sig, method()->name()->as_utf8());
+      //strcat(name_and_sig, method()->signature()->as_symbol()->as_utf8());
+
+      if (JRVerbose)
+	tty->print_cr("Profiling: %s", name_and_sig);
+
+      _masm->build_frame(initial_frame_size_in_bytes(), _masm->as_Address(ExternalAddress(a)), name_and_sig);
+
+    } else {
+      _masm->build_frame(initial_frame_size_in_bytes());
+    }
+
+  } else {
+    _masm->build_frame(initial_frame_size_in_bytes());
+  }
+#else 
+  // Original Content (I think?) - next line
   _masm->build_frame(initial_frame_size_in_bytes());
+#endif
+  // Original Start 
+  //    _masm->build_frame(initial_frame_size_in_bytes());
+  // Original End
+  //JG - Change End
 }
 
 

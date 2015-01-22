@@ -35,6 +35,13 @@
 #include "runtime/os.hpp"
 #include "runtime/stubRoutines.hpp"
 
+//JG - Change Start
+#include "jr_custom_classes/methodCheckIn.hpp"
+#include "jr_custom_classes/papiThreadShadow.hpp"
+#include "jr_custom_classes/papiManager.hpp"
+//JG - Change End
+
+
 int C1_MacroAssembler::lock_object(Register hdr, Register obj, Register disp_hdr, Register scratch, Label& slow_case) {
   const int aligned_mask = BytesPerWord -1;
   const int hdr_offset = oopDesc::mark_offset_in_bytes();
@@ -367,11 +374,87 @@ void C1_MacroAssembler::build_frame(int frame_size_in_bytes) {
   decrement(rsp, frame_size_in_bytes); // does not emit code for frame_size == 0
 }
 
+// JG - Change Start
+void C1_MacroAssembler::build_frame(int frame_size_in_bytes, Address our_compiled_run_status, char* m_name) {
+  // Make sure there is enough stack space for this method's activation.
+  // Note that we do this before doing an enter(). This matches the
+  // ordering of C2's stack overflow check / rsp decrement and allows
+  // the SharedRuntime stack overflow handling to be consistent
+  // between the two compilers.
+  generate_stack_overflow_check(frame_size_in_bytes);
+  
+  push(rbp);
+  
+#ifdef TIERED
+  // c2 leaves fpu stack dirty. Clean it on entry
+  if (UseSSE < 2 ) {
+    empty_FPU_stack();
+  }
+#endif // TIERED
+  decrement(rsp, frame_size_in_bytes); // does not emit code for frame_size == 0
+
+  // Write a compile_on_stack bit and a compile_seen_recent bit to the
+  // address holding the method's our_compiled_run_status flag. This should
+  // reset all other bits to 0.
+  /*if (JRMethodDeoptCheckIn)
+    movb(our_compiled_run_status, MethodCheckInHandler::compile_seen_recent |
+    MethodCheckInHandler::compile_active);*/
+  
+  if (m_name != NULL) {
+    pusha();
+    // Push all xmm registers to the stack since we are not sure which
+    // ones are in use.
+    subptr(rsp, 8*2*wordSize);
+    movdbl(Address(rsp, 0), xmm0);
+    movdbl(Address(rsp, 2*wordSize), xmm1);
+    movdbl(Address(rsp, 2*2*wordSize), xmm2);
+    movdbl(Address(rsp, 3*2*wordSize), xmm3);
+    movdbl(Address(rsp, 4*2*wordSize), xmm4);
+    movdbl(Address(rsp, 5*2*wordSize), xmm5);
+    movdbl(Address(rsp, 6*2*wordSize), xmm6);
+    movdbl(Address(rsp, 7*2*wordSize), xmm7);
+    push((int32_t) m_name);
+    call(RuntimeAddress(CAST_FROM_FN_PTR(address, PapiThreadShadow::push_method)));
+    pop(rax);
+    // Pop all xmm registers from the stack.
+    movdbl(xmm0, Address(rsp, 0));
+    movdbl(xmm1, Address(rsp, 2*wordSize));
+    movdbl(xmm2, Address(rsp, 2*2*wordSize));
+    movdbl(xmm3, Address(rsp, 3*2*wordSize));
+    movdbl(xmm4, Address(rsp, 4*2*wordSize));
+    movdbl(xmm5, Address(rsp, 5*2*wordSize));
+    movdbl(xmm6, Address(rsp, 6*2*wordSize));
+    movdbl(xmm7, Address(rsp, 7*2*wordSize));
+    addptr(rsp, 8*2*wordSize);
+    popa();
+  }
+}
+//JG - Change End
+
 
 void C1_MacroAssembler::remove_frame(int frame_size_in_bytes) {
   increment(rsp, frame_size_in_bytes);  // Does not emit code for frame_size == 0
   pop(rbp);
 }
+
+// JG - Change Start
+void C1_MacroAssembler::remove_frame(int frame_size_in_bytes, Address our_compiled_run_status) {
+  // Write a compile_seen_recent bit only to the address holding the method's 
+  // our_compiled_run_status flag. This should zero out all other bits including
+  // compile_active which indicates this method is no longer on the stack.
+  if (JRMethodDeoptCheckIn)
+    movb(our_compiled_run_status, MethodCheckInHandler::compile_seen_recent);
+  
+  // if (PAPI::is_papi_ready()) {
+  //   pusha();
+  //   call(RuntimeAddress(CAST_FROM_FN_PTR(address, PapiThreadShadow::pop_method)));
+  //   popa();
+  // }
+
+  increment(rsp, frame_size_in_bytes);  // Does not emit code for frame_size == 0
+  pop(rbp);
+}
+//JG - Change End
 
 
 void C1_MacroAssembler::unverified_entry(Register receiver, Register ic_klass) {
