@@ -12,7 +12,7 @@ Build-type:             Simple
 
 
 executable              Project
-  hs-source-dirs:       api, shell, src, shared, project, appraisal, attestation, measurer, privacyCA, provisioning
+  hs-source-dirs:       api, shell, src, shared, project, appraisal, attestation, measurer, privacyCA, provisioning, shared/protocolprotocol
   build-depends:        base >= 4,
                         shell >= 1.0,
                         mtl,
@@ -176,5 +176,16 @@ executable              Provisioning
   Main-is: ProvisioningMain.hs
   ghc-options: -O
 
+executable              Protocol
+  hs-source-dirs:       api, shell, src, shared, provisioning,
+                        shared/protocolprotocol
+  build-depends:        base >= 4,
+                        shell >= 1.0,
+                        network <2.6, 
+                        network-uri <2.6
+
+                       
+  Main-is: ProtocolMain.hs
+  ghc-options: -O
 
 
