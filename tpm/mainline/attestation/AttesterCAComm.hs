@@ -24,7 +24,39 @@ type ID = String
 ip="10.100.0.6" -- "192.168.122.1" 
 port=3000
 
-
+sendHttp :: AD.Shared -> Hostname -> Port ->IO Connection 
+sendHttp shared iip pport = do
+			    c <- openConnection iip pport
+			    sendHttp' shared c
+			    return c
+			    
+		    
+sendHttp' :: AD.Shared -> Connection -> IO ()
+sendHttp' shared c = do
+			    q <- buildRequest $ do
+			    	  http POST "/"
+			    	  setAccept "text/html/json"
+			    	  setContentType "application/x-www-form-urlencoded"
+			    --Prelude.putStrLn ( "Request: " ++ (show req))
+			    let nvs = [("request", (toStrict (AD.jsonEncode shared)))]
+			    --Prelude.putStrLn "about to send request"
+			    let x = encodedFormBody nvs
+			    --print "Made it here yaaaaaaaaaaaay"
+			    sendRequest c q (x)
+			    return ()
+               
+receiveHttp :: Connection -> IO (Either String AD.Shared)
+receiveHttp c = receiveResponse c (\p i -> do
+    			  x <- Streams.read i
+    			  case x of
+    			     (Nothing) -> return (Left "Error performing Streams.read")
+    			     (Just something) -> do
+	     			 --print something
+	     			 let caresp = (AD.jsonEitherDecode (fromStrict something) :: Either String AD.Shared)
+	     			 case caresp of
+	     			 	(Left err) -> return (Left ("Error decoding CAResponse. Error was: " ++ err))
+	     			 	(Right r)  -> return (Right r)
+		  )			    
 
 converseWithScottyCA :: AD.CARequest -> IO (Either String AD.CAResponse)
 converseWithScottyCA req = do

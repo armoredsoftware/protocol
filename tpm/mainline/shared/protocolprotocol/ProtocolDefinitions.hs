@@ -33,15 +33,15 @@ appProtocol = Let (Var "pcrsel") (ArmoredPCRSel [0..23])
 	     (Let (Var "request") (ArmoredRequesetForAttest (Var "pcrsel") 
 	     	  				            (Var "nonce")
 	     					            (Var "desiredEvidence"))
-	     (Let (Var "attesterChan") (ArmoredCreateChannel AMyself attester Vchan)	      
- 	     (Send (Var "request") (Var "attesterChan")
-	     (Receive (Var "response") (Var "attesterChan")
+	     (CreateChannel (AChannel "attesterChan") (ArmoredCreateChannel AMyself attester Vchan)	      
+ 	     (Send (Var "request") (AChannel "attesterChan")
+	     (Receive (Var "response") (AChannel "attesterChan")
 	     (Let (Var "finalResult") (ArmoredEvaluate (Var "request") (Var "response"))
 	     (Result (Var "finalResult"))
 	      )))))))
 	      
 	      
-attProtocol = ReceiveAny (Var "receivedRequest") (Var "appChannel")
+attProtocol = Receive (Var "receivedRequest") (AChannel "appChannel")
 	     (Let (Var "caCertReq") (ArmoredCreateCACertReq AMyself)
              (Send (Var "caCertReq") ArmoredCAChannel
              (Receive (Var "CACert") ArmoredCAChannel)
@@ -53,7 +53,7 @@ attProtocol = ReceiveAny (Var "receivedRequest") (Var "appChannel")
 	        (AppendArray (Array "emptyArray") (Var "evidence"))))
 	     (Let (Var "quote") ArmoredCreateQuote
 	     (Let (Var "responseToApp") ArmoredCreateAppResponse
-	     (Send (Var "responseToApp") (Var "appChannel")
+	     (Send (Var "responseToApp") (AChannel "appChannel")
 	      Stop
 	      ))))))))
 	      

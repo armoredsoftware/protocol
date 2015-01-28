@@ -6,16 +6,20 @@ import Control.Monad
 import Control.Monad.State.Strict
 import Data.ByteString.Lazy (ByteString, pack, append, empty, cons, fromStrict, length)
 import TPM
-
+import qualified Network.Http.Client as HttpClient
+import qualified AttesterCAComm as HttpComm
 import Demo3Shared hiding (Result)
+import qualified Demo3Shared as Demo3 (Shared (Result))
 import VChanUtil
+import Control.Concurrent.MVar
+
 -- these are the 'verbs'
 data Process = Send Armored Armored Process
 	         --  variable mess, channel 
 	     | Receive Armored Armored Process  --first is variable
 	     	 -- variable mess, variable new chan 
 	     | ReceiveAny Armored Armored Process-- the last armored is a variable name for the new channel
-	                 --variable, entity, entity, commMethod, followingProc
+	                 --chanName, entity, entity, commMethod, followingProc
 	     | CreateChannel Armored Armored Armored Armored Process
 	         --var,    val,    next proc
 	     | Let Armored Armored Process
@@ -49,7 +53,7 @@ data Armored = Var String
 --	     | AKey Key  --because show complains commented out.
 	     | AEncrypted ByteString
 	     | AEntity Entity 
-	     | AChannel Channel
+	     | AChannel String
 	     | ATPM_PCR_SELECTION TPM_PCR_SELECTION
 	     | ATPM_NONCE TPM_NONCE 
 	     | ArmoredPCRSel [Int]
@@ -69,7 +73,7 @@ data Armored = Var String
 	     | ArmoredMeasurerChan
 	     | ArmoredCreateQuote
 	     | ArmoredCreateAppResponse
-	     | AAttester  --constants from state
+	     | AAttester  --constants for state
 	     | AAppraiser
 	     | AMeasurer
 	     | APrivacyCA
@@ -77,10 +81,14 @@ data Armored = Var String
 	     
 data Channel = Channel Entity Entity ChannelInfo deriving (Eq, Show)
                            -- server chan         client channel
-data ChannelInfo = VchanInfo (Maybe LibXenVChan) (Maybe LibXenVChan)
-		 | HttpInfo (Maybe (String, String)) (Maybe Connection)
-		 deriving (Eq, Show)
-data Connection = Connection deriving (Eq, Show) --TODO not really, this is a scotty thing.     	     
+data ChannelInfo = VchanInfo LibXenVChan LibXenVChan
+		 | HttpInfo HttpClient.Hostname HttpClient.Port HttpClient.Connection
+		 deriving (Show)
+
+instance Eq ChannelInfo where
+ (VchanInfo _ _) == (HttpInfo _ _ _) = False
+ (VchanInfo m1 m2) == (VchanInfo m1' m2') = and [m1 == m1', m2 == m2']
+ (HttpInfo m1 m2 _) == (HttpInfo m1' m2' _) = and [m1 == m1', m2 == m2']
 data Entity = Appraiser Address
 	    | Attester Address
 	    | Measurer Address
@@ -94,8 +102,8 @@ getAddress (PrivacyCA a) = a
             
 data Address = Address {
 	        name :: String,
-	        ip   :: Maybe String,
-	        port :: Maybe String,
+	        ip   :: Maybe HttpClient.Hostname,
+	        port :: Maybe HttpClient.Port,
 	        getid   :: Maybe Int,
 	        note :: Maybe String
 	      }
@@ -113,21 +121,21 @@ type VariableBindings = [(Armored,Armored)]
 data ArmoredState = ArmoredState {
                             vars :: VariableBindings,
                             executor :: Entity,
-                            knownentities :: [Entity]
-                            
---                            channelpairs :: [(Channel,ChannelInfo)]
-                          } deriving ( Show)
+                            knownentities :: [Entity],
+                            channelpairs :: [(String, MVar Channel)]                         
+                          } 
                           	      
 runExecute :: Process -> Entity ->IO (Process, ArmoredState)
 runExecute proto entity= do
    let emptyvars = []
-   let s0 = ArmoredState emptyvars entity []
+   let s0 = ArmoredState emptyvars entity [] []
    runStateT (execute proto) s0
 
 execute :: Process -> ArmoredStateTMonad Process
        --variable, entity, entity, commMethod, followingProc
 --	     | CreateChannel Armored Armored Armored Armored Process
-execute (CreateChannel var ent1 ent2 commMethod proc) = do
+execute (CreateChannel achan ent1 ent2 commMethod proc) = do
+   achan' <- subIfVar achan
    ent1' <- subIfVar ent1
    ent2' <- subIfVar ent2
    commMethod' <- subIfVar commMethod
@@ -143,7 +151,7 @@ execute (CreateChannel var ent1 ent2 commMethod proc) = do
           receiveChan <- liftIO $ client_init i
           let (AEntity entity1) = ent1'
           let (AEntity entity2) = ent2'
-          addVariable var (AChannel (Channel entity1 entity2 (VchanInfo (Just sendChan) (Just receiveChan))))
+          addChannel achan' (Channel entity1 entity2 (VchanInfo sendChan receiveChan))
           execute proc
      (ACommMethod Http) -> do
        let maybeIPPort = (case (ent1',ent2') of
@@ -159,15 +167,57 @@ execute (CreateChannel var ent1 ent2 commMethod proc) = do
          Nothing -> return (Stuck "IP or port not given or attempted to make channel without self. currently not supported.")
          (Just ipportpair) -> do
            let (AEntity entity1) = ent1'
-           let (AEntity entity2) = ent2'
-           addVariable var (AChannel (Channel entity1 entity2 (HttpInfo (Just ipportpair) Nothing)))
+               (AEntity entity2) = ent2'
+               ip2 = fst ipportpair
+               port2 = snd ipportpair
+           conn <- liftIO $ HttpClient.openConnection ip2 port2 
+           addChannel achan' (Channel entity1 entity2 (HttpInfo ip2 port2 conn))
            execute proc                          
 execute (Send mess chan proc) = do
-  s <- get
-  execute proc
+  
+  chan' <- subIfVar chan
+  case chan' of
+   (AChannel str) -> do
+     s <- get
+     let mvarchan = lookup str (channelpairs s)
+     case mvarchan of 
+      Nothing -> return (Stuck "attempted to send on channel that is not in state")
+      (Just mvar) -> do
+       channel <- liftIO $ takeMVar mvar
+       case (channel) of
+        (Channel _ _ (VchanInfo sendChan _)) -> do 
+        	     liftIO $ sendShared' sendChan (armoredToShared mess)
+        	     execute proc
+        (Channel _ _ (HttpInfo ip1 port1 connection)) -> do                           
+        --newConn <- liftIO $ HttpClient.openConnection theIP thePort
+        --theConn <- liftIO $ HttpComm.sendHttp (armoredToShared mess) theIP thePort 
+          liftIO $ HttpComm.sendHttp' (armoredToShared mess) connection
+          execute proc
+        _ -> return (Stuck "error. Not a channel error possibly?")
+       liftIO $ putMVar mvar channel
+       execute proc 
+   _		      -> return (Stuck "attempt to send on non-channel")
+  
 execute (Receive var chan proc) = do
-  --message <- receive  --TODO
-  s <- get
+  chan' <- subIfVar chan
+  case chan' of
+    (AChannel str) -> do
+      s <- get
+      let mvarchan = lookup str (channelpairs s)
+      case mvarchan of 
+       Nothing -> return (Stuck "attempted to receive on channel that is not in state")
+       (Just mvar) -> do
+         channel <- liftIO $ takeMVar mvar
+         case channel of
+          (Channel _ _ (VchanInfo _ receiveChan)) -> do
+                       eitherShared <- liftIO $ receiveShared receiveChan 
+                       case (eitherShared) of
+                         (Left err)     -> return (Stuck err)
+                         (Right shared) -> do 
+                                            addVariable var (sharedToArmored shared)
+                                            liftIO $ putMVar mvar channel
+                                            execute proc  
+                                            
   --put (ArmoredState ((var,message):(vars s)))
   execute proc
 execute (Let var val proc) = do
@@ -182,8 +232,18 @@ addVariable var val = do
 		    s <- get
 		    let variables = vars s
 		    let variables' = (var,val) : variables
-		    put (ArmoredState (vars s) (executor s) (knownentities s))
+		    put (ArmoredState (vars s) (executor s) (knownentities s) (channelpairs s))
 		    return ()
+       --channel name
+addChannel :: Armored -> Channel -> ArmoredStateTMonad ()
+addChannel (AChannel str) chan = do
+			s <- get
+			let chanls = channelpairs s
+			chanMVar <- liftIO $ newMVar chan
+			let chanls' = ( (str,chanMVar) : chanls)
+			put (ArmoredState (vars s) (executor s) (knownentities s) chanls')
+			return ()
+			
 		    
 typeCheckProcess :: Process -> Either String Bool
 typeCheckProcess proc = Left "fail" --TODO      	      
@@ -206,4 +266,22 @@ myLookup  arm@(Var str) (((Var str2),val):xs) = if str == str2
 				    else myLookup arm xs
 myLookup any@(_) (x:xs)  = myLookup any xs        				                                                   
 	      	     
-	     
+	
+armoredToShared :: Armored -> Shared
+armoredToShared (ARequest req)              = WRequest req
+armoredToShared (AResponse resp)            = WResponse resp
+armoredToShared (AEvidenceDescriptor evdes) = WEvidenceDescriptor evdes
+armoredToShared (AEvidencePiece evpiece)    = WEvidencePiece evpiece
+armoredToShared (ACARequest careq)          = WCARequest careq
+armoredToShared (ACAResponse caresp)	    = WCAResponse caresp
+armoredToShared _			    = Demo3.Result False
+
+sharedToArmored :: Shared -> Armored
+sharedToArmored (WRequest req)              = ARequest req
+sharedToArmored (WResponse resp)            = AResponse resp
+sharedToArmored (WEvidenceDescriptor evdes) = AEvidenceDescriptor evdes
+sharedToArmored (WEvidencePiece evpiece)    = AEvidencePiece evpiece
+sharedToArmored (WCARequest careq)          = ACARequest careq
+sharedToArmored (WCAResponse caresp)	    = ACAResponse caresp
+sharedToArmored _			    = AFailure "attempted to convert to non-supported armored type"
+ 
