@@ -38,6 +38,9 @@ import Provisioning
 import Demo3Shared
 
 import Protocol
+
+import AppraiserProtocol
+import AttesterProtocol
 --import ScottyCA
 
 {-

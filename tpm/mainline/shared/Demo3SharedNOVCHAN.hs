@@ -22,6 +22,10 @@ import qualified Data.HashMap.Strict as HM (member, lookup)
 import Data.Maybe
 import qualified Data.ByteString.Char8 as Char8
 
+
+--import ProtoTypes (PortRequest)
+
+import qualified Network.Http.Client as HttpClient
 --import Prelude ( ($!) )
 import Data.List (isInfixOf, head) --for parsing the id file.
 import Text.Read (readMaybe) --for parsin'
@@ -184,6 +188,8 @@ data Shared   = WRequest Request
 	      | WEvidencePiece EvidencePiece
 	      | WCARequest CARequest
 	      | WCAResponse CAResponse
+--	      | WPort HttpClient.Port
+--	      | WCommRequest CommRequest
               | Result Bool
 
 instance Show Shared where
@@ -193,6 +199,9 @@ instance Show Shared where
     show (WEvidencePiece evPiece) = "EvidencePiece: " ++ (show evPiece) 
     show (Result True) = "Appraisal succeeded."
     show (Result False) = "Appraisal failed."
+--  show (WCommRequest commreq) = "WCommRequest " ++ (show commreq)
+--  show (WPort p) = "WPort: " ++ (show p)
+--  show (WPortRequest pr) = "WPortRequest " ++ (show pr)
     
 instance Binary Shared where
   put (WRequest app)             = do  put (0::Word8)
@@ -219,14 +228,14 @@ type Signature = ByteString
 data Signed a = Signed {
   dat :: a, 
   sig :: Signature
-  } deriving (Show, Read)
+  } deriving (Eq, Show, Read)
 
 --Request
 data Request = Request {
   desiredE :: DesiredEvidence,
   pcrSelect :: TPM_PCR_SELECTION,
   nonce :: TPM_NONCE
-  } deriving ({-Show-})
+  } deriving (Eq{-Show-})
              
 instance Show Request where
   show (Request e c q) = "Request {\n\ndesiredE = " ++ (show e) ++ ",\n\npcrSelect = " ++ (show c) ++ ",\n\nnonce = " ++ (show q) ++ "\n}"
@@ -261,7 +270,7 @@ instance Show EvidenceDescriptor where
 data Quote = Quote {
   pcrComposite :: TPM_PCR_COMPOSITE,
   qSig :: Signature
-  } deriving ({-Show-})
+  } deriving (Eq{-Show-})
              
 instance Show Quote where
   show (Quote p s) = "Quote {\npcrComposite = " ++ (take 200 (show p)) ++ "\"...} ,\n\n" ++ "qSig = " ++ (take 20 (show s)) ++ "\"..."
@@ -273,7 +282,7 @@ data Response = Response {
   evPack :: EvidencePackage, 
   caCert :: CACertificate,
   quote :: Quote
-  } deriving ({-Show-})
+  } deriving (Eq {-Show-})
 
 instance Show Response where
   show (Response e c q) = "Response {\n\nevPack = " ++ (show e) ++ ",\n\ncaCert = " ++ (show c) ++ ",\n\nquote = " ++ (show q) ++ "\n}"
@@ -282,7 +291,7 @@ data EvidencePackage = EvidencePackage {
   evList :: Evidence, 
   eNonce :: TPM_NONCE,
   eSig :: Signature
-  } deriving (Show)
+  } deriving (Eq, Show)
              
 
     
@@ -349,7 +358,7 @@ instance Show CARequest where
 data CAResponse = CAResponse {
   encCACert :: Encrypted, 
   encActIdInput :: Encrypted
-  } deriving ({-Show-})
+  } deriving (Eq{-Show-})
              
 instance Show CAResponse where
   show (CAResponse a b) = 
@@ -602,6 +611,7 @@ data TPM_KEY_PARMS_DATA = RSA_DATA TPM_RSA_KEY_PARMS
                         | AES_DATA TPM_SYMMETRIC_KEY_PARMS
                         | NO_DATA 
                         deriving (Eq, Read, Show)					    -}
+						                          
 instance ToJSON TPM_KEY_PARMS_DATA where
 	toJSON (RSA_DATA tpm_RSA_KEY_PARMS) = object [ "RSA_DATA" .= toJSON tpm_RSA_KEY_PARMS ]						     
 	toJSON (AES_DATA tpm_SYMMETRIC_KEY_PARMS) = object [ "AES_DATA" .= toJSON tpm_SYMMETRIC_KEY_PARMS ] 
@@ -712,7 +722,6 @@ ata TPM_SYMMETRIC_KEY_PARMS = TPM_SYMMETRIC_KEY_PARMS {
     	{-data Shared = Appraisal Request
               | Attestation Response
               | Result Bool-}
-
 instance ToJSON Shared where
 	toJSON (WRequest req) = object [ "WRequest" .= toJSON req]
 	toJSON (WResponse resp) = object [ "WResponse" .= toJSON resp ]
@@ -721,6 +730,7 @@ instance ToJSON Shared where
 	toJSON (WEvidencePiece evPiece) = object ["WEvidencePiece" .= toJSON evPiece]
 	toJSON (WCARequest caRequest) = object [ "WCARequest" .= toJSON caRequest ]
 	toJSON (WCAResponse caResponse) = object [ "WCAResponse" .= toJSON caResponse]
+--	toJSON (WCommRequest commreq) = object "WCommRequest" .= toJSON commreq
 
 instance FromJSON Shared where
 	parseJSON (DA.Object o) | HM.member "WRequest" o = WRequest <$> o .: "WRequest"
@@ -730,7 +740,18 @@ instance FromJSON Shared where
 				| HM.member "WEvidencePiece" o = WEvidencePiece <$> o .: "WEvidencePiece"
 				| HM.member "WCARequest" o = WCARequest <$> o .: "WCARequest"
 				| HM.member "WCAResponse" o = WCAResponse <$> o .: "WCAResponse"
- 		          
+--				| HM.member "WCommRequest" o = WCommRequest <$> o .: "WCommRequest"
+				
+
+--PortRequest Entity  HttpClient.Port
+--		 | VChanRequest Entity Int
+
+{- instance ToJSON PortRequest where
+	toJSON (PortRequest port entity) = object [ "port" .= toJSON port
+						  , "entity" .= toJSON entity
+						  ]-}
+
+				 		         
 encodeToText :: B.ByteString -> T.Text
 encodeToText = TE.decodeUtf8 . Base64.encode
 
