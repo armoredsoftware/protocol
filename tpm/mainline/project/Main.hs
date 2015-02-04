@@ -36,6 +36,7 @@ import Measurer
 --import PrivacyCA
 import Provisioning
 import Demo3Shared
+import InterpreterTypes
 --import ScottyCA
 
 {-
