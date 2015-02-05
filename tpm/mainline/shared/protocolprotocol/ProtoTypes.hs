@@ -20,6 +20,7 @@ import Control.Applicative ( (<$>), (<*>), pure )                           --fo
 import qualified Data.HashMap.Strict as HM (member, lookup)                 --for JSON stuff
 import Data.Aeson (toJSON, parseJSON, ToJSON,FromJSON, object , (.=), (.:) )--for JSON stuff
 import Data.ByteString.Lazy(ByteString, empty, append, pack, toStrict, fromStrict) --for JSON stuff
+
 -- these are the 'verbs'
 data Process = Send Armored Armored Process
 	         --  variable mess, channel 
@@ -84,7 +85,12 @@ data Armored = Var String
 	     | AMeasurer
 	     | APrivacyCA
 	     | AFailure String deriving (Show)
-	     
+data ChannelEntry = ChannelEntry {
+		channelEntryName    :: String,
+		channelEntryChannel :: Channel,
+		channelEntryTMVarMsgList :: TMVar [Armored],
+		channelEntryTMVarUnit :: TMVar ()
+		} 
 data Channel = Channel {
 	channelEntity      :: Entity,
 	channelInfo :: ChannelInfo
@@ -141,8 +147,8 @@ type VariableBindings = [(Armored,Armored)]
 data ArmoredState = ArmoredState {
                             vars :: VariableBindings,
                             executor :: Entity,
-                            knownentities :: [Entity]
-                           --, channelpairsTMVar :: TMVar [(String,(Channel, MVar [Armored]) )]                         
+                            knownentities  :: [Entity],
+                            channelEntriesTMVar :: TMVar [ChannelEntry]                         
                           } 
                           
                           
@@ -166,13 +172,39 @@ sharedToArmored (WCAResponse caresp)	    = ACAResponse caresp
 sharedToArmored _			    = AFailure "attempted to convert to non-supported armored type"        
 
 
-{-
+
+app = Entity {
+	        entityName = "Appraiser",
+	        entityIp   = (Just "10.100.0.246"),
+	        entityId   = Just 1,
+	        entityRole = Appraiser,
+	        entityNote = (Just "Just a lonely Appraiser")
+	      }
+	      
+attAddress = Entity {
+	        entityName = "Attester",
+	        entityIp   = (Just "10.100.0.208"),
+	        entityId   = Just 2,
+	        entityRole = Attester,
+	        entityNote = (Just "Just an attestered here to do your bidding")
+	      }
+
+pCAAddress = Entity {
+	        entityName = "PrivacyCA",
+	        entityIp   = (Just "10.100.0.6"),
+	        entityId   = Nothing,
+	        entityRole = PrivacyCA,
+	        entityNote = (Just "Just a lonely Privacy CA out here in the deep web")
+	      }	
+
+
+
 instance ToJSON CommRequest where
 	toJSON (PortRequest entity port nonce) =  object 
 		   ["PortRequest" .= DA.String "CommRequest"
 		   , "Entity" .= toJSON entity				    
-		   , "Port"   .= toJSON port
-		   , "Nonce"  .= toJSON nonce
+		   , "Port"   .= port
+		   , "Nonce"  .= nonce
 		   ]
 	toJSON (VChanRequest entity) = object [ "VChanRequest" .= DA.String "CommRequest" 
 					      , "Entity"       .= toJSON entity
@@ -183,19 +215,28 @@ instance FromJSON CommRequest where
 									  <*> o .: "Nonce"
 				| HM.member "VChanRequest" o = VChanRequest <$> o .: "Entity"
 instance ToJSON Entity where
-	toJSON (Entity name mip mid role mnote) = object [ "EntityName" .= toJSON name
-						         , "EntityIp"   .= (case mip of
-						         		    (Nothing) -> DA.String "Nothing"
-						         		    (Just ip) -> encodeToText (toStrict ip))
-						         , "EntityId"   .= toJSON mid
+	toJSON (Entity name mip mid role mnote) = object [ "EntityName" .= name
+						         , "EntityIp"   .= toJSON mip
+						         , "EntityId"   .= mid
 						         , "EntityRole" .= toJSON role
-						         , "EntityNote" .= toJSON mnote
+						         , "EntityNote" .= mnote
 						         ]
 instance FromJSON Entity where
 	parseJSON (DA.Object o) = Entity <$> o .: "EntityName"
-					 <*> ((o .: "EntityIp") >>= decodeFromTextL)
+					 <*> o .: "EntityIp"
 					 <*> o .: "EntityId"
 					 <*> o .: "EntityRole"
 					 <*> o .: "EntityNote"
 					 
-					 -}                  
+instance ToJSON Role where
+	toJSON Appraiser = DA.String "Appraiser"
+	toJSON Attester  = DA.String "Attester"
+	toJSON Measurer  = DA.String "Measurer"
+        toJSON PrivacyCA = DA.String "PrivacyCA"				 
+        
+instance FromJSON Role where
+	parseJSON (DA.String "Appraiser") = pure Appraiser
+	parseJSON (DA.String "Attester")  = pure Attester
+	parseJSON (DA.String "Measurer")  = pure Measurer
+	parseJSON (DA.String "PrivacyCA") = pure PrivacyCA        
+					                 

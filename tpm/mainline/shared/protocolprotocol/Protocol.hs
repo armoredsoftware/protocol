@@ -15,13 +15,17 @@ import Control.Concurrent.MVar
 import Control.Concurrent.STM.TMVar
 import qualified Web.Scotty as Scotty
 import ProtoTypes
-
-
+import CommunicationNegotiator
+import Control.Concurrent
                           	      
 runExecute :: Process -> Entity ->IO (Process, ArmoredState)
 runExecute proto entity= do
    let emptyvars = []
-   let s0 = ArmoredState emptyvars entity []
+   e <- newTMVarIO []
+   let s0 = ArmoredState emptyvars entity [] e
+   forkIO $ do 
+   	     runStateT negotiator s0
+   	     return ()
    runStateT (execute proto) s0
 
 runExecute' :: Process -> ArmoredState ->IO (Process, ArmoredState)
