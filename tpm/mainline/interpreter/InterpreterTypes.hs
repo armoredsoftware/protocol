@@ -14,11 +14,13 @@ data Entity = Entity {
 }
  deriving (Eq, Show)
 
-data Evidence = String | Bool
+data Evidence = String | Bool | Int
 type Nonce = ByteString
 type PublicKey = ByteString
 type PrivateKey = ByteString
+type SymmKey = ByteString
 
+data Key = PublicKey | PrivateKey | SymmKey
 
 data Message = Message [ArmoredData]
 
@@ -44,15 +46,27 @@ data ResponseItem = RespNonce Nonce
 --TODO:  Do we need a "Master View" of each protocol description?  Or are we just defining each service from the view of a single entity?
 
 
+
+type MetaProp = Int
+type EvidenceProp = Int
+
+type MetaAsk = [MetaProp]
+type EvidenceAsk = [EvidenceProp]
+
+data MetaGrant = MetaAll | MetaAsk
+data EvidenceGrant = EvAll | EvidenceAsk
+
+
 data ArmoredData =
-    Request [RequestItem]
+    Ask MetaAsk EvidenceAsk | Grant MetaGrant EvidenceGrant
   | Nonce
-  | AEntity Entity
+  | AEntity Entity 
+  | AKey Key
   | CipherText 
   | HashText
   | SignedData ArmoredData --(Data, Sig)
   | TPM_DATA  
-  | Evidence 
+  | Evidence | Certificate | Blob [ArmoredData]
 
 data ArmoredCommand =
     Hash 
@@ -85,7 +99,7 @@ data HttpInfo = HttpInfo {
 }
                                             
 data ArmoredState = ArmoredState {
-  knownEntityChannels :: [(Entity, Channel)],
+  knownEntities :: [(Entity, Maybe Channel)],
   executor :: Entity,  --Self
   knownPubKeys :: [(Entity, PublicKey)],
   knownPriKeys :: [(Entity, PrivateKey)]
