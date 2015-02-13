@@ -8,9 +8,7 @@ import Control.Monad.State.Strict
 import Data.ByteString.Lazy (ByteString, pack, append, empty, cons, fromStrict, length)
 import TPM
 import qualified Network.Http.Client as HttpClient
-import qualified AttesterCAComm as HttpComm
-import Demo3Shared hiding (Result)
-import qualified Demo3Shared as Demo3 (Shared (Result))
+--import qualified Demo3Shared as Demo3
 import VChanUtil
 import Control.Concurrent.MVar
 import Control.Concurrent.STM.TMVar
@@ -28,7 +26,7 @@ data Process = Send Armored Armored Process
 	     	 -- variable mess, variable new chan 
 	     | ReceiveAny Armored Armored Process-- the last armored is a variable name for the new channel
 	                 --chanName, entity, entity, followingProc
-	     | CreateChannel Armored Armored Armored Process
+	     | CreateChannel Armored Armored Process
 	         --var,    val,    next proc
 	     | Let Armored Armored Process
 	            --   _  with  _  store var  nextProc  
@@ -87,9 +85,7 @@ data Armored = Var String
 	     | AFailure String deriving (Show)
 data ChannelEntry = ChannelEntry {
 		channelEntryName    :: String,
-		channelEntryChannel :: Channel,
-		channelEntryTMVarMsgList :: TMVar [Armored],
-		channelEntryTMVarUnit :: TMVar ()
+		channelEntryChannel :: Channel		
 		} 
 data Channel = Channel {
 	channelEntity      :: Entity,
@@ -102,25 +98,31 @@ data ChannelInfo = VChanInfo {
 		 	}
 		 | HttpInfo{
 		    httpInfoMyServingPort    :: HttpClient.Port,
-		    httpInfoServingPort      :: HttpClient.Port,
+		    httpInfoTheirServingPort :: HttpClient.Port,
 		    httpInfoTheirIp 	     :: HttpClient.Hostname,
-		    httpInfoMaybeConnection  :: (Maybe HttpClient.Connection)
+		    httpInfoMaybeConnection  :: (Maybe HttpClient.Connection),
+		    httpInfoTMVarMsgList     :: TMVar [Armored],
+		    httpInfoTMVarUnit        :: TMVar ()
 		   }
 		   
-		 deriving (Show)
+instance Show ChannelInfo where
+  show (VChanInfo msend mrec) = ("VChanInfo " ++ (show msend) ++ " " ++ (show mrec))
+  show (HttpInfo mp tp tip mconn tmls tmunit) = ("HttpInfo " ++ (show mp) ++ " " ++ (show tp) ++ " " ++ (show tip))
+  
 data CommRequest = PortRequest {
-		   commRequestEntity  :: Entity,		 
-		   commRequestPort    :: HttpClient.Port,
-		   commNonce 	      :: Integer
+		   portRequestEntity  :: Entity,		 
+		   portRequestPort    :: HttpClient.Port,
+		   portRequestNonce   :: Integer
 		   }
 		 | VChanRequest {
-		     vChanRequestEntity :: Entity		     
+		     vChanRequestEntity :: Entity,
+		     vChanReqquestNonce :: Integer		     
 		   }
 
 instance Eq ChannelInfo where
- (VChanInfo _ _) == (HttpInfo _ _ _ _) = False
+ (VChanInfo _ _) == (HttpInfo _ _ _ _ _ _ ) = False
  (VChanInfo m1 m2) == (VChanInfo m1' m2') = and [m1 == m1', m2 == m2']
- (HttpInfo m1 m2 _ _) == (HttpInfo m1' m2' _ _) = and [m1 == m1', m2 == m2']
+ (HttpInfo mp tp tip mconn tmls tmunit) == (HttpInfo mp' tp' tip' mconn' tmls' tmunit') = and [mp == mp', tp == tp', tip == tip']
 data Role = Appraiser
     	  | Attester
 	  | Measurer
@@ -153,24 +155,6 @@ data ArmoredState = ArmoredState {
                           
                           
 	
-armoredToShared :: Armored -> Shared
-armoredToShared (ARequest req)              = WRequest req
-armoredToShared (AResponse resp)            = WResponse resp
-armoredToShared (AEvidenceDescriptor evdes) = WEvidenceDescriptor evdes
-armoredToShared (AEvidencePiece evpiece)    = WEvidencePiece evpiece
-armoredToShared (ACARequest careq)          = WCARequest careq
-armoredToShared (ACAResponse caresp)	    = WCAResponse caresp
-armoredToShared _			    = Demo3.Result False
-
-sharedToArmored :: Shared -> Armored
-sharedToArmored (WRequest req)              = ARequest req
-sharedToArmored (WResponse resp)            = AResponse resp
-sharedToArmored (WEvidenceDescriptor evdes) = AEvidenceDescriptor evdes
-sharedToArmored (WEvidencePiece evpiece)    = AEvidencePiece evpiece
-sharedToArmored (WCARequest careq)          = ACARequest careq
-sharedToArmored (WCAResponse caresp)	    = ACAResponse caresp
-sharedToArmored _			    = AFailure "attempted to convert to non-supported armored type"        
-
 
 
 app = Entity {
@@ -206,14 +190,16 @@ instance ToJSON CommRequest where
 		   , "Port"   .= port
 		   , "Nonce"  .= nonce
 		   ]
-	toJSON (VChanRequest entity) = object [ "VChanRequest" .= DA.String "CommRequest" 
+	toJSON (VChanRequest entity nonce) = object [ "VChanRequest" .= DA.String "CommRequest" 
 					      , "Entity"       .= toJSON entity
+					      , "Nonce"	       .= nonce
 					      ]						  
 instance FromJSON CommRequest where
 	parseJSON (DA.Object o) | HM.member "PortRequest" o = PortRequest <$> o .: "Entity"
 									  <*> o .: "Port"
 									  <*> o .: "Nonce"
 				| HM.member "VChanRequest" o = VChanRequest <$> o .: "Entity"
+									    <*> o .: "Nonce"
 instance ToJSON Entity where
 	toJSON (Entity name mip mid role mnote) = object [ "EntityName" .= name
 						         , "EntityIp"   .= toJSON mip

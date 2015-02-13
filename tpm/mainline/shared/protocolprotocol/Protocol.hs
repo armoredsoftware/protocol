@@ -7,9 +7,9 @@ import Control.Monad.State.Strict
 import Data.ByteString.Lazy (ByteString, pack, append, empty, cons, fromStrict, length)
 import TPM
 import qualified Network.Http.Client as HttpClient
-import qualified AttesterCAComm as HttpComm
+import qualified CommTools as CommTools
 import Demo3Shared hiding (Result)
-import qualified Demo3Shared as Demo3 (Shared (Result))
+import qualified Demo3Shared as Demo3
 import VChanUtil
 import Control.Concurrent.MVar
 import Control.Concurrent.STM.TMVar
@@ -35,14 +35,21 @@ runExecute' proto s0 = do
 execute :: Process -> ArmoredStateTMonad Process
        --variable, entity, entity, commMethod, followingProc
 --	     | CreateChannel Armored Armored Armored Armored Process
-execute (CreateChannel achan ent1 ent2 proc) = do
+execute (CreateChannel achan ent1 proc) = do
    achan' <- subIfVar achan
    ent1' <- subIfVar ent1
-   ent2' <- subIfVar ent2
+   case ent1' of
+    (AEntity ent1'') -> do
+       mChannel <- maybeCreateChannelWith ent1''
+       execute proc  
+    (_)              -> do
+       liftIO $ putStrLn "not an entity in create channel!!! stopping now."
+       return $ Stuck "didn't have an entity in the CreateChannel command. sorry, I gave up."
+       
+   
    
        
-           --addChannel achan' (Channel entity1 entity2 (HttpInfo ip2 port2 Nothing )) -- conn))
-   execute proc                          
+           --addChannel achan' (Channel entity1 entity2 (HttpInfo ip2 port2 Nothing )) -- conn))                        
 execute (Send mess chan proc) = do
   
   chan' <- subIfVar chan
@@ -60,8 +67,8 @@ execute (Send mess chan proc) = do
         	     execute proc
         (Channel _ _ (HttpInfo ip1 port1 connection)) -> do                           
         --newConn <- liftIO $ HttpClient.openConnection theIP thePort
-        --theConn <- liftIO $ HttpComm.sendHttp (armoredToShared mess) theIP thePort 
-          liftIO $ HttpComm.sendHttp' (armoredToShared mess) connection
+        --theConn <- liftIO $ CommTools.sendHttp (armoredToShared mess) theIP thePort 
+          liftIO $ CommTools.sendHttp' (armoredToShared mess) connection
           execute proc
         _ -> return (Stuck "error in send attempt. Not a channel possibly?")
        liftIO $ putMVar mvar channel 
@@ -89,7 +96,7 @@ execute (Receive var chan proc) = do
                                             liftIO $ putMVar mvar channel
                                             execute proc  
           (Channel _ _ (HttpInfo ip1 port1 connection)) -> do 
-          	       eitherShared <- liftIO $ HttpComm.receiveHttp connection
+          	       eitherShared <- liftIO $ CommTools.receiveHttp connection
           	       case eitherShared of
           	         (Left err)     -> return (Stuck err)
           	         (Right shared) -> do
