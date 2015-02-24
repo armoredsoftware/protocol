@@ -13,7 +13,6 @@ type Nonce = ByteString
 --Common data that is sent or received by an armored entity.
 data ArmoredData =
   ANonce Nonce
-  | AEntityId EntityId
   | AEntityInfo EntityInfo
   | ACipherText CipherText
 --TODO:  Should the following "Command" items be message items(ArmoredData) that must be evaluated in the monad prior to sending?  For now, they are implemented as seperate explicit monadic function calls.
@@ -25,8 +24,8 @@ data ArmoredData =
 instance Binary ArmoredData where
   put (ANonce n) = do put (0::Word8)
                       put n
-  put (AEntityId id) = do put (1::Word8)
-                          put id
+  --put (AEntityId id) = do put (1::Word8)
+                      --    put id
   put (ACipherText ct) = do put(2::Word8)
                             put ct
   put (AEntityInfo (EntityInfo name ip)) = do put(3::Word8)
@@ -37,8 +36,8 @@ instance Binary ArmoredData where
            case t of
              0 -> do n <- get
                      return $ ANonce n
-             1 -> do id <- get
-                     return $ AEntityId id
+            -- 1 -> do id <- get
+                 --    return $ AEntityId id
              2 -> do ct <- get
                      return $ ACipherText ct
              3 -> do name <- get
