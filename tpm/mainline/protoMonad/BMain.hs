@@ -11,7 +11,7 @@ import qualified Data.Map as M
 import System.IO
 import Codec.Crypto.RSA
 import System.Random
-
+--
 bcommInit :: Int -> IO ProtoEnv
 bcommInit targetDomId = do
   chan <- server_init targetDomId
