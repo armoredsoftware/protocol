@@ -12,7 +12,7 @@ Build-type:             Simple
 
 
 executable              Project
-  hs-source-dirs:       api, shell, src, shared, project, appraisal, attestation, measurer, privacyCA, provisioning, interpreter
+  hs-source-dirs:       api, shell, src, shared, project, appraisal, attestation, measurer, privacyCA, provisioning, interpreter, protoMonad
   build-depends:        base >= 4,
                         shell >= 1.0,
                         mtl,

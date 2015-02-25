@@ -4,6 +4,8 @@ module ProtoTypes where
 
 import Data.ByteString.Lazy
 import Data.Binary
+import VChanUtil
+import Codec.Crypto.RSA hiding (sign, verify)
 
 --Abstract entity identifier.  The id assignments are LOCAL to the particular protocol being represented.
 type EntityId = Int
@@ -28,9 +30,10 @@ instance Binary ArmoredData where
                       --    put id
   put (ACipherText ct) = do put(2::Word8)
                             put ct
-  put (AEntityInfo (EntityInfo name ip)) = do put(3::Word8)
-                                              put name
-                                              put ip
+  put (AEntityInfo einfo) = 
+    do 
+      put(3::Word8)
+      put einfo
 
   get = do t <- get :: Get Word8
            case t of
@@ -40,21 +43,34 @@ instance Binary ArmoredData where
                  --    return $ AEntityId id
              2 -> do ct <- get
                      return $ ACipherText ct
-             3 -> do name <- get
-                     ip <- get
-                     return $ AEntityInfo $ EntityInfo name ip
+             3 -> do einfo <- get
+                     return $ AEntityInfo einfo
 
 
 type Message = [ArmoredData]
   
+
 --This shoud contain the concrete info that is necessary to communicate with an entity
 data EntityInfo = EntityInfo {
   entityName :: String,
-  entityIp :: Int
+  entityIp :: Int,
+  vChan :: LibXenVChan
 } deriving (Eq, Show)
 
-type PrivateKey = ByteString;
-type PublicKey = ByteString;
+instance Binary EntityInfo where
+  put (EntityInfo name ip vchan) = 
+    do 
+      put name
+      put ip
+
+  get = do name <- get
+           ip <- get
+           let vchan = undefined --vchan <- get  --IS THIS OK??
+           return $ EntityInfo name ip vchan
+  
+  
+type PrivateKey = Codec.Crypto.RSA.PrivateKey --ByteString;
+type PublicKey = Codec.Crypto.RSA.PublicKey --ByteString;
 
 --Encrypted text
 type CipherText = ByteString;

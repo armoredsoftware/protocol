@@ -37,6 +37,9 @@ import Measurer
 import Provisioning
 import Demo3Shared
 import InterpreterTypes
+--import ProtoMain
+import AMain
+import BMain
 --import ScottyCA
 
 {-

@@ -5,10 +5,10 @@ import Demo3Shared
 
 import System.IO
 import Data.Word
-import Data.Binary
 
 goldenFileName :: String 
 goldenFileName= "goldenPcrComposite.txt"
+
 
 
 readComp :: IO TPM_PCR_COMPOSITE
@@ -37,6 +37,8 @@ doExport fileName comp =
                       hClose handle
                  
 --Helper for export
-genDoExport :: (Binary a) => String -> a ->  IO ()
-genDoExport fileName val =
-                   do encodeFile fileName val
+genDoExport :: (Show a) => String -> a ->  IO ()
+genDoExport fileName comp =
+                   do handle <- openFile fileName WriteMode
+                      hPutStrLn handle $ show comp
+                      hClose handle

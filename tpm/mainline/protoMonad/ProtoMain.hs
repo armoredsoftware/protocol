@@ -8,6 +8,7 @@ import ProtoActions
 
 import Data.ByteString.Lazy
 
+
 nsEntityA :: Proto Nonce
 nsEntityA = do
   nonceA <- generateNonce
@@ -32,4 +33,7 @@ nsEntityB = do
   [ANonce nB] <- decrypt cipherMessage2
   --Check nonceB == nB here?
   return nA
+
+
+
 
