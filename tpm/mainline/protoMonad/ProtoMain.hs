@@ -11,9 +11,10 @@ import Data.ByteString.Lazy
 
 nsEntityA :: Proto Nonce
 nsEntityA = do
-  nonceA <- generateNonce
+  let nonceA = 34 --nonceA <- generateNonce
   myInfo <- getEntityInfo 0  --0 is MY id by default
-  send 1 [ANonce nonceA, AEntityInfo myInfo]
+  cipherX <- encrypt 1 [ANonce nonceA, AEntityInfo myInfo]
+  send 1 [ACipherText cipherX]
   [ACipherText cipherText] <- receive 1
   [ANonce nA, ANonce nB, AEntityInfo eInfo] <- decrypt cipherText
   --Check nonceA == nA here?
@@ -25,7 +26,8 @@ nsEntityB :: Proto Nonce
 nsEntityB = do
   [ACipherText cipherMessage1] <- receive 1
   [ANonce nA, AEntityInfo eInfo] <- decrypt cipherMessage1
-  nonceB <- generateNonce
+  --nonceB <- generateNonce
+  let nonceB = 56
   myInfo <- getEntityInfo 0  --0 is MY id by default
   cipherOut <- encrypt 1 [ANonce nA, ANonce nonceB, AEntityInfo myInfo]
   send 1 [ACipherText cipherOut]

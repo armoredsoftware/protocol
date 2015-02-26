@@ -1,8 +1,9 @@
-module AMain where
+module Main where
 
 import ProtoMain (nsEntityA)
 import ProtoMonad
 import ProtoTypes
+import ProtoActions
 import VChanUtil
 
 import Prelude 
@@ -17,9 +18,10 @@ acommInit targetDomId = do
   chan <- client_init targetDomId
   let bInfo :: EntityInfo
       bInfo = EntityInfo "B" 22 chan
-      ents' :: M.Map EntityId EntityInfo
-      ents' = M.empty
-      ents = M.insert 1 bInfo ents'
+      ents'' :: M.Map EntityId EntityInfo
+      ents'' = M.empty
+      ents' = M.insert 1 bInfo ents''
+      ents = M.insert 0 (EntityInfo "A" 11 chan) ents'
       myPri = snd $ generateAKeyPair
       bPub = getBPubKey
       pubs' :: M.Map EntityId ProtoTypes.PublicKey
@@ -30,9 +32,20 @@ acommInit targetDomId = do
   return $ ProtoEnv 0 myPri ents pubs 0 0 0
 
 
-amain :: IO ()
-amain = do 
+main :: IO ()
+main = do 
   putStrLn "Main of entity A"
+  env <- acommInit 3
+  eitherResult <- runProto nsEntityA env
+  case eitherResult of
+    Left s -> putStrLn $ "Error occured: " ++ s
+    Right nonce -> putStrLn $ "Nonce received: " ++ (show nonce)
+  
+  
+  {-let as = [ANonce empty, ANonce empty, ACipherText empty]
+      asCipher = genEncrypt (fst generateAKeyPair) as
+      as' = genDecrypt (snd generateAKeyPair) asCipher
+  putStrLn $ show $ as' -}
   return ()
   
 generateAKeyPair :: (Codec.Crypto.RSA.PublicKey, Codec.Crypto.RSA.PrivateKey)

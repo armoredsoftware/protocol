@@ -1,4 +1,4 @@
-module BMain where
+module Main where
 
 import ProtoMain (nsEntityB)
 import ProtoMonad
@@ -17,20 +17,26 @@ bcommInit targetDomId = do
   chan <- server_init targetDomId
   let aInfo :: EntityInfo
       aInfo = EntityInfo "A" 11 chan
-      ents' :: M.Map EntityId EntityInfo
-      ents' = M.empty
-      ents = M.insert 1 aInfo ents'
+      ents'' :: M.Map EntityId EntityInfo
+      ents'' = M.empty
+      ents' = M.insert 1 aInfo ents''
+      ents = M.insert 0 (EntityInfo "B" 22 chan) ents'
       myPri = snd $ generateBKeyPair
       bPub = getAPubKey
       pubs' :: M.Map EntityId ProtoTypes.PublicKey
       pubs' = M.empty
       pubs = M.insert 1 (getAPubKey) pubs'
   
-  return $ ProtoEnv 0 undefined ents pubs 0 0 0
+  return $ ProtoEnv 0 myPri ents pubs 0 0 0
 
-bmain :: IO ()
-bmain = do 
+main :: IO ()
+main = do 
   putStrLn "Main of entity B"
+  env <- bcommInit 1
+  eitherResult <- runProto nsEntityB env
+  case eitherResult of
+    Left s -> putStrLn $ "Error occured: " ++ s
+    Right nonce -> putStrLn $ "Nonce received: " ++ (show nonce)
   return ()
 
 

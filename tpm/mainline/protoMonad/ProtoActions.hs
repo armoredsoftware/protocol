@@ -2,15 +2,19 @@ module ProtoActions where
 
 import ProtoTypes
 import ProtoMonad
+import VChanUtil
 
-import Data.ByteString.Lazy hiding (pack, map)
+import Data.ByteString.Lazy hiding (pack, map, putStrLn)
 import qualified Control.Monad.Trans.Reader as T
 import Data.Monoid
 import Data.Binary
+import qualified Codec.Crypto.RSA as C
+import System.Random
+import Control.Monad.IO.Class
 
 generateNonce :: Proto Nonce
 generateNonce = do
-  return empty
+  return 56
 
 --Encrypt with the PublicKey associated with targetId
 --TODO:  Is there only 1 public key associated with each target(maybe abstractly?)
@@ -32,10 +36,22 @@ sign inData = do
   return $ genSign priKey inData
 
 send :: EntityId -> Message -> Proto ()
-send toId ds = undefined
-
+send toId ds = do
+  chan <- getEntityChannel toId
+  logger <- liftIO createLogger
+  liftIO $ sendChunkedMessageByteString logger chan (toStrict $ encode ds)
+  liftIO $ putStrLn $ "Sending: " ++ (show ds)
+  liftIO $ putStrLn "Sent message! " 
+  return ()
+  
 receive :: EntityId -> Proto Message
-receive fromId = undefined
+receive fromId = do
+  chan <- getEntityChannel fromId
+  logger <- liftIO createLogger
+  bytes <- liftIO $ readChunkedMessageByteString logger chan
+  let result = decode $ fromStrict bytes
+  liftIO $ putStrLn $ "Received: " ++ (show result)
+  return $ result
 
 --TODO:  Should this be in the Proto monad?(i.e. to choose packImpl).
 genEncrypt :: Binary a => PublicKey -> [a] -> CipherText
@@ -59,10 +75,14 @@ genSign priKey inData =
 
 --Concrete implementations-------------------------------------------------
 realEncrypt :: PublicKey -> ByteString -> CipherText
-realEncrypt pubKey clearText = clearText --Concrete implementation plugs in here
+realEncrypt pubKey clearText = --Concrete implementation plugs in here
+  let gen = mkStdGen 3
+      (cipher, _) = C.encrypt gen pubKey clearText in
+  cipher
 
 realDecrypt :: PrivateKey -> CipherText -> ByteString
-realDecrypt priKey cipherText = cipherText --Concrete implementation here
+realDecrypt priKey cipherText = --Concrete implementation here
+  C.decrypt priKey cipherText
 
 realSign :: PrivateKey -> ByteString -> Signature --paramaterize over hash?
 realSign priKey bytes = bytes --Concrete implementation plugs in here

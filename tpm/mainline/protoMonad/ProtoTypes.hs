@@ -10,13 +10,13 @@ import Codec.Crypto.RSA hiding (sign, verify)
 --Abstract entity identifier.  The id assignments are LOCAL to the particular protocol being represented.
 type EntityId = Int
 
-type Nonce = ByteString
+type Nonce = Int
 
 --Common data that is sent or received by an armored entity.
 data ArmoredData =
   ANonce Nonce
   | AEntityInfo EntityInfo
-  | ACipherText CipherText
+  | ACipherText CipherText deriving (Show)
 --TODO:  Should the following "Command" items be message items(ArmoredData) that must be evaluated in the monad prior to sending?  For now, they are implemented as seperate explicit monadic function calls.
 {-| GenNonce
   | Encrypt [ArmoredData]
