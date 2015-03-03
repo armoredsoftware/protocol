@@ -9,13 +9,23 @@ import qualified Control.Monad.Trans.Reader as T
 import Data.Monoid
 import Data.Binary
 import qualified Codec.Crypto.RSA as C
+import Crypto.Cipher.AES
 import System.Random
 import Control.Monad.IO.Class
+import Control.Monad.Error
+
+import TPM --TODO:  Find a way to eliminate this import(abstract it away)
 
 generateNonce :: Proto Nonce
 generateNonce = do
   return 56
 
+checkNonce :: Nonce -> Nonce -> Proto ()
+checkNonce expected actual = do
+  case (expected == actual) of
+    True -> return ()
+    False -> throwError "Nonce check failed" 
+    
 --Encrypt with the PublicKey associated with targetId
 --TODO:  Is there only 1 public key associated with each target(maybe abstractly?)
 encrypt :: EntityId -> [ArmoredData]-> Proto CipherText
@@ -29,6 +39,18 @@ decrypt cipherText = do
   priKey <- T.asks (myPriKey)
   return $ genDecrypt priKey cipherText
 
+--Symmetric Key decryption
+decrypt' :: (Binary a) => SymmKey -> CipherText -> a
+decrypt' sessKey blob = let 
+  keyBytes = tpmSymmetricData sessKey
+  strictKey = toStrict keyBytes
+  aes = initAES strictKey
+  ctr = strictKey
+  decryptedBytes = decryptCTR aes ctr (toStrict blob)
+  lazy = fromStrict decryptedBytes in
+  (decode lazy)
+  
+  
 --Sign with MY PrivateKey
 sign :: [ArmoredData] -> Proto (SignedData [ArmoredData])
 sign inData = do
@@ -40,7 +62,7 @@ send toId ds = do
   chan <- getEntityChannel toId
   logger <- liftIO createLogger
   liftIO $ sendChunkedMessageByteString logger chan (toStrict $ encode ds)
-  liftIO $ putStrLn $ "Sending: " ++ (show ds)
+ -- liftIO $ putStrLn $ "Sending: " ++ (show ds)
   liftIO $ putStrLn "Sent message! " 
   return ()
   
@@ -50,7 +72,8 @@ receive fromId = do
   logger <- liftIO createLogger
   bytes <- liftIO $ readChunkedMessageByteString logger chan
   let result = decode $ fromStrict bytes
-  liftIO $ putStrLn $ "Received: " ++ (show result)
+  liftIO $ putStrLn $ "Received message!"
+ -- liftIO $ putStrLn $ "Received: " ++ (show result)
   return $ result
 
 --TODO:  Should this be in the Proto monad?(i.e. to choose packImpl).

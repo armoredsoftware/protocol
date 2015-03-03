@@ -1,10 +1,11 @@
-module Main where
+module AttMain where
 
-import ProtoMain (nsEntityA)
+import CAProtoMain(caEntity_Att)
 import ProtoMonad
 import ProtoTypes
 import ProtoActions
 import VChanUtil
+import TPMUtil
 
 import Prelude 
 import Data.ByteString.Lazy hiding (putStrLn)
@@ -13,26 +14,30 @@ import System.IO
 import Codec.Crypto.RSA
 import System.Random
 
-acommInit :: Int -> IO ProtoEnv
-acommInit targetDomId = do
-  chan <- client_init targetDomId
-  let bInfo = EntityInfo "B" 22 chan
-      aInfo = EntityInfo "A" 11 chan
-      mList = [(0, aInfo), (1, bInfo)]
+attCommInit :: [Int] -> IO ProtoEnv
+attCommInit domidS = do
+  takeInit --Taking ownership of TPM
+  appChan <- server_init (domidS !! 0)
+  caChan <- client_init (domidS !! 1) 
+  let myInfo = EntityInfo "Attester" 11 appChan
+      appInfo = EntityInfo "Appraiser" 22 appChan
+      caInfo = EntityInfo "Certificate Authority" 33 caChan
+      mList = [(0, myInfo), (1, appInfo), (2, caInfo)]
       ents = M.fromList mList
       myPri = snd $ generateAKeyPair
-      bPub = getBPubKey
-      pubs = M.fromList [(1,bPub)]
+      appPub = getBPubKey
+      caPub = getBPubKey
+      pubs = M.fromList [(1,appPub), (2, caPub)]
   
   
   return $ ProtoEnv 0 myPri ents pubs 0 0 0
 
 
-main :: IO ()
-main = do 
-  putStrLn "Main of entity A"
-  env <- acommInit 3
-  eitherResult <- runProto nsEntityA env
+attmain :: IO ()
+attmain = do 
+  putStrLn "Main of entity Att"
+  env <- attCommInit [1,2]  --[AppId, CaId]
+  eitherResult <- runProto caEntity_Att env
   case eitherResult of
     Left s -> putStrLn $ "Error occured: " ++ s
     Right nonce -> putStrLn $ "Nonce received: " ++ (show nonce)

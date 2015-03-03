@@ -17,7 +17,7 @@ nsEntityA = do
   send 1 [ACipherText cipherX]
   [ACipherText cipherText] <- receive 1
   [ANonce nA, ANonce nB, AEntityInfo eInfo] <- decrypt cipherText
-  --Check nonceA == nA here?
+  checkNonce nonceA nA --Throws error if not equal
   cipherOut <- encrypt 1 [ANonce nB]
   send 1 [ACipherText cipherOut]
   return nB
@@ -33,8 +33,12 @@ nsEntityB = do
   send 1 [ACipherText cipherOut]
   [ACipherText cipherMessage2] <- receive 1
   [ANonce nB] <- decrypt cipherMessage2
-  --Check nonceB == nB here?
+  checkNonce nonceB nB --Throws error if not equal
   return nA
+  
+  
+  
+
 
 
 

@@ -6,17 +6,34 @@ import Data.ByteString.Lazy
 import Data.Binary
 import VChanUtil
 import Codec.Crypto.RSA hiding (sign, verify)
+import TPM.Types
 
 --Abstract entity identifier.  The id assignments are LOCAL to the particular protocol being represented.
 type EntityId = Int
 
 type Nonce = Int
 
+data TPM_DATA = 
+  TdTPM_IDENTITY_CONTENTS  TPM_IDENTITY_CONTENTS 
+  | TdTPM_KEY_HANDLE TPM_KEY_HANDLE 
+              
+              
+              deriving (Show)
+  
 --Common data that is sent or received by an armored entity.
 data ArmoredData =
   ANonce Nonce
   | AEntityInfo EntityInfo
-  | ACipherText CipherText deriving (Show)
+  | ACipherText CipherText 
+ -- | ATPM_DATA TPM_DATA 
+  | ATPM_PCR_SELECTION TPM_PCR_SELECTION
+  | ATPM_PCR_COMPOSITE TPM_PCR_COMPOSITE
+  | ATPM_IDENTITY_CONTENTS TPM_IDENTITY_CONTENTS
+  | ATPM_PUBKEY TPM_PUBKEY
+  | ASignedData (SignedData ArmoredData)
+  | ASignature Signature
+  | AEvidenceDescriptor EvidenceDescriptor 
+  | AEvidence Evidence deriving (Show)
 --TODO:  Should the following "Command" items be message items(ArmoredData) that must be evaluated in the monad prior to sending?  For now, they are implemented as seperate explicit monadic function calls.
 {-| GenNonce
   | Encrypt [ArmoredData]
@@ -72,14 +89,30 @@ instance Binary EntityInfo where
 type PrivateKey = Codec.Crypto.RSA.PrivateKey --ByteString;
 type PublicKey = Codec.Crypto.RSA.PublicKey --ByteString;
 
+type SymmKey = TPM_SYMMETRIC_KEY 
 --Encrypted text
 type CipherText = ByteString;
+
+type EvidenceDescriptor = [Int]
+type Evidence = [Int]
 
 type Signature = ByteString;
 data SignedData a = SignedData {
   dat :: a,
   sig :: Signature
-}
+} deriving (Show)
+
+instance (Binary a) => Binary (SignedData a) where
+  put (SignedData a b) = 
+    do 
+      put a
+      put b
+      
+  get = do a <- get
+           b <- get
+           return $ SignedData a b 
+
+type AikContents = SignedData TPM_IDENTITY_CONTENTS
 
 
 

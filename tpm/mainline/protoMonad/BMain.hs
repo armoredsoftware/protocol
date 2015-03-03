@@ -15,17 +15,13 @@ import System.Random
 bcommInit :: Int -> IO ProtoEnv
 bcommInit targetDomId = do
   chan <- server_init targetDomId
-  let aInfo :: EntityInfo
-      aInfo = EntityInfo "A" 11 chan
-      ents'' :: M.Map EntityId EntityInfo
-      ents'' = M.empty
-      ents' = M.insert 1 aInfo ents''
-      ents = M.insert 0 (EntityInfo "B" 22 chan) ents'
+  let aInfo = EntityInfo "A" 11 chan
+      bInfo = EntityInfo "B" 22 chan
+      mList = [(0, bInfo), (1, aInfo)]
+      ents = M.fromList mList
       myPri = snd $ generateBKeyPair
-      bPub = getAPubKey
-      pubs' :: M.Map EntityId ProtoTypes.PublicKey
-      pubs' = M.empty
-      pubs = M.insert 1 (getAPubKey) pubs'
+      aPub = getAPubKey
+      pubs = M.fromList [(1,aPub)]
   
   return $ ProtoEnv 0 myPri ents pubs 0 0 0
 
@@ -38,8 +34,6 @@ main = do
     Left s -> putStrLn $ "Error occured: " ++ s
     Right nonce -> putStrLn $ "Nonce received: " ++ (show nonce)
   return ()
-
-
 
 
 generateBKeyPair :: (Codec.Crypto.RSA.PublicKey, Codec.Crypto.RSA.PrivateKey)
