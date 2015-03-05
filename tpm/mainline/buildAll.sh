@@ -1,9 +1,13 @@
 #!/bin/bash
 
-cabal build Appraiser
-cabal build Attestation
+#cabal build Appraiser
+#cabal build Attestation
 #cabal build PrivacyCA
 #cabal build Measurer
+
+cabal build AppMain
+cabal build AttesterMain
+cabal build CAMain
 
 #scp Appraiser/Appraiser root@10.100.0.234: ;  #Appraiser
 #scp Attestation/Attestation root@10.100.0.220: ; #Attester

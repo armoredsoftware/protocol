@@ -5,24 +5,27 @@ module CAProtoMain where
 import ProtoTypes
 import ProtoMonad
 import ProtoActions
-
-
+import Keys
 import TPM
 import TPMUtil
 
+import System.IO
+import System.Random
 import Control.Monad.IO.Class
 --import qualified Control.Monad.Trans.Reader as T
 import Data.Binary
 import Data.Digest.Pure.SHA (bytestringDigest, sha1)
+import Crypto.Cipher.AES
+import Codec.Crypto.RSA hiding (sign, verify, PublicKey, PrivateKey, encrypt, decrypt, decrypt')
 
 
-import Data.ByteString.Lazy
+import Data.ByteString.Lazy hiding (replicate, putStrLn)
 
 iPass = tpm_digest_pass aikPass
 oPass = tpm_digest_pass ownerPass
 
 caAtt_Mea :: EvidenceDescriptor -> Proto Evidence
-caAtt_Mea eds = undefined
+caAtt_Mea eds = return [0,1,2]
 
 caEntity_App :: EvidenceDescriptor -> TPM_PCR_SELECTION -> 
                 Proto (Evidence, Nonce, TPM_PCR_COMPOSITE, 
@@ -33,7 +36,7 @@ caEntity_App d pcrSelect = do
   [AEvidence e, ANonce nA, ATPM_PCR_COMPOSITE pComp, ASignedData (SignedData (ATPM_PUBKEY aikPub) aikSig), ASignature sig] <- receive 1
   
   --do checks here...
-  return undefined
+  return (e, nA, pComp, SignedData aikPub aikSig, sig)
 
 caEntity_Att :: Proto ()
 caEntity_Att = do
@@ -41,26 +44,31 @@ caEntity_Att = do
     [AEvidenceDescriptor dList, 
      reqNonce@(ANonce nApp), 
      ATPM_PCR_SELECTION pcrSelect] <- receive 1
-  (iKeyHandle, aikContents) <- caMk_Id
+  (iKeyHandle, aikContents) <- tpmMk_Id
   
   
-  
-  (ekEncBlob, kEncBlob) <- runWithLinks 
+  (ekEncBlob, kEncBlob) <- caAtt_CA aikContents
+ {- (ekEncBlob, kEncBlob) <- runWithLinks 
                            [(1, 2)] 
-                           (caAtt_CA aikContents)
+                           (caAtt_CA aikContents) -}
                            
-  sessKey <- caAct_Id iKeyHandle ekEncBlob
+  sessKey <- tpmAct_Id iKeyHandle ekEncBlob
+  liftIO $ putStrLn "Before decrypt'"
   let caCert :: (SignedData TPM_PUBKEY) 
       caCert = decrypt' sessKey kEncBlob 
       
+  liftIO $ putStrLn $ "caCert: " ++ (show caCert)
+  liftIO $ putStrLn "After decrypt'"
   evidence <- caAtt_Mea dList
   
   let quoteExData = 
         [AEvidence evidence, 
          ANonce nApp, 
          ASignedData $ SignedData (ATPM_PUBKEY (dat caCert)) (sig caCert)]
-  (pcrComp, qSig) <- caQuote iKeyHandle pcrSelect quoteExData
-  
+  (pcrComp, qSig) <- tpmQuote iKeyHandle pcrSelect quoteExData
+
+
+  liftIO $ putStrLn "After tpmQuote"
   let response = 
         [(quoteExData !! 0), 
          (quoteExData !! 1{-(req !! 1)-}), 
@@ -78,12 +86,57 @@ caAtt_CA signedContents = do
   let val = SignedData 
             (ATPM_IDENTITY_CONTENTS  (dat signedContents)) 
             (sig signedContents)
-  send 1 [AEntityInfo myInfo, ASignedData val]
-  [ACipherText ekEncBlob, ACipherText kEncBlob] <- receive 1
+  send 2 {-1-} [AEntityInfo myInfo, ASignedData val]
+  [ACipherText ekEncBlob, ACipherText kEncBlob] <- receive 2 --1
+  liftIO $ putStrLn $ "After we've received caResponse"
   return (ekEncBlob, kEncBlob)
     
-caMk_Id :: Proto (TPM_KEY_HANDLE, AikContents)
-caMk_Id = liftIO $ do
+    
+caEntity_CA :: Proto ()
+caEntity_CA = do
+  liftIO $ putStrLn $ "HERE"
+  [AEntityInfo eInfo, 
+   ASignedData (SignedData (ATPM_IDENTITY_CONTENTS pubKey) sig)] 
+                                                                 <- receive 1
+  
+  liftIO $ putStrLn $ "before reading pubEk"
+  ekPubKey <- liftIO readPubEK
+  liftIO $ putStrLn $ "after reading putEk"
+  let iPubKey = identityPubKey pubKey
+      iDigest = tpm_digest $ encode iPubKey
+      asymContents = contents iDigest
+      blob = encode asymContents
+      encBlob =  tpm_rsa_pubencrypt ekPubKey blob
+      
+      caPriKey = snd generateCAKeyPair
+      caCert = realSign caPriKey (encode iPubKey)
+      certBytes = encode (SignedData iPubKey caCert)
+      
+      strictCert = toStrict certBytes
+      encryptedCert = encryptCTR aes ctr strictCert
+      enc = fromStrict encryptedCert
+      --encryptedSignedAIK = crypt' CTR symKey symKey Encrypt signedAIK  
+
+      --enc = encrypt key certBytes
+  --return (CAResponse enc encBlob)
+  send 1 [ACipherText encBlob, ACipherText enc]
+ where 
+   symKey = 
+     TPM_SYMMETRIC_KEY 
+     (tpm_alg_aes128) 
+     (tpm_es_sym_ctr) 
+     key
+   
+   v:: Word8 
+   v = 1
+   key = ({-B.-}Data.ByteString.Lazy.pack $ replicate 16 v) 
+   --strictKey = toStrict key
+   aes = initAES $ toStrict key
+   ctr = toStrict key
+   contents dig = TPM_ASYM_CA_CONTENTS symKey dig
+  
+tpmMk_Id :: Proto (TPM_KEY_HANDLE, AikContents)
+tpmMk_Id = liftIO $ do
   
   (aikHandle, iSig) <- makeAndLoadAIK
   aikPub <- attGetPubKey aikHandle iPass
@@ -92,18 +145,20 @@ caMk_Id = liftIO $ do
   
   return (aikHandle, SignedData aikContents iSig)
   
-caAct_Id :: TPM_KEY_HANDLE -> CipherText -> Proto SymmKey
-caAct_Id iKeyHandle actInput = liftIO $ do
+tpmAct_Id :: TPM_KEY_HANDLE -> CipherText -> Proto SymmKey
+tpmAct_Id iKeyHandle actInput = liftIO $ do
   iShn <- tpm_session_oiap tpm
   oShn <- tpm_session_oiap tpm
   sessionKey <- tpm_activateidentity tpm iShn oShn iKeyHandle iPass oPass actInput
   return sessionKey
   
-caQuote :: TPM_KEY_HANDLE -> TPM_PCR_SELECTION -> [ArmoredData] -> Proto (TPM_PCR_COMPOSITE, Signature)
-caQuote qKeyHandle pcrSelect exDataList = liftIO $ do
+tpmQuote :: TPM_KEY_HANDLE -> TPM_PCR_SELECTION -> [ArmoredData] -> Proto (TPM_PCR_COMPOSITE, Signature)
+tpmQuote qKeyHandle pcrSelect exDataList = liftIO $ do
   let evBlob = packImpl exDataList
       evBlobSha1 = bytestringDigest $ sha1 evBlob
-      
+ -- liftIO $ putStrLn $ "evBlobSha1: " ++ (show evBlobSha1)
+  liftIO $ putStrLn $ "pcrSelect: " ++ (show pcrSelect)
+  liftIO $ putStrLn $ "exDataList: " ++ (show exDataList)
   (comp, sig) <- mkQuote qKeyHandle iPass pcrSelect evBlobSha1  
   return (comp, sig)
   

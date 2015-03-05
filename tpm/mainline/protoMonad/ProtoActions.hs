@@ -63,16 +63,19 @@ send toId ds = do
   logger <- liftIO createLogger
   liftIO $ sendChunkedMessageByteString logger chan (toStrict $ encode ds)
  -- liftIO $ putStrLn $ "Sending: " ++ (show ds)
-  liftIO $ putStrLn "Sent message! " 
+  liftIO $ putStrLn $ "Sent message! " ++ (show ds)
   return ()
   
 receive :: EntityId -> Proto Message
 receive fromId = do
+  liftIO $ putStrLn $ "In receive"
   chan <- getEntityChannel fromId
+  liftIO $ putStrLn $ "Got Chan"
   logger <- liftIO createLogger
   bytes <- liftIO $ readChunkedMessageByteString logger chan
+  liftIO $ putStrLn $ "Got bytes"
   let result = decode $ fromStrict bytes
-  liftIO $ putStrLn $ "Received message!"
+  liftIO $ putStrLn $ "Received message!"   -- ++ (show result)
  -- liftIO $ putStrLn $ "Received: " ++ (show result)
   return $ result
 
@@ -108,7 +111,7 @@ realDecrypt priKey cipherText = --Concrete implementation here
   C.decrypt priKey cipherText
 
 realSign :: PrivateKey -> ByteString -> Signature --paramaterize over hash?
-realSign priKey bytes = bytes --Concrete implementation plugs in here
+realSign priKey bytes = C.sign priKey bytes --Concrete implementation plugs in here
 
 --Concrete packing(well-defined strategy for combining elements in preparation for encryption/signing) implementation
 packImpl :: (Binary a) => [a] -> ByteString

@@ -1,11 +1,12 @@
-module AttMain where
+module Main where
 
-import CAProtoMain(caEntity_Att)
+import CAProtoMain (caEntity_Att)
 import ProtoMonad
 import ProtoTypes
 import ProtoActions
 import VChanUtil
 import TPMUtil
+import Keys
 
 import Prelude 
 import Data.ByteString.Lazy hiding (putStrLn)
@@ -16,7 +17,8 @@ import System.Random
 
 attCommInit :: [Int] -> IO ProtoEnv
 attCommInit domidS = do
-  takeInit --Taking ownership of TPM
+  ekPub <- takeInit --Taking ownership of TPM
+  --exportEK exportEKFileName ekPub
   appChan <- server_init (domidS !! 0)
   caChan <- client_init (domidS !! 1) 
   let myInfo = EntityInfo "Attester" 11 appChan
@@ -30,31 +32,25 @@ attCommInit domidS = do
       pubs = M.fromList [(1,appPub), (2, caPub)]
   
   
-  return $ ProtoEnv 0 myPri ents pubs 0 0 0
+  return $ ProtoEnv 0 myPri ents pubs 0 0 0 
+  
+  --return ()
 
+--main = attCommInit [1,2]
 
-attmain :: IO ()
-attmain = do 
-  putStrLn "Main of entity Att"
-  env <- attCommInit [1,2]  --[AppId, CaId]
+main :: IO ()
+main = do 
+  putStrLn "Main of entity Attestation"
+  env <- attCommInit [1, 4] -- [appId, caId] 
   eitherResult <- runProto caEntity_Att env
   case eitherResult of
     Left s -> putStrLn $ "Error occured: " ++ s
-    Right nonce -> putStrLn $ "Nonce received: " ++ (show nonce)
+    Right nonce -> putStrLn $ "End of Attestation" -- ++ (show nonce)
   
   
   {-let as = [ANonce empty, ANonce empty, ACipherText empty]
       asCipher = genEncrypt (fst generateAKeyPair) as
       as' = genDecrypt (snd generateAKeyPair) asCipher
   putStrLn $ show $ as' -}
-  return ()
+  return () 
   
-generateAKeyPair :: (Codec.Crypto.RSA.PublicKey, Codec.Crypto.RSA.PrivateKey)
-generateAKeyPair = let 
-  gen = mkStdGen 3 -- used 11 for B
-  (pub, pri, _) = generateKeyPair gen 2048 in (pub, pri)
-                                              
-getBPubKey :: Codec.Crypto.RSA.PublicKey
-getBPubKey =  let 
-  gen = mkStdGen 11 
-  (pub, _, _) = generateKeyPair gen 2048 in pub

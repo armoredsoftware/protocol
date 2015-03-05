@@ -217,3 +217,66 @@ executable              BMain
                         VChanUtil
   Main-is: BMain.hs
   ghc-options: -O
+
+executable              AttesterMain
+  hs-source-dirs:       api, shell, src, shared, protoMonad
+  build-depends:        base >= 4,
+                        shell >= 1.0,
+                        mtl,
+                        directory,
+                        containers,
+                        bytestring,
+                        binary,
+                        network < 2.6,
+                        random,
+                        --network-bytestring,
+                        HsOpenSSL,
+                        SHA,
+                        RSA,
+                        parsec >= 3,
+                        filepath,
+                        VChanUtil
+  Main-is: AttesterMain.hs
+  ghc-options: -O
+
+executable              AppMain
+  hs-source-dirs:       api, shell, src, shared, protoMonad
+  build-depends:        base >= 4,
+                        shell >= 1.0,
+                        mtl,
+                        directory,
+                        containers,
+                        bytestring,
+                        binary,
+                        network < 2.6,
+                        random,
+                        --network-bytestring,
+                        HsOpenSSL,
+                        SHA,
+                        RSA,
+                        parsec >= 3,
+                        filepath,
+                        VChanUtil
+  Main-is: AppMain.hs
+  ghc-options: -O
+
+executable              CAMain
+  hs-source-dirs:       api, shell, src, shared, protoMonad
+  build-depends:        base >= 4,
+                        shell >= 1.0,
+                        mtl,
+                        directory,
+                        containers,
+                        bytestring,
+                        binary,
+                        network < 2.6,
+                        random,
+                        --network-bytestring,
+                        HsOpenSSL,
+                        SHA,
+                        RSA,
+                        parsec >= 3,
+                        filepath,
+                        VChanUtil
+  Main-is: CAMain.hs
+  ghc-options: -O

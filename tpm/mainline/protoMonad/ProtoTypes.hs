@@ -51,6 +51,38 @@ instance Binary ArmoredData where
     do 
       put(3::Word8)
       put einfo
+  put (AEvidenceDescriptor e) = 
+    do 
+      put (4::Word8)
+      put e
+  put(ATPM_PCR_SELECTION s) = 
+    do
+      put(5::Word8)
+      put s
+  put(ATPM_PUBKEY p) = 
+    do
+      put(6::Word8)
+      put p
+  put(ASignedData s) = 
+    do
+      put(7::Word8)
+      put s
+  put(ASignature a) = 
+    do
+      put(8::Word8)
+      put a
+  put(ATPM_PCR_COMPOSITE p) = 
+    do
+      put(9::Word8)
+      put p
+  put(ATPM_IDENTITY_CONTENTS i) = 
+    do
+      put(10::Word8)
+      put i 
+  put(AEvidence e) = 
+    do
+      put(11::Word8)
+      put e
 
   get = do t <- get :: Get Word8
            case t of
@@ -62,7 +94,24 @@ instance Binary ArmoredData where
                      return $ ACipherText ct
              3 -> do einfo <- get
                      return $ AEntityInfo einfo
-
+             
+             4 -> do e <- get
+                     return $ AEvidenceDescriptor e
+             5 -> do s <- get
+                     return $ ATPM_PCR_SELECTION s
+             6 -> do s <- get
+                     return $ ATPM_PUBKEY s
+             7 -> do s <- get
+                     return $ ASignedData s
+             8 -> do s <- get
+                     return $ ASignature s
+             9 -> do s <- get
+                     return $ ATPM_PCR_COMPOSITE s
+             10 -> do s <- get
+                      return $ ATPM_IDENTITY_CONTENTS s 
+             11 -> do s <- get
+                      return $ AEvidence s
+             
 
 type Message = [ArmoredData]
   

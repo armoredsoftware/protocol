@@ -33,6 +33,12 @@ takeInit = do
  where oPass = tpm_digest_pass ownerPass
        sPass = tpm_digest_pass srkPass
        
+mkTPMRequest :: [Word8] -> TPM_PCR_SELECTION
+mkTPMRequest xs = do 
+  let max = 24  -- <- tpm_getcap_pcrs tpm  --Maybe add this to assumptions?(24)
+  let selection = tpm_pcr_selection max xs in     
+    selection
+       
 makeAndLoadAIK :: IO (TPM_KEY_HANDLE, ByteString)
 makeAndLoadAIK = do
   sShn <- tpm_session_oiap tpm
@@ -67,6 +73,7 @@ mkQuote :: TPM_KEY_HANDLE -> TPM_DIGEST -> TPM_PCR_SELECTION
                   -> ByteString -> IO (TPM_PCR_COMPOSITE, ByteString)
 mkQuote qKeyHandle qKeyPass pcrSelect exData = do 
    quoteShn <- tpm_session_oiap tpm
+   putStrLn "Before quote packed and generated"
    (pcrComp, sig) <- tpm_quote tpm quoteShn qKeyHandle 
                              (TPM_NONCE exData) pcrSelect qKeyPass
    tpm_session_close tpm quoteShn    
