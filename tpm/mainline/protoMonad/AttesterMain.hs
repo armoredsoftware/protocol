@@ -33,10 +33,6 @@ attCommInit domidS = do
   
   
   return $ ProtoEnv 0 myPri ents pubs 0 0 0 
-  
-  --return ()
-
---main = attCommInit [1,2]
 
 main :: IO ()
 main = do 
@@ -47,10 +43,5 @@ main = do
     Left s -> putStrLn $ "Error occured: " ++ s
     Right nonce -> putStrLn $ "End of Attestation" -- ++ (show nonce)
   
-  
-  {-let as = [ANonce empty, ANonce empty, ACipherText empty]
-      asCipher = genEncrypt (fst generateAKeyPair) as
-      as' = genDecrypt (snd generateAKeyPair) asCipher
-  putStrLn $ show $ as' -}
   return () 
   

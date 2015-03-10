@@ -24,20 +24,6 @@ import Data.ByteString.Lazy hiding (replicate, putStrLn)
 iPass = tpm_digest_pass aikPass
 oPass = tpm_digest_pass ownerPass
 
-caAtt_Mea :: EvidenceDescriptor -> Proto Evidence
-caAtt_Mea eds = return [0,1,2]
-
-caEntity_App :: EvidenceDescriptor -> TPM_PCR_SELECTION -> 
-                Proto (Evidence, Nonce, TPM_PCR_COMPOSITE, 
-                       (SignedData TPM_PUBKEY), Signature)
-caEntity_App d pcrSelect = do
-  let nonceA = 34
-  send 1 [AEvidenceDescriptor d, ANonce nonceA, ATPM_PCR_SELECTION pcrSelect]
-  [AEvidence e, ANonce nA, ATPM_PCR_COMPOSITE pComp, ASignedData (SignedData (ATPM_PUBKEY aikPub) aikSig), ASignature sig] <- receive 1
-  
-  --do checks here...
-  return (e, nA, pComp, SignedData aikPub aikSig, sig)
-
 caEntity_Att :: Proto ()
 caEntity_Att = do
   req@
@@ -53,12 +39,10 @@ caEntity_Att = do
                            (caAtt_CA aikContents) -}
                            
   sessKey <- tpmAct_Id iKeyHandle ekEncBlob
-  liftIO $ putStrLn "Before decrypt'"
+
   let caCert :: (SignedData TPM_PUBKEY) 
       caCert = decrypt' sessKey kEncBlob 
       
-  liftIO $ putStrLn $ "caCert: " ++ (show caCert)
-  liftIO $ putStrLn "After decrypt'"
   evidence <- caAtt_Mea dList
   
   let quoteExData = 
@@ -67,16 +51,13 @@ caEntity_Att = do
          ASignedData $ SignedData (ATPM_PUBKEY (dat caCert)) (sig caCert)]
   (pcrComp, qSig) <- tpmQuote iKeyHandle pcrSelect quoteExData
 
-
-  liftIO $ putStrLn "After tpmQuote"
   let response = 
         [(quoteExData !! 0), 
-         (quoteExData !! 1{-(req !! 1)-}), 
+         ((req !! 1)), 
          ATPM_PCR_COMPOSITE pcrComp, 
          (quoteExData !! 2), 
          ASignature qSig]
   send 1 response
-  
   
   return ()
 
@@ -88,20 +69,33 @@ caAtt_CA signedContents = do
             (sig signedContents)
   send 2 {-1-} [AEntityInfo myInfo, ASignedData val]
   [ACipherText ekEncBlob, ACipherText kEncBlob] <- receive 2 --1
-  liftIO $ putStrLn $ "After we've received caResponse"
+
   return (ekEncBlob, kEncBlob)
-    
+
+caAtt_Mea :: EvidenceDescriptor -> Proto Evidence
+caAtt_Mea eds = return [0,1,2]
+
+caEntity_App :: EvidenceDescriptor -> TPM_PCR_SELECTION -> 
+                Proto (Evidence, Nonce, TPM_PCR_COMPOSITE, 
+                       (SignedData TPM_PUBKEY), Signature)
+caEntity_App d pcrSelect = do
+  let nonceA = 34
+  send 1 [AEvidenceDescriptor d, ANonce nonceA, ATPM_PCR_SELECTION pcrSelect]
+  [AEvidence e, ANonce nA, ATPM_PCR_COMPOSITE pComp, ASignedData (SignedData (ATPM_PUBKEY aikPub) aikSig), ASignature sig] <- receive 1
+  
+  --do checks here...
+  return (e, nA, pComp, SignedData aikPub aikSig, sig)
     
 caEntity_CA :: Proto ()
 caEntity_CA = do
-  liftIO $ putStrLn $ "HERE"
+
   [AEntityInfo eInfo, 
    ASignedData (SignedData (ATPM_IDENTITY_CONTENTS pubKey) sig)] 
                                                                  <- receive 1
   
-  liftIO $ putStrLn $ "before reading pubEk"
+
   ekPubKey <- liftIO readPubEK
-  liftIO $ putStrLn $ "after reading putEk"
+
   let iPubKey = identityPubKey pubKey
       iDigest = tpm_digest $ encode iPubKey
       asymContents = contents iDigest
@@ -115,10 +109,7 @@ caEntity_CA = do
       strictCert = toStrict certBytes
       encryptedCert = encryptCTR aes ctr strictCert
       enc = fromStrict encryptedCert
-      --encryptedSignedAIK = crypt' CTR symKey symKey Encrypt signedAIK  
 
-      --enc = encrypt key certBytes
-  --return (CAResponse enc encBlob)
   send 1 [ACipherText encBlob, ACipherText enc]
  where 
    symKey = 
@@ -141,8 +132,6 @@ tpmMk_Id = liftIO $ do
   (aikHandle, iSig) <- makeAndLoadAIK
   aikPub <- attGetPubKey aikHandle iPass
   let aikContents = TPM_IDENTITY_CONTENTS iPass aikPub
-  
-  
   return (aikHandle, SignedData aikContents iSig)
   
 tpmAct_Id :: TPM_KEY_HANDLE -> CipherText -> Proto SymmKey
@@ -156,9 +145,6 @@ tpmQuote :: TPM_KEY_HANDLE -> TPM_PCR_SELECTION -> [ArmoredData] -> Proto (TPM_P
 tpmQuote qKeyHandle pcrSelect exDataList = liftIO $ do
   let evBlob = packImpl exDataList
       evBlobSha1 = bytestringDigest $ sha1 evBlob
- -- liftIO $ putStrLn $ "evBlobSha1: " ++ (show evBlobSha1)
-  liftIO $ putStrLn $ "pcrSelect: " ++ (show pcrSelect)
-  liftIO $ putStrLn $ "exDataList: " ++ (show exDataList)
   (comp, sig) <- mkQuote qKeyHandle iPass pcrSelect evBlobSha1  
   return (comp, sig)
   
