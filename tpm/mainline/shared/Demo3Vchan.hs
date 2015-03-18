@@ -82,26 +82,33 @@ getPriChan = do
 	st <- T.get
 	return $ priChan st
 
-sendShared :: Int -> Shared -> IO LibXenVChan
-sendShared id shared = do
+
+			   --return chan
+
+{-
+vChanSend :: (ToJSON a) => Int -> a -> IO LibXenVChan
+vChanSend id ob = do
 			chan <- client_init id
-			sendShared' chan shared
+			sendShared' chan ob
 			return chan
 
-sendShared' :: LibXenVChan -> Shared -> IO ()
-sendShared' chan shared = do
+vChanSend' :: (ToJSON a) => LibXenVChan -> a -> IO ()
+vChanSend' chan obj = do
 			   logger <- createLogger
-			   sendChunkedMessageByteString logger chan (toStrict (jsonEncode shared))
+			   sendChunkedMessageByteString logger chan (toStrict (jsonEncode obj))
 			   return ()
 			   --return chan
 
-receiveShared :: LibXenVChan -> IO (Either String Shared)
-receiveShared chan = do
+vChanReceive :: (FromJSON a) => LibXenVChan -> IO (Either String a)
+vChanReceive chan = do
 			ctrlWait chan
 			logger <- createLogger
 			bytes <- readChunkedMessageByteString logger chan
 			let shared =  jsonEitherDecode (fromStrict bytes) :: Either String Shared
 			return shared
+-}
+
+
 
 
 sendM :: (Binary a, Show a) => String -> LibXenVChan ->  a -> IO ()

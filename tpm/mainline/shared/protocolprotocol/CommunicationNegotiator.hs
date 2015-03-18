@@ -26,6 +26,7 @@ import System.Random
 import VChanUtil
 import Data.Time
 import Control.Concurrent
+import qualified Data.List as List
 negotiationport = 3000
 
 
@@ -51,23 +52,32 @@ channelExistsWith (x:xs) e = do
 			  	      else channelExistsWith xs e
 			  	      
 			    
-vChanSendAndListen :: LibXenVChan -> LibXenVChan -> Shared -> (MVar (Either String Shared)) -> IO ()
-vChanSendAndListen sendChan receiveChan message mvar = do
-  sendShared' sendChan message
-  eitherShared <- receiveShared receiveChan
+vChanSendAndListen :: LibXenVChan -> Shared -> (MVar (Either String Shared)) -> IO ()
+vChanSendAndListen vchan message mvar = do
+  putStrLn $ "about to send: " ++ (show message) ++ "on vchan"
+  sendShared' vchan message
+  putStrLn "send message on vChan"
+  yield
+  eitherShared <- receiveShared vchan
   putMVar mvar eitherShared
    	
 vChanMVarListener :: LibXenVChan -> MVar (Either String Shared) -> IO ()
 vChanMVarListener rChan mvar = do
+				yield
+				putStrLn "IN VCHANLISTENER"
 				eitherShared <- receiveShared rChan
+                                putStrLn $ "I received somethings on vChannel!!: " ++ (show eitherShared)
 				putMVar mvar eitherShared
 				return ()
 				  			    
-pingVChannel :: LibXenVChan -> LibXenVChan -> Integer -> Integer -> IO Bool
-pingVChannel chan receiveChan n1 n2= do
+pingVChannel :: LibXenVChan -> Integer -> Integer -> IO Bool
+pingVChannel chan n1 n2= do
 		     respMVar <- newEmptyMVar :: IO (MVar (Either String Shared))
-		     forkIO $ vChanSendAndListen chan receiveChan (WNonce (n1 + 1)) respMVar		      
+                     putStrLn "about to fork vChanSendAndListen" 
+		     forkIO $ vChanSendAndListen chan (WNonce (n1 + 1)) respMVar	
+                     putStrLn $ "forked vChanSendAndListen"	      
 		     curTime <- getCurrentTime
+                     putStrLn $ "Current time: " ++ (show curTime)
 		     let seconds = utctDayTime curTime
 		     waitPatiently respMVar seconds
 		     --mvar should have been filled with something at this point
@@ -89,7 +99,9 @@ pingVChannel chan receiveChan n1 n2= do
 vChanTimeout = 1
 waitPatiently :: (MVar (Either String Shared)) -> DiffTime -> IO ()
 waitPatiently mvar startSeconds = do
+			putStrLn "waiting patiently..."
   			isEmpt <- isEmptyMVar mvar
+  			putStrLn $ "is mvar empty? " ++ (show isEmpt)
   			case isEmpt of
   			  False -> return () --something is there! we are done!
   			  True  -> do
@@ -103,44 +115,145 @@ waitPatiently mvar startSeconds = do
 				  	
 				  else do -- we haven't timed out yet.
 				  	yield 
+                                        threadDelay 10000
 				  	waitPatiently mvar startSeconds
 		     	    
-attemptVChanContactR :: Int ->Integer -> Integer-> IO (Maybe (LibXenVChan,LibXenVChan))
+attemptVChanContactR :: Int ->Integer -> Integer-> IO (Maybe LibXenVChan)
 attemptVChanContactR id n1 n2 = do
-			   receiveChan <- server_init id
+                           yield
+			   putStrLn $ "Doing attemptVChanContactR with n1= " ++ (show n1) ++ "and n2 = " ++ (show n2)
+			 --  receiveChan <- server_init id -justin says baaaaad/not needed. 
+                           putStrLn $ "Maybe_Client_Init with id: " ++ (show id)
 			   maybeSendChan <-  maybe_client_init id --client_init' id False
 			   --remember, to get to this point means the other guy sent a request which means he is listening on his little vchannel
 			   case maybeSendChan of
-			     (Nothing)   -> return Nothing --then we def know not local guy
+			     (Nothing)   -> do
+			     		    putStrLn $ "mabye_client_init id has failed."                                    
+			     		    return Nothing --then we def know not local guy
 			     (Just chan) -> do
-			     	 
-			         success <- pingVChannel chan receiveChan n1 n2
+			     	 putStrLn "successfully openned vchannel for sending!"
+			         success <- pingVChannel chan n1 n2
 			         case success of
 			           False -> return Nothing
-			           True ->  return (Just (chan,receiveChan))			         
+			           True ->  return (Just chan)			         
 
-maybeCreateChannelWith :: Entity -> ArmoredStateTMonad (Maybe Channel)
-maybeCreateChannelWith ent = do
+--maybeCreateVChannelWith
+--this is a funny method...
+--this will return nothing if VChan fails...
+--returns the vchannel if the vchannel exists with entity
+--returns the HTTPCHANNEL if the channel exists with entity
+--if a channel is found to exist (regardless of vchan or http) the channel is renamed here
+--to what the user expects.
+--Hence the createChannel command should always be done before using a channel.
+--I think there is an easy way to do a receive any, but I'm not there yet.
+maybeCreateVChannelWith :: Entity -> String -> ArmoredStateTMonad (Maybe Channel)
+maybeCreateVChannelWith ent chanName = do
   s <- get
   let chanETMVar = channelEntriesTMVar s
   let me = executor s
-  chanls <- liftIO $ atomically $ takeTMVar chanETMVar
-  chanExists <- liftIO $ channelExistsWith chanls ent
+  chanEls <- liftIO $ atomically $ takeTMVar chanETMVar
+  chanExists <- liftIO $ channelExistsWith chanEls ent
   case chanExists of
     (Just channel) -> do
-    			liftIO $ atomically $ putTMVar chanETMVar chanls
+    			liftIO $ putStrLn "found that channel already exists."
+    			liftIO $ atomically ( putTMVar chanETMVar (
+                               (ChannelEntry chanName channel):
+                                             (List.deleteBy (\a b -> (channelEntryChannel a) == (channelEntryChannel b)) 
+                                               (ChannelEntry "stupidworthlessname" channel) chanEls
+                                             )
+                                                                  )  
+                                            )
+                         --above line is important. we place a channel in the state that has the name we are expecting.
+                         -- instead of the name autogenerated by the negotiator
     			return (Just channel)
     (Nothing)      -> do
-    			mVChannel <- liftIO $ tryCreateVChannel me ent
-    			liftIO $ atomically $ putTMVar chanETMVar chanls
-    		        return mVChannel
+    			liftIO $ putStrLn $ "I do not already have a channel with this entity. attempting to make Vchan contact"
+    			mVChannel <- liftIO $ tryCreateVChannel me ent    			
+                        case mVChannel of
+                          Just vc -> do 
+                            liftIO $ atomically $ putTMVar chanETMVar ((ChannelEntry chanName vc) : chanEls)
+                            return (Just vc)
+                          Nothing -> do
+                            liftIO $ atomically $ putTMVar chanETMVar chanEls
+                            return Nothing --liftIO $ tryCreateHttpChannel ent 
+
+tryCreateHttpChannel :: Entity -> String -> ArmoredStateTMonad ( Maybe Channel)
+tryCreateHttpChannel ent chanName = do
+  case entityIp ent of 
+    Nothing    -> return Nothing
+    Just entIP -> do  
+      s <- get
+      let chanETMVar = channelEntriesTMVar s 
+      let me = executor s
+      chanls <- liftIO $ atomically $ takeTMVar chanETMVar -------------------------------------------------------------
+      let myPort = getFreePort chanls
+      nonce1 <- liftIO ( randomIO :: IO Integer )
+      let portRequest =  PortRequest me myPort nonce1 
+      armoredlsTMVar <- liftIO ( newTMVarIO [] :: IO (TMVar [Armored]))
+      unitTMVar <- liftIO (newEmptyTMVarIO  :: IO (TMVar ()) ) --empty since obviously no messages yet.
+      let httpChanInfo = HttpInfo myPort Nothing entIP Nothing armoredlsTMVar unitTMVar
+      expectedNonceMVar <- liftIO $ newEmptyMVar
+      
+      threadID <- liftIO $ forkIO $  httpExpectNonce httpChanInfo expectedNonceMVar                          
+      connWithNegotiation <-liftIO $ sendHttp (WCommRequest portRequest) entIP negotiationport
+      curTime <- liftIO $ getCurrentTime
+      liftIO $ putStrLn $ "Current time: " ++ (show curTime)
+      let seconds = utctDayTime curTime                      
+      liftIO $ waitPatiently expectedNonceMVar seconds
+      eithershared <- liftIO $ takeMVar expectedNonceMVar
+      case eithershared of
+        (Left err) -> do
+          liftIO $ putStrLn ("ERROR in attempting http comm: " ++ err)
+          liftIO $ atomically $ putTMVar chanETMVar (chanls) ------------------
+          return Nothing
+        (Right shared) -> do
+          case shared of 
+            (WNonce shouldBeN1p1) -> do --do good channel creating here.
+              if shouldBeN1p1 /= (nonce1+1) 
+               then do
+                 liftIO $ putStrLn "error. nonce value received is no good."
+                 liftIO $ atomically $ putTMVar chanETMVar (chanls) -------------------
+                 return Nothing
+               else do
+                 eitherS  <- liftIO $ receiveHttp connWithNegotiation
+                 case eitherS of --this should be the port they are serving on.
+                  (Left err) -> do
+                    liftIO $ putStrLn $ "Error in response from other negotiator: " ++ (show err)
+                    liftIO $ atomically $ putTMVar chanETMVar (chanls) ------------------
+                    return Nothing
+                  (Right (HttpSuccess theirPort)) -> do --everything went nicely if we got to here. 
+      	  	    let httpInfo' = HttpInfo myPort (Just theirPort) entIP (Nothing) armoredlsTMVar unitTMVar
+      	  	    let channel = Channel ent httpInfo'
+      	  	    let channelEntry = ChannelEntry (chanName) channel
+      	  	    liftIO $ atomically $ putTMVar chanETMVar (channelEntry:chanls)
+                    return (Just channel)
+                  (Right anythingElse) -> do
+                    liftIO $ putStrLn $ "Error trying to create HTTPChannel. I wanted an HttpSuccess. Instead I got: " ++ (show anythingElse)
+                    return Nothing 
+                    
+            a@_                    -> do
+              liftIO $ putStrLn $ "Error. received wrong type back when expected nonce in attempt http chan contact: " ++ (show a)
+              return Nothing 
+
+
+getFreePort :: [ChannelEntry] -> Port 
+getFreePort [] = 3001   
+getFreePort chanEs = let ports = harvestPorts chanEs in 
+                       if Prelude.length ports == 0 
+                         then 3001
+                         else (maximum ports) + 1
+
 eitherReceiveSharedWTimeout :: LibXenVChan -> IO (Either String Shared)
 eitherReceiveSharedWTimeout rchan = do
 				mvar <- newEmptyMVar :: IO (MVar (Either String Shared))
+				putStrLn $ "Beginning to listen on VChan for something. I am expecting a nonce back of course. the one I sent in vchanreq"
 				forkIO $ vChanMVarListener rchan mvar
+				putStrLn $ "successfully forked VChan listener"
 				curTime <- getCurrentTime
 		     		let seconds = utctDayTime curTime
 		     		waitPatiently mvar seconds
+		     		yield
+                                putStrLn "about to block by taking mvar that should have a nonce in it or an error."
 		     		eitherStringShared <- takeMVar mvar --at this point guarenteed to not be empty
 		     		case eitherStringShared of
 		     		 (Left err)  -> do
@@ -149,14 +262,17 @@ eitherReceiveSharedWTimeout rchan = do
 		     		 (Right shared) -> return (Right shared)
 		     		 
 		     		
-				      			        
+--this gets called when executor (first entity) does NOT have a channel with the other entity yet.
+--However, the other entity MAY already have a channel established with executor. 				      			        
 tryCreateVChannel :: Entity -> Entity -> IO (Maybe Channel)
 tryCreateVChannel me ent = do
 			 let mID = entityId ent
 			 case mID of
 			   (Nothing) -> return Nothing -- entity has no id, can't use vChan!
 			   (Just id) -> do
+			   		  putStrLn $ "Other entity has ID: " ++ (show id)  ++ " init-ing listener on chan" 
 			   		  rChan <- server_init id
+			   		  putStrLn $ "Now listening!"
 			   		  let mIP = entityIp ent
 			   		  case mIP of
 			   		   Nothing -> return Nothing
@@ -164,8 +280,11 @@ tryCreateVChannel me ent = do
 			   		      conn <-liftIO $ openConnection ip negotiationport
 			   		      n1 <- randomIO :: IO Integer
 			   		      let vchanReq = VChanRequest me n1
+                                              putStrLn "about to send VChannel request"
 			   		      sendHttp' (WCommRequest vchanReq) conn
-			   		      eitherSharedBack <- receiveHttp conn  --this should be the challenge nonce for vchan comm. 
+                                              putStrLn "sent vChannelRequest, about to attempt to receive back over HTTP"
+			   		      eitherSharedBack <- receiveHttp conn  --this should be the challenge nonce for vchan comm.
+                                              putStrLn $ "received over http. I got this: " ++ (show eitherSharedBack) 
 			   		      case eitherSharedBack of
 			   		       (Left err) -> do
 			   		       		      putStrLn err
@@ -173,6 +292,7 @@ tryCreateVChannel me ent = do
 					       (Right shared) -> do
 					       		      case shared of
 					       		        (WNonce n2) -> do   --this should be the challenge nonce for vchan comm. 
+					       		        	  putStrLn $ "RECEIVED CHALENGE NONCE N2: " ++ (show n2)
 					       		        	  eitherShared <- eitherReceiveSharedWTimeout rChan
 					       		        	  case eitherShared of
 					       		        	    (Left err) -> do
@@ -182,8 +302,8 @@ tryCreateVChannel me ent = do
 					       		        	    			(WNonce shouldBeN1plus1) ->
 					       		        	    			  if shouldBeN1plus1 == (n1 + 1) then do
 					       		        	    			    --send back the nonce received over http
-					       		        	    			    sChannel <- sendShared id (WNonce (n2+1))
-					       		        	    			    let vchanInfo = VChanInfo (Just sChannel) (Just rChan)
+					       		        	    			    sendShared' rChan (WNonce (n2+1))
+					       		        	    			    let vchanInfo = VChanInfo (Just rChan)
 					       		        	    			    let channel = Channel ent vchanInfo
 					       		        	    			    return (Just channel) --yay!!!!!!!!!!! 
 					       		        	    			   else do
@@ -192,8 +312,8 @@ tryCreateVChannel me ent = do
 					       		        	    			(_) -> do
 					       		        	    				putStrLn "received unexpected thing from VChannel"
 					       		        	    				return Nothing
-					       		        (_)   -> do
-					       		                  putStrLn "Unexpected response type in vchanrequest over http"
+					       		        x   -> do
+					       		                  putStrLn ("Unexpected response type in vchanrequest over http: " ++ (show x))
 					       		                  return Nothing			   		       		      
 			   		      
 			   		  --mSendChan <- maybe_client_init id	        
@@ -220,6 +340,7 @@ negotiator = do
 	      case jj of
 	      	(Left err) -> text (LazyText.pack "ERROR: Improper request.")
 	      	(Right (WCommRequest (VChanRequest entity n1))) -> do
+                  liftIO $ putStrLn $ "I have received a vChan request. Beginning negotiation."
 	      	--1. check if channel already exists, do nothing if it does
 	      	--2. if we need to make a channel..
 	      	
@@ -228,29 +349,39 @@ negotiator = do
 	      	  chanExists <- liftIO $ channelExistsWith chanls entity
 	      	  case chanExists of
 	      	  	(Just chan)  -> do
+                                  liftIO $ putStrLn "I have found that I already have this channel. Doing nothing"
 	      	  		  liftIO $ atomically $ putTMVar chanETMVar chanls
-	      	  		  json VChanSuccess --do nuthin'
+	      	  		  json (VChanSuccess "I already have a channel with you.") --do nuthin'
 	      	  	Nothing      -> do -- interesting stuff
-      	  		  maybeVChanPair <- case (entityId entity) of 
-      	  				    (Nothing)  -> return Nothing
+      	  		case (entityId entity) of 
+      	  				    (Nothing)  -> do
+      	  				    		  liftIO $ putStrLn "entityId entity gave back a Nothing."
+      	  				    		  --return Nothing
+                                                          json (VChanFailure "enititID entity gave back a Nothing.")
       	  				    (Just id)  -> do
-      	  				    		   n2 <- liftIO (randomIO :: IO Integer)
-      	  				    		   json (WNonce n2)
-      	  				    		   liftIO $ attemptVChanContactR id n1 n2
-      	  		  case maybeVChanPair of
-      	  		   (Just (sChan,rChan)) -> do
-      	  		   			let chan = Channel entity (VChanInfo (Just sChan) (Just rChan)) 
-      	  		   		--armoredlsTMVar <- liftIO ( newTMVarIO [] :: IO (TMVar [Armored])) --shouldn't need this at all for vChan
-      	  		   			--unitTMVar <- liftIO $ newTMVarIO () 
-      	  		   			let chanEntry = ChannelEntry ("ChannelWith" ++ (entityName entity)) 
-      	  		   						     chan 
+                                                           liftIO $ putStrLn $ "NEGORTIATOR: Other entity has id: " ++ (show (entityId entity))
+                                                           liftIO $ putStrLn "NEGOTIATOR: about to send n2 as response to request"
+                                                           n2 <- liftIO (randomIO :: IO Integer)
+                                                           liftIO $ forkIO $ do 
+                                                                           yield
+                                                                           threadDelay 10000
+                                                                           maybeVChan <- attemptVChanContactR id n1 n2
+                                                                           case maybeVChan of
+      	  		                                                     (Just vchan) -> do
+      	  		   			                               let chan = Channel entity (VChanInfo (Just vchan)) 
+      	  		   	                                               	--armoredlsTMVar <- liftIO ( newTMVarIO [] :: IO (TMVar [Armored])) --shouldn't need this at all for vChan
+      	  		   			                                --unitTMVar <- liftIO $ newTMVarIO () 
+      	  		   			                               let chanEntry = ChannelEntry ("ChannelWith" ++ (entityName entity)) chan 
       	  		   						     --armoredlsTMVar
       	  		   						     --unitTMVar
-      	  		   			liftIO $ atomically $ putTMVar chanETMVar (chanEntry:chanls)
-      	  		   			json VChanSuccess			     
-      	  		   Nothing              -> do --then we can't do vchan and must do http.
-      	  		   			liftIO $ atomically $ putTMVar chanETMVar chanls
-      	  		   			json VChanFailure
+      	  		   			                               liftIO $ atomically $ putTMVar chanETMVar (chanEntry:chanls)
+      	  		   			           --                    json (VChanSuccess "success yayyy")
+      	  		                                                     Nothing              -> do --then we can't do vchan and must do http.
+      	  		   			                               liftIO $ atomically $ putTMVar chanETMVar chanls
+      	  		   			                               --json (VChanFailure "vchanfail estab shoot.") 
+      	  				    		   json (WNonce n2)
+                                                           --liftIO $ putStrLn (show x)
+                          
       	        (Right (WCommRequest (PortRequest entity portSuggestion nonce))) -> do
       	           chanls <- liftIO $ atomically $ takeTMVar chanETMVar
 	      	   mchan <- liftIO $ channelExistsWith chanls entity
@@ -258,9 +389,9 @@ negotiator = do
 	      	   	(Just channel) -> do
 	      	   		let chanInfo = channelInfo channel
 	      	   		let respThingy = case chanInfo of
-	      	   				  (VChanInfo mchanS mchanR) -> case (mchanS,mchanR) of
-	      	   				  				((Just _),(Just _)) -> VChanSuccess
-	      	   				  				(_, _)              -> VChanFailure
+	      	   				  (VChanInfo vchan ) -> case (vchan) of
+	      	   				  				Just _ -> VChanSuccess "yaaay"
+	      	   				  				_      -> VChanFailure "woooohooo"
 	      	   				  (HttpInfo myPort _ _ _ _ _) -> HttpSuccess myPort
 	      	   				  				
 	      	   		liftIO $ atomically $ putTMVar chanETMVar chanls
@@ -271,66 +402,52 @@ negotiator = do
 				  Nothing -> do
 				  	      liftIO $ atomically $ putTMVar chanETMVar chanls
 				  	      liftIO $ putStrLn "no sender IP"
-				  	      json HttpFailure
+				  	      json (HttpFailure "crap")
 				  (Just ip) -> do
 				     let takenPorts = harvestPorts chanls
 				     let myport = (if portSuggestion `elem` takenPorts 
 				  	            then ((maximum takenPorts) + 1)  --possible security issue. 
 				  	            else portSuggestion )
 				     conn <-liftIO $ openConnection ip portSuggestion
+                                     liftIO $ sendHttp' (WNonce (nonce + 1)) conn
 				     --TODO send nonce + 1 here.
 				     armoredlsTMVar <- liftIO ( newTMVarIO [] :: IO (TMVar [Armored]))
       	  		   	     unitTMVar <- liftIO (newEmptyTMVarIO  :: IO (TMVar ()) ) --empty since obviously no messages yet.
-      	  		   	     let httpInfo = HttpInfo myport portSuggestion ip (Just conn) armoredlsTMVar unitTMVar
+      	  		   	     let httpInfo = HttpInfo myport (Just portSuggestion) ip (Just conn) armoredlsTMVar unitTMVar
       	  		   	     let channel = Channel entity httpInfo
       	  		   	     let channelEntry = ChannelEntry ("ChannelWith" ++ (entityName entity)) channel
       	  		   	     liftIO ( do
       	  		   	     	forkIO (httpServe httpInfo)
       	  		   	     	return () )
       	  		   	     liftIO $ atomically $ putTMVar chanETMVar (channelEntry:chanls)
-      	  		   	     json $ HttpSuccess myport
-				  	 	      	  		
-      	           
-	      	  		
-	      	{-
-	      		liftIO $ atomically $ do
-	      		  chanls <- takeTMVar chanETMVar
-	      		  state <- channelExists chanls entity
-	      		  case state of
-	      		   True  -> do
-	      		             --putTMVar chanETMVar chanls 
-	      		   	     return ()
-	      		   False -> do
-	      		   	     --no channel exists, lets try vChanFirst
-	      		   	     
-	      		   	     return ()
-	      		  putTMVar chanETMVar chanls
-	      		  
-	      	 
-	      		text (LazyText.pack "ERROR: Improper request.")
-	      	(Right (WCommRequest (PortRequest entity port nonce))) -> do 
-	      		text (LazyText.pack "ERROR: Improper request.")
-	     -- myprint' ("JSON decoded CARequest result:\n" ++ (show jj)) 2 --debug 
-              -}
-                  --text (LazyText.pack "kgeojgeijgeigjg") --report read error: client 
-              {-
-	      case jj of
-		   (Left err)    -> do
-		   		     let str = "Error decoding CARequest from JSON. Error was: " ++ err
-		                     --myprint' str 1    --report read error: console
-		                     text (LazyText.pack str) --report read error: client
-		   (Right (CommRequest req)) -> do 
-		   		    
-		                     
-	           (Right _)       -> do 
-                		     let str = ("Recieved something that wasn't a WPort. No! I refuse: " ++ err)
-                                     --myprint' str 1    --report error: console
-                                     text (LazyText.pack str) --report error: client
-                                     
-                                     
-                                     -}
-
+      	  		   	     json $ HttpSuccess myport	
     return ()
+
+httpExpectNonce :: ChannelInfo -> MVar (Either String Shared) -> IO ()
+httpExpectNonce (HttpInfo myport theirPort theirIP maybeConn msglsTMVar unitTMVar) mvar = do
+  let intPort = (fromIntegral (myport) :: Int)
+  Scotty.scotty intPort $ do
+    Scotty.post "/" $ do
+      a <- (param "request") :: ActionM LazyText.Text    
+      let jj = AD.jsonEitherDecode (LazyEncoding.encodeUtf8 a) :: Either String Shared
+      case jj of
+	(Left err)     -> text (LazyText.pack "ERROR: Improper request.")
+	(Right shared) -> do
+          case shared of
+            (WNonce n1) -> do
+              liftIO $ putStrLn "n1 received as expected. sending back n1+1 as response."
+              liftIO $ tryPutMVar mvar (Right (WNonce n1))
+              json (WNonce (n1 +1))
+            _         -> do 
+	      let armored = sharedToArmored shared
+	      liftIO $ atomically $ do 
+                chanls <- takeTMVar msglsTMVar
+	        let chanls' = chanls ++ [armored]
+	        putTMVar msglsTMVar chanls'
+	        putTMVar unitTMVar ()  -- definitely has something now. 
+	      json (HttpSuccess (myport)) -- don't know why it won't let me put an empty string in there.
+		  
+  return ()
 httpServe :: ChannelInfo -> IO ()
 httpServe (HttpInfo myport theirPort theirIP maybeConn msglsTMVar unitTMVar) = do
   let intPort = (fromIntegral(myport) :: Int)
@@ -365,7 +482,7 @@ httpServe (HttpInfo myport theirPort theirIP maybeConn msglsTMVar unitTMVar) = d
 harvestPorts :: [ChannelEntry] -> [HttpClient.Port]
 harvestPorts []     = []
 harvestPorts (x:xs) = case (channelInfo (channelEntryChannel x)) of
-			(VChanInfo _ _)          -> harvestPorts xs
+			(VChanInfo _)          -> harvestPorts xs
 			h@(HttpInfo _ _ _ _ _ _) -> (httpInfoMyServingPort h) : (harvestPorts xs)
 
 

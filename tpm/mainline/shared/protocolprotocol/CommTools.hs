@@ -1,6 +1,6 @@
 {-# LANGUAGE OverloadedStrings, ForeignFunctionInterface #-}
 module CommTools where
-import Data.ByteString.Lazy
+import Data.ByteString.Lazy hiding (putStrLn)
 import Data.Monoid (mconcat)
 import Data.Maybe
 import Network.Http.Client
@@ -20,7 +20,8 @@ import ProtoTypes hiding (Result)
 import qualified ProtoTypes as ProtoTypes
 import System.IO
 import Data.Word
-
+import Control.Concurrent.STM.TMVar
+import Control.Monad.STM
 --foreign export converseWithScottyCA :: AD.CARequest -> IO (Either String AD.CAResponse)
 
 --import qualified System.IO.Streams.Internal as StreamsI
@@ -46,7 +47,7 @@ sharedToArmored (WEvidenceDescriptor evdes) = AEvidenceDescriptor evdes
 sharedToArmored (WEvidencePiece evpiece)    = AEvidencePiece evpiece
 sharedToArmored (WCARequest careq)          = ACARequest careq
 sharedToArmored (WCAResponse caresp)	    = ACAResponse caresp
-sharedToArmored _			    = AFailure "attempted to convert to non-supported armored type"        
+sharedToArmored x@_			    = AFailure ("attempted to convert to non-supported armored type: " ++ (show x))        
 
 
 data Shared   = WRequest AD.Request
@@ -55,13 +56,12 @@ data Shared   = WRequest AD.Request
 	      | WEvidencePiece EvidencePiece
 	      | WCARequest CARequest
 	      | WCAResponse CAResponse
-	      | WNonce Integer
---	      | WPort HttpClient.Port
+	      | WNonce Integer 
 	      | WCommRequest CommRequest
               | Result Bool
-              | VChanFailure
-              | HttpFailure
-              | VChanSuccess
+              | VChanFailure String
+              | HttpFailure String
+              | VChanSuccess String
               | HttpSuccess Port
 
 instance Show Shared where
@@ -71,10 +71,12 @@ instance Show Shared where
     show (WEvidencePiece evPiece) = "EvidencePiece: " ++ (show evPiece) 
     show (Result True) = "Appraisal succeeded."
     show (Result False) = "Appraisal failed."
-    show (VChanFailure) = "VChanFailure"
-    show (HttpFailure)  = "HttpFailure"
-    show (VChanSuccess) = "VChanSuccess"
-    show (HttpSuccess p)  = "HttpSuccess" ++ (show p)
+    show (VChanFailure str) = "VChanFailure: " ++ str
+    show (HttpFailure str)  = "HttpFailure: " ++ str
+    show (VChanSuccess str) = "VChanSuccess: " ++ str
+    show (HttpSuccess p)  = "HttpSuccess: " ++ (show p)
+    show (WNonce n)      = "WNonce: " ++ (show n)
+    
 --  show (WCommRequest commreq) = "WCommRequest " ++ (show commreq)
 --  show (WPort p) = "WPort: " ++ (show p)
 --  show (WPortRequest pr) = "WPortRequest " ++ (show pr)
@@ -106,9 +108,9 @@ instance ToJSON Shared where
 	toJSON (WCAResponse caResponse) = object [ "WCAResponse" .= toJSON caResponse]
 	toJSON (WNonce nonce)		= object [ "WNonce" .= nonce]
 	toJSON (WCommRequest commreq) = object ["WCommRequest" .= toJSON commreq]
-	toJSON (VChanFailure)          = A.String "VChanFailure"
-	toJSON (HttpFailure)	      = A.String "HttpFailure"
-	toJSON (VChanSuccess)         = A.String "VChanSuccess"
+	toJSON (VChanFailure str)          = object ["VChanFailure" .= toJSON str]
+	toJSON (HttpFailure str)	   = object ["HttpFailure" .= toJSON str]
+	toJSON (VChanSuccess str)         =  object ["VChanSuccess" .= toJSON str]
 	toJSON (HttpSuccess port)     = object ["HttpSuccess" .= port]
 
 instance FromJSON Shared where
@@ -122,12 +124,65 @@ instance FromJSON Shared where
 				| HM.member "WNonce" o 	            = WNonce <$> o .: "WNonce"
 				| HM.member "WCommRequest" o = WCommRequest <$> o .: "WCommRequest"
 				| HM.member "HttpSuccess" o  = HttpSuccess <$> o .: "HttpSuccess"
-	parseJSON (A.String "VChanFailure") = pure VChanFailure
-	parseJSON (A.String "HttpFailure")  = pure HttpFailure
-	parseJSON (A.String "VChanSuccess") = pure VChanSuccess	
+				| HM.member "VChanFailure" o = VChanFailure <$> o .: "VChanFailure"
+				| HM.member "HttpFailure" o = HttpFailure <$> o .: "HttpFailure"
+				| HM.member "VChanSuccess" o = VChanSuccess <$> o .: "VChanSuccess"
     
-    
+receiveG :: Channel -> IO Armored
+receiveG chan = do
+ case chan of
+  (Channel ent (VChanInfo maybeChan))      -> case maybeChan of
+     Nothing -> do
+       let str = "ERROR: no vchannel stored!! I can't receive on nothing!"
+       putStrLn str
+       return (AFailure str)
+     Just c  -> do
+       eitherShared <- receiveShared c
+       case eitherShared of
+        Left err -> do
+          putStrLn ("ERROR: " ++ err)
+          return (AFailure ("RECEIVE MESSAGE FAIL: " ++ err))
+        Right shared -> return (sharedToArmored shared)
+  (Channel ent (HttpInfo _ _ _ maybeConn1 tmvMsgs tmvUnit)) -> do
+    putStrLn "Waiting to receive message..."
+    unitval <- atomically $ takeTMVar tmvUnit
+    msgls <- atomically $ takeTMVar tmvMsgs
+    case msgls of
+      [] -> do 
+        let str = "Error in receive. Was able to take unitTMVar but msglist was empty"
+        putStrLn str
+        atomically $ putTMVar tmvMsgs msgls
+        return (AFailure str)
+      (a:[]) -> do 
+        --don't put unitTMVar back because list is empty
+        --release tmvMsgs
+        atomically $ putTMVar tmvMsgs []
+        return a
+      (a:as) -> do 
+        --DO put the unittmvar back this time because there are more messages.
+        atomically $ do
+                       putTMVar tmvUnit ()
+                       putTMVar tmvMsgs as
+                       return a
+                       
+   -- let str = "HTTPINFO??? I don't know what to do with that yet."   
+   -- putStrLn str
+   -- return (AFailure str)
 
+sendG :: Channel -> Armored -> IO ()
+sendG chan armored = do
+                     case chan of
+                       (Channel ent (VChanInfo maybeChan))      -> case maybeChan of
+                         Nothing -> putStrLn "ERROR: no vchannel stored!! I can't send on nothing!"
+                         Just c  -> sendShared' c (armoredToShared armored)
+                       (Channel ent (HttpInfo _ mTheirPort theirIP maybeConn1 _ _)) ->do
+                          case mTheirPort of 
+                            Nothing -> do
+                              let err = "no port of theirs given!!!! I'm trying to send here!!!"
+                              putStrLn err
+                            Just theirPort -> do 
+                              curConn <- sendHttp (armoredToShared armored) theirIP theirPort 
+                              putStrLn "Tried to send http!!" -- "HTTPINFO??? I don't know what to do with that yet."
 
 
 sendShared :: Int -> Shared -> IO LibXenVChan

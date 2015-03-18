@@ -8,32 +8,9 @@ import qualified System.IO.Streams as Streams
 import qualified Data.ByteString as S
 
 import Protocol
+import ProtoTypes hiding (attAddress, pCAAddress)
 import Network.Http.Client
 import Data.ByteString.Lazy (ByteString, pack, append, empty, cons, fromStrict, length)
-attAddress = Address {
-	        name= "Attester",
-	        ip   = Nothing,
-	        port = Nothing,
-	        getid   = Just 19,
-	        note = (Just "Just an attestered here to do your bidding")
-	      }
-appAddress = Address {
-	        name= "Appraiser",
-	        ip   = Nothing,
-	        port = Nothing,
-	        getid   = Just 17,
-	        note = (Just "Just a lonely Appraiser")
-	      }
-pCAAddress = Address {
-	        name= "PrivacyCA",
-	        ip   = (Just "10.100.0.6") :: (Maybe Hostname),
-	        port = Just 3000,
-	        getid   = Nothing,
-	        note = (Just "Just a lonely Privacy CA out here in the deep web")
-	      }	
-app = Appraiser appAddress
-att = Attester attAddress
-pca = PrivacyCA pCAAddress
 	            	      
 appProtocol = Let (Var "pcrsel") (ArmoredPCRSel [0..23]) 
 	     (Let (Var "nonce") ArmoredCreateNonce 
@@ -41,7 +18,7 @@ appProtocol = Let (Var "pcrsel") (ArmoredPCRSel [0..23])
 	     (Let (Var "request") (ArmoredRequesetForAttest (Var "pcrsel") 
 	     	  				            (Var "nonce")
 	     					            (Var "desiredEvidence"))
-	     (CreateChannel (AChannel "attesterChan") AMyself (AEntity att) (ACommMethod VChan)	      
+	     (CreateChannel (AChannel "attesterChan") (AEntity att)	      
  	     (Send (Var "request") (AChannel "attesterChan")
 	     (Receive (Var "response") (AChannel "attesterChan")
 	     (Let (Var "finalResult") (ArmoredEvaluate (Var "request") (Var "response"))

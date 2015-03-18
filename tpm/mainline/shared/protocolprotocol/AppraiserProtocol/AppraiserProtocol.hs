@@ -7,9 +7,14 @@ import qualified System.IO.Streams as Streams
 import qualified Data.ByteString as S
 
 import Protocol
+import ProtoTypes
 import Network.Http.Client
 import Demo3Shared hiding (Result)
-
+import Control.Concurrent.STM.TMVar
+import CommunicationNegotiator
+import Control.Concurrent
+import Control.Monad
+import Control.Monad.State.Strict
 {-
 appAddress = Address {
 	        name= "Appraiser",
@@ -38,21 +43,26 @@ pCAAddress = Address {
 app = Appraiser appAddress
 att = Attester attAddress
 pca = PrivacyCA pCAAddress
-	      
+-}	      
 appraise = do
 	    putStrLn "Appraise be to Attester"
-	    let knownguys = [att,pca]
+	    let knownguys = [att,pCA]
 	    let emptyvars = []
-	    let emptychans = []
+	    emptyTMVarChans <- newTMVarIO []
 	    let me = app
-	    let s0 = ArmoredState emptyvars me knownguys emptychans
+	    let s0 = ArmoredState emptyvars me knownguys emptyTMVarChans
+	    forkIO ( do 
+	    		runStateT negotiator s0
+	    		return ()
+	    	   )
+	    threadDelay 6000000
 	    runExecute' myProto s0
 	    
-myProto =     CreateChannel (AChannel "attesterChan") AMyself (AEntity att) (ACommMethod Http)
+myProto =     CreateChannel (AChannel "attesterChan") (AEntity att)
 	     (Let (Var "evDes") (AEvidenceDescriptor D0)	      
  	     (Send (Var "evDes") (AChannel "attesterChan")
 	     (Receive (Var "response") (AChannel "attesterChan")
 	     (Result (Var "response"))
 	      )))
 	   
-	   -}
+	  -- -}

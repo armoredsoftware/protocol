@@ -13,10 +13,13 @@ import qualified Demo3Shared as Demo3
 import VChanUtil
 import Control.Concurrent.MVar
 import Control.Concurrent.STM.TMVar
+import Control.Concurrent.STM
 import qualified Web.Scotty as Scotty
 import ProtoTypes
 import CommunicationNegotiator
+import CommTools hiding (Result)
 import Control.Concurrent
+import Data.Tuple
                           	      
 runExecute :: Process -> Entity ->IO (Process, ArmoredState)
 runExecute proto entity= do
@@ -35,82 +38,101 @@ runExecute' proto s0 = do
 execute :: Process -> ArmoredStateTMonad Process
        --variable, entity, entity, commMethod, followingProc
 --	     | CreateChannel Armored Armored Armored Armored Process
+execute (Let var val proc) = do 
+   --var' <- subIfVar var
+   val' <- subIfVar val
+   addVariable var val'
+   liftIO $ putStrLn ("performing let: variable: " ++ (show var) ++ (" val: " ++ (show val')))
+   execute proc
+   
 execute (CreateChannel achan ent1 proc) = do
+   liftIO $ putStrLn "EXECUTING CREATECHANNEL COMMAND\n"
    achan' <- subIfVar achan
    ent1' <- subIfVar ent1
-   case ent1' of
-    (AEntity ent1'') -> do
-       mChannel <- maybeCreateChannelWith ent1''
-       execute proc  
-    (_)              -> do
-       liftIO $ putStrLn "not an entity in create channel!!! stopping now."
-       return $ Stuck "didn't have an entity in the CreateChannel command. sorry, I gave up."
-       
-   
+   case achan' of
+     (AChannel chanName) ->
+       case ent1' of
+        (AEntity ent1'') -> do
+          mVChannel <- maybeCreateVChannelWith ent1'' chanName
+          case mVChannel of 
+            Nothing -> do
+              let str = "vchan failed. Here is where Http channel set up should be."
+              liftIO $ putStrLn $ str
+              mHttpChannel <- tryCreateHttpChannel ent1'' chanName 
+              case mHttpChannel of
+                Nothing -> do
+                  let  str2 = "super error! no channel created. vchan and http failed."                 
+                  liftIO $ putStrLn str2
+                  return $ Stuck str2
+                Just hChan -> do
+                  let str3 = "successfully created httpChannel"
+                  liftIO $ putStrLn $ str3
+                  --http chan added to state in tryCreateHttpChannel
+                  execute proc 
+            Just vchan -> do --could be because channel existed, or because I just made it. 
+              execute proc  
+        (_)              -> do
+          liftIO $ putStrLn "not an entity in create channel!!! stopping now."
+          return $ Stuck "didn't have an entity in the CreateChannel command. sorry, I gave up."
+     a@_ -> do 
+       let err = "unexpected type in first argument to CreateChannel: " ++ (show a) ++ " stuck!"
+       liftIO $ putStrLn $ err
+       return $ Stuck err
    
        
            --addChannel achan' (Channel entity1 entity2 (HttpInfo ip2 port2 Nothing )) -- conn))                        
 execute (Send mess chan proc) = do
-  
+  liftIO $ putStrLn "sending on channel"
   chan' <- subIfVar chan
+  mess' <- subIfVar mess 
   case chan' of
    (AChannel str) -> do
-     {-s <- get
-     let mvarchan = lookup str (channelpairs s)
-     case mvarchan of 
-      Nothing     -> return (Stuck "attempted to send on channel that is not in state")
-      (Just mvar) -> do
-       channel <- liftIO $ takeMVar mvar
-       case (channel) of
-        (Channel _ _ (VchanInfo sendChan _))          -> do 
-        	     liftIO $ sendShared' sendChan (armoredToShared mess)
-        	     execute proc
-        (Channel _ _ (HttpInfo ip1 port1 connection)) -> do                           
-        --newConn <- liftIO $ HttpClient.openConnection theIP thePort
-        --theConn <- liftIO $ CommTools.sendHttp (armoredToShared mess) theIP thePort 
-          liftIO $ CommTools.sendHttp' (armoredToShared mess) connection
-          execute proc
-        _ -> return (Stuck "error in send attempt. Not a channel possibly?")
-       liftIO $ putMVar mvar channel 
-       -}
+     s <- get
+     let chanEntryTMVar = channelEntriesTMVar s 
+     chanEntryLS <- liftIO $ atomically $ takeTMVar chanEntryTMVar 
+     case lookupViaName str chanEntryLS of
+       Nothing        -> do 
+         liftIO $ putStrLn $ "Error for now: Send without creating first. easily change to create channel call here."
+         liftIO $ atomically $ putTMVar chanEntryTMVar chanEntryLS
+       Just chanEntry -> do 
+         let chan = channelEntryChannel chanEntry 
+         liftIO $ putStrLn $ "About to send: " ++ (show mess') ++ " which converted to shared is: " ++ (show (armoredToShared mess'))
+         liftIO $ atomically $ putTMVar chanEntryTMVar chanEntryLS
+         liftIO $ sendG chan mess' 
      execute proc 
    _		      -> return (Stuck "attempt to send on non-channel")
   
 execute (Receive var chan proc) = do
+  liftIO $ putStrLn "receiving on channel"
   chan' <- subIfVar chan
-{-  case chan' of
-    (AChannel str) -> do
-      s <- get
-      let mvarchan = lookup str (channelpairs s)
-      case mvarchan of 
-       Nothing     -> return (Stuck "attempted to receive on channel that is not in state")
-       (Just mvar) -> do
-         channel <- liftIO $ takeMVar mvar
-         case channel of
-          (Channel _ _ (VchanInfo _ receiveChan)) -> do
-                       eitherShared <- liftIO $ receiveShared receiveChan 
-                       case (eitherShared) of
-                         (Left err)     -> return (Stuck ("ERROR receiving on VChan: " ++ err))
-                         (Right shared) -> do 
-                                            addVariable var (sharedToArmored shared)
-                                            liftIO $ putMVar mvar channel
-                                            execute proc  
-          (Channel _ _ (HttpInfo ip1 port1 connection)) -> do 
-          	       eitherShared <- liftIO $ CommTools.receiveHttp connection
-          	       case eitherShared of
-          	         (Left err)     -> return (Stuck err)
-          	         (Right shared) -> do
-          	         		    addVariable var (sharedToArmored shared)
-          	         		    liftIO $ putMVar mvar channel
-          	         		    execute proc                                
-  --put (ArmoredState ((var,message):(vars s)))
-execute (Let var val proc) = do
-  s <- get
-  --put (ArmoredState ((var,val):(vars s)))
-  
-  -}
-  execute proc
-execute (Result res) = return (Result res)
+  case chan' of
+   (AChannel str) -> do
+     s <- get
+     let chanEntryTMVar = channelEntriesTMVar s 
+     chanEntryLS <- liftIO $ atomically $ takeTMVar chanEntryTMVar 
+     liftIO $ putStrLn $ "looking for channel named: " ++ str ++ " in " ++ (show chanEntryLS)
+     case lookupViaName str chanEntryLS of
+       Nothing        -> do 
+         let strer = "Error for now: Receive without creating first. easily change to create channel call here."
+         liftIO $ putStrLn strer 
+         liftIO $ atomically $ putTMVar chanEntryTMVar chanEntryLS
+         return (Stuck str)
+       Just chanEntry -> do 
+         let chan = channelEntryChannel chanEntry 
+         armoredGift <- liftIO $ receiveG chan
+         liftIO $ atomically $ putTMVar chanEntryTMVar chanEntryLS
+         case armoredGift of
+           AFailure str -> do 
+             liftIO $ putStrLn ("Crap. failed in recieved: " ++ str )
+             return $ Stuck str 
+           x@_          -> do 
+             addVariable var x 
+             execute proc 
+   _		      -> return (Stuck "attempt to send on non-channel")
+execute (Result res) = do
+			res' <- subIfVar res
+			liftIO $ putStrLn ("Result: " ++ (show res'))			
+			return (Result res')
 execute (Stop) = return Stop
      
 addVariable :: Armored -> Armored -> ArmoredStateTMonad ()
@@ -118,7 +140,7 @@ addVariable var val = do
 		    s <- get
 		    let variables = vars s
 		    let variables' = (var,val) : variables
-		    --put (ArmoredState (vars s) (executor s) (knownentities s) (channelpairs s))
+		    put (ArmoredState variables' (executor s) (knownentities s) (channelEntriesTMVar s))
 		    return ()
        --channel name
 addChannel :: Armored -> Channel -> ArmoredStateTMonad ()
@@ -134,6 +156,17 @@ addChannel (AChannel str) chan = do
 typeCheckProcess :: Process -> Either String Bool
 typeCheckProcess proc = Left "fail" --TODO      	      
 
+lookupViaName :: String  -> [ChannelEntry] -> Maybe ChannelEntry
+lookupViaName str [] = Nothing
+lookupViaName str (x:xs) = case str == (channelEntryName x) of
+                             True  -> Just x 
+                             False -> lookupViaName str xs 
+
+lookupViaChan :: Channel -> [ChannelEntry] -> Maybe ChannelEntry
+lookupViaChan chan [] = Nothing
+lookupViaChan chan (x:xs) = case chan == (channelEntryChannel x) of
+                             True  -> Just x 
+                             False -> lookupViaChan chan xs 
 
 subIfVar ::  Armored -> ArmoredStateTMonad  Armored
 subIfVar  armItem = do

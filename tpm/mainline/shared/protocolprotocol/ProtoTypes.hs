@@ -86,19 +86,18 @@ data Armored = Var String
 data ChannelEntry = ChannelEntry {
 		channelEntryName    :: String,
 		channelEntryChannel :: Channel		
-		} 
+		} deriving (Show)
 data Channel = Channel {
 	channelEntity      :: Entity,
 	channelInfo :: ChannelInfo
 	} deriving (Eq, Show)
                            -- server chan         client channel
 data ChannelInfo = VChanInfo {
-		    vChanInfoMaybeSendChan    :: (Maybe LibXenVChan),
-		    vChanInfoMaybeReceiveChan :: (Maybe LibXenVChan)
+		    vChanInfoMaybeChan    :: (Maybe LibXenVChan)
 		 	}
 		 | HttpInfo{
 		    httpInfoMyServingPort    :: HttpClient.Port,
-		    httpInfoTheirServingPort :: HttpClient.Port,
+		    httpInfoTheirServingPort :: Maybe HttpClient.Port,
 		    httpInfoTheirIp 	     :: HttpClient.Hostname,
 		    httpInfoMaybeConnection  :: (Maybe HttpClient.Connection),
 		    httpInfoTMVarMsgList     :: TMVar [Armored],
@@ -106,7 +105,7 @@ data ChannelInfo = VChanInfo {
 		   }
 		   
 instance Show ChannelInfo where
-  show (VChanInfo msend mrec) = ("VChanInfo " ++ (show msend) ++ " " ++ (show mrec))
+  show (VChanInfo vchan) = ("VChanInfo " ++ (show vchan))
   show (HttpInfo mp tp tip mconn tmls tmunit) = ("HttpInfo " ++ (show mp) ++ " " ++ (show tp) ++ " " ++ (show tip))
   
 data CommRequest = PortRequest {
@@ -120,8 +119,8 @@ data CommRequest = PortRequest {
 		   }
 
 instance Eq ChannelInfo where
- (VChanInfo _ _) == (HttpInfo _ _ _ _ _ _ ) = False
- (VChanInfo m1 m2) == (VChanInfo m1' m2') = and [m1 == m1', m2 == m2']
+ (VChanInfo _) == (HttpInfo _ _ _ _ _ _ ) = False
+ (VChanInfo m1) == (VChanInfo m1' ) = m1 == m1'
  (HttpInfo mp tp tip mconn tmls tmunit) == (HttpInfo mp' tp' tip' mconn' tmls' tmunit') = and [mp == mp', tp == tp', tip == tip']
 data Role = Appraiser
     	  | Attester
@@ -159,21 +158,21 @@ data ArmoredState = ArmoredState {
 
 app = Entity {
 	        entityName = "Appraiser",
-	        entityIp   = (Just "10.100.0.246"),
-	        entityId   = Just 1,
+	        entityIp   = (Just "10.100.0.229"),
+	        entityId   = Just 3,
 	        entityRole = Appraiser,
 	        entityNote = (Just "Just a lonely Appraiser")
 	      }
 	      
-attAddress = Entity {
+att = Entity {
 	        entityName = "Attester",
-	        entityIp   = (Just "10.100.0.208"),
-	        entityId   = Just 2,
+	        entityIp   = (Just "10.100.0.225"),
+	        entityId   = Nothing, -- Just 4,
 	        entityRole = Attester,
 	        entityNote = (Just "Just an attestered here to do your bidding")
 	      }
 
-pCAAddress = Entity {
+pCA = Entity {
 	        entityName = "PrivacyCA",
 	        entityIp   = (Just "10.100.0.6"),
 	        entityId   = Nothing,

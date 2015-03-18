@@ -7,8 +7,14 @@ import qualified System.IO.Streams as Streams
 import qualified Data.ByteString as S
 
 import Protocol
+import ProtoTypes
 import Network.Http.Client
 import Demo3Shared hiding (Result)
+import Control.Concurrent.STM.TMVar
+import Control.Monad
+import Control.Monad.State.Strict
+import CommunicationNegotiator
+import Control.Concurrent
 
 {-
 appAddress = Address {
@@ -38,20 +44,25 @@ pCAAddress = Address {
 app = Appraiser appAddress
 att = Attester attAddress
 pca = PrivacyCA pCAAddress
-	      
+	-}      
 attest = do
 	    putStrLn "Appraise be to Attester"
-	    let knownguys = [att,pca]
+	    let knownguys = [att,pCA]
 	    let emptyvars = []
-	    let emptychans = []
-	    let me = app
+	    emptychans <- newTMVarIO []
+	    let me = att
 	    let s0 = ArmoredState emptyvars me knownguys emptychans
+	    forkIO ( do
+	    	runStateT negotiator s0
+	    	return ()
+	    	)
+	    threadDelay 6000000
 	    runExecute' myProto s0
 	    
-myProto =     CreateChannel (AChannel "chan") AMyself (AEntity app) (ACommMethod Http)
+myProto =     CreateChannel (AChannel "chan") (AEntity app)
 	     (Receive (Var "mess") (AChannel "chan")	      
  	     (Send (Var "mess") (AChannel "chan")
-	     (Result (Var "response"))
+	     (Result (Var "mess"))
 	      ))
 	      
-	      -}
+--	      -}

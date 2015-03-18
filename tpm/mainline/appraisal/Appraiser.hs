@@ -6,7 +6,7 @@ import TPM
 import VChanUtil
 import Demo3Shared 
 import Provisioning
-
+import CommTools
 import Data.Word
 import Data.Binary
 import Data.ByteString.Lazy (ByteString, pack, append, empty, cons, fromStrict, length)

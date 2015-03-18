@@ -62,7 +62,7 @@ executable tpmi
 
 
 executable              Attestation
-  hs-source-dirs:       api, shell, src, shared, attestation
+  hs-source-dirs:       api, shell, src, shared, attestation, shared/protocolprotocol
   build-depends:        base >= 4,
                         shell >= 1.0,
                         mtl,
@@ -85,7 +85,7 @@ executable              Attestation
   ghc-options:          -O
 
 executable              Appraiser
-  hs-source-dirs:       api, shell, src, shared, appraisal, provisioning
+  hs-source-dirs:       api, shell, src, shared, appraisal, provisioning, shared/protocolprotocol
   build-depends:        base >= 4,
                         shell >= 1.0,
                         mtl,
@@ -106,7 +106,7 @@ executable              Appraiser
   ghc-options:          -O
 
 executable              Measurer
-  hs-source-dirs:       api, shell, src, shared, measurer
+  hs-source-dirs:       api, shell, src, shared, measurer, shared/protocolprotocol
   build-depends:        base >= 4,
                         shell >= 1.0,
                         mtl,
@@ -128,7 +128,7 @@ executable              Measurer
   ghc-options:          -O
 
 executable              PrivacyCA
-  hs-source-dirs:       api, shell, src, shared, privacyCA
+  hs-source-dirs:       api, shell, src, shared, privacyCA, shared/protocolprotocol
   build-depends:        base >= 4,
                         shell >= 1.0,
                         mtl,
@@ -182,11 +182,12 @@ executable              Protocol
                         shell >= 1.0,
                         network < 2.6, 
                         network-uri < 2.6,
-                        stm
+                        stm,
+                        time
 
                        
   Main-is: ProtocolMain.hs
-  ghc-options: -O
+  ghc-options: -O -threaded
 
 executable              AttesterProtocol
   hs-source-dirs:       api, shell, src, shared, provisioning, shared/protocolprotocol/AttesterProtocol, shared/protocolprotocol
@@ -197,7 +198,7 @@ executable              AttesterProtocol
 
                        
   Main-is: AttesterProtocolMain.hs
-  ghc-options: -O
+  ghc-options: -O -threaded
 
 executable              AppraiserProtocol
   hs-source-dirs:       api, shell, src, shared, provisioning, shared/protocolprotocol/AppraiserProtocol, shared/protocolprotocol
@@ -208,4 +209,4 @@ executable              AppraiserProtocol
 
                        
   Main-is: AppraiserProtocolMain.hs
-  ghc-options: -O
+  ghc-options: -O -threaded

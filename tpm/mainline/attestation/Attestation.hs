@@ -5,7 +5,7 @@ module Attestation  where
 import TPM
 import VChanUtil
 import Demo3Shared
-
+import CommTools
 import Data.Bits
 import Data.Binary hiding (put, get)
 import Data.ByteString.Lazy(ByteString, append, empty, pack, length, toStrict, fromStrict, cons)

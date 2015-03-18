@@ -6,7 +6,7 @@ import TPM.Cipher
 
 import Data.Binary
 import Control.Monad
-
+import CommTools
 --main = do replicateM_ 10 $ main'
 main = do 
   putStrLn "START main of Appraiser\n"

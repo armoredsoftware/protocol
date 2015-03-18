@@ -14,6 +14,7 @@ import qualified Data.ByteString as B (ByteString, pack)
 import System.Random
 import System.IO
 import Crypto.Cipher.AES
+import CommTools
 --import Codec.Crypto.AES
 --withOpenSSL
 

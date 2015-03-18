@@ -22,9 +22,6 @@ import qualified Data.HashMap.Strict as HM (member, lookup)
 import Data.Maybe
 import qualified Data.ByteString.Char8 as Char8
 
-
---import ProtoTypes (PortRequest)
-
 import qualified Network.Http.Client as HttpClient
 --import Prelude ( ($!) )
 import Data.List (isInfixOf, head) --for parsing the id file.
@@ -182,44 +179,6 @@ signPack priKey x = Signed x sig
 
 --instance Signable TPM_QUOTE_INFO
 
-data Shared   = WRequest Request
-              | WResponse Response
-	      | WEvidenceDescriptor EvidenceDescriptor
-	      | WEvidencePiece EvidencePiece
-	      | WCARequest CARequest
-	      | WCAResponse CAResponse
---	      | WPort HttpClient.Port
---	      | WCommRequest CommRequest
-              | Result Bool
-
-instance Show Shared where
-    show (WRequest app) = "Appraisal: " ++ show app
-    show (WResponse att) = "Attestation: " ++ show att
-    show (WEvidenceDescriptor evdes) = "EvidenceDescriptor: " ++ (show evdes)
-    show (WEvidencePiece evPiece) = "EvidencePiece: " ++ (show evPiece) 
-    show (Result True) = "Appraisal succeeded."
-    show (Result False) = "Appraisal failed."
---  show (WCommRequest commreq) = "WCommRequest " ++ (show commreq)
---  show (WPort p) = "WPort: " ++ (show p)
---  show (WPortRequest pr) = "WPortRequest " ++ (show pr)
-    
-instance Binary Shared where
-  put (WRequest app)             = do  put (0::Word8)
-                                       put app
-  put (WResponse att)           = do   put (1::Word8)
-                                       put att
-  put (Result res)                = do put(2::Word8)
-                                       put res
-
-  get = do t<- get :: Get Word8
-           case t of
-             0 -> do app <- get
-                     return (WRequest app)
-             1 -> do att <- get
-                     return (WResponse att)
-             2 -> do res <- get
-                     return (Result res)
-                     
 
 -- Primitive types
 type Signature = ByteString
@@ -722,26 +681,6 @@ ata TPM_SYMMETRIC_KEY_PARMS = TPM_SYMMETRIC_KEY_PARMS {
     	{-data Shared = Appraisal Request
               | Attestation Response
               | Result Bool-}
-instance ToJSON Shared where
-	toJSON (WRequest req) = object [ "WRequest" .= toJSON req]
-	toJSON (WResponse resp) = object [ "WResponse" .= toJSON resp ]
-	toJSON (Result bool) = object [ "Result" .= toJSON bool]
-	toJSON (WEvidenceDescriptor evdes) = object [ "WEvidenceDescriptor" .= toJSON evdes ]
-	toJSON (WEvidencePiece evPiece) = object ["WEvidencePiece" .= toJSON evPiece]
-	toJSON (WCARequest caRequest) = object [ "WCARequest" .= toJSON caRequest ]
-	toJSON (WCAResponse caResponse) = object [ "WCAResponse" .= toJSON caResponse]
---	toJSON (WCommRequest commreq) = object "WCommRequest" .= toJSON commreq
-
-instance FromJSON Shared where
-	parseJSON (DA.Object o) | HM.member "WRequest" o = WRequest <$> o .: "WRequest"
-				| HM.member "WResponse" o = WResponse <$> o .: "WResponse"
-				| HM.member "Result" o = Result <$> o .: "Result"
-				| HM.member "WEvidenceDescriptor" o = WEvidenceDescriptor <$> o .: "WEvidenceDescriptor"
-				| HM.member "WEvidencePiece" o = WEvidencePiece <$> o .: "WEvidencePiece"
-				| HM.member "WCARequest" o = WCARequest <$> o .: "WCARequest"
-				| HM.member "WCAResponse" o = WCAResponse <$> o .: "WCAResponse"
---				| HM.member "WCommRequest" o = WCommRequest <$> o .: "WCommRequest"
-				
 
 --PortRequest Entity  HttpClient.Port
 --		 | VChanRequest Entity Int
@@ -750,7 +689,10 @@ instance FromJSON Shared where
 	toJSON (PortRequest port entity) = object [ "port" .= toJSON port
 						  , "entity" .= toJSON entity
 						  ]-}
-
+instance ToJSON B.ByteString where
+	toJSON = DA.String . encodeToText
+instance FromJSON B.ByteString where
+	parseJSON (DA.String str) = pure $ decodeFromText str	
 				 		         
 encodeToText :: B.ByteString -> T.Text
 encodeToText = TE.decodeUtf8 . Base64.encode
@@ -761,6 +703,10 @@ decodeFromText = {-either fail return .-} Base64.decodeLenient . TE.encodeUtf8
 decodeFromTextL :: (Monad m) => T.Text -> m ByteString
 decodeFromTextL x = let bs = decodeFromText x in
 		       return (fromStrict bs)  
+
+decodeFromTextLStayStrict :: (Monad m) => T.Text -> m B.ByteString
+decodeFromTextLStayStrict x = let bs = decodeFromText x in
+		       return (bs)  
 
 
 decodeFromTextL' :: T.Text -> ByteString
