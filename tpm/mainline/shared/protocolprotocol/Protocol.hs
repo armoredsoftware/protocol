@@ -20,6 +20,7 @@ import CommunicationNegotiator
 import CommTools hiding (Result)
 import Control.Concurrent
 import Data.Tuple
+import ExampleArmoredConfig
                           	      
 runExecute :: Process -> Entity ->IO (Process, ArmoredState)
 runExecute proto entity= do
@@ -110,10 +111,10 @@ execute (Receive var chan proc) = do
      s <- get
      let chanEntryTMVar = channelEntriesTMVar s 
      chanEntryLS <- liftIO $ atomically $ takeTMVar chanEntryTMVar 
-     liftIO $ putStrLn $ "looking for channel named: " ++ str ++ " in " ++ (show chanEntryLS)
+     --liftIO $ putStrLn $ "looking for channel named: " ++ str ++ " in " ++ (show chanEntryLS)
      case lookupViaName str chanEntryLS of
        Nothing        -> do 
-         let strer = "Error for now: Receive without creating first. easily change to create channel call here."
+         let strer = "Error!! channel with name: " ++ str ++ " not found!!"
          liftIO $ putStrLn strer 
          liftIO $ atomically $ putTMVar chanEntryTMVar chanEntryLS
          return (Stuck str)

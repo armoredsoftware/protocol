@@ -30,19 +30,6 @@ import qualified Data.List as List
 negotiationport = 3000
 
 
-                 
- 
- {-
-requestPort :: HttpClient.Hostname -> IO (Either String HttpClient.Port)
-requestPort ip = do
-		  chan <- sendHttp (WPort 2999) ip negotiationport
-		  eitherShared <- receiveHttp chan
-		  case eitherShared of
-		   (Left err)           -> return (Left err)
-		   (Right (WPort port)) -> return (Right port)
-		   (Right _)             -> return (Left "that's weird.. received something that's not a port..")
--}
-
 channelExistsWith :: [ChannelEntry] -> Entity -> IO (Maybe Channel)
 channelExistsWith [] e     = return Nothing
 channelExistsWith (x:xs) e = do
@@ -50,8 +37,7 @@ channelExistsWith (x:xs) e = do
 			  let ent = channelEntity c
 			  if ent == e then return (Just c)
 			  	      else channelExistsWith xs e
-			  	      
-			    
+			  	      	    
 vChanSendAndListen :: LibXenVChan -> Shared -> (MVar (Either String Shared)) -> IO ()
 vChanSendAndListen vchan message mvar = do
   putStrLn $ "about to send: " ++ (show message) ++ "on vchan"

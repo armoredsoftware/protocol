@@ -19,6 +19,45 @@ import qualified Data.HashMap.Strict as HM (member, lookup)                 --fo
 import Data.Aeson (toJSON, parseJSON, ToJSON,FromJSON, object , (.=), (.:) )--for JSON stuff
 import Data.ByteString.Lazy(ByteString, empty, append, pack, toStrict, fromStrict) --for JSON stuff
 
+data NRequest = ProtoNum Int
+              | Process Process
+              | RequestItem Item Property
+              | ReqLS [NRequest]
+              | TierRequest [NRequest] deriving ( Show)
+data NResponse = No
+               | Measurement Item Property Value
+               | Counter [(Item,[Property])] NRequest
+               | RespLS [NResponse] deriving (Show)
+--Privacy Policy related types -----------------------------------------------------------------------
+data Item = OS
+          | VC
+          | PCR [Int]
+          | ID deriving (Eq, Show)
+
+data Property = Name
+              | Version deriving (Eq, Show)
+ 
+type PrivacyPolicy = [PrivacyRule]
+data PrivacyRule = Reveal [(Item,[Property])] Condition deriving (Eq, Show)
+data Condition = Equals Item Property Value
+               | OneOf Item Property  [Value]
+               | NoneOf Item Property [Value]
+               | GTV Item Property Value
+               | LTV Item Property Value
+               | GTETV Item Property Value
+               | LTETV Item Property Value
+               | Or Condition Condition
+               | And Condition Condition deriving (Eq, Show)
+
+
+data Value = ValString String
+           | ValInt Int
+           | ValDouble Double
+           | ValBool Bool
+           | ValByteString ByteString deriving (Eq, Show)
+
+data ArmoredConfig = ArmoredConfig NRequest Condition PrivacyPolicy deriving ( Show)
+--end Privacy Policy related types -------------------------------------------------------------------
 -- these are the 'verbs'
 data Process = Send Armored Armored Process
 	         --  variable mess, channel 
@@ -43,7 +82,7 @@ data Process = Send Armored Armored Process
 	     | AppendArray Armored Armored Process--first armored is array, second is val to append
 	     | Result Armored
 	     | Stuck String
-	     | Stop
+	     | Stop deriving (Show)
 
 --these are the 'nouns'	   
 --putOnArmor :: a -> Armored
@@ -180,8 +219,220 @@ pCA = Entity {
 	        entityNote = (Just "Just a lonely Privacy CA out here in the deep web")
 	      }	
 
+instance ToJSON NRequest where
+       toJSON (ProtoNum i) = object
+                   [ "ProtoNum" .= DA.String "NRequest"
+                   , "Num"      .= i
+                   ]
+       toJSON (Process proc)  = object
+                   [ "Process" .= DA.String "NRequest"
+                   , "Proc"    .= DA.String "TODO"
+                   ]
+       toJSON (RequestItem item property) = object
+                   [ "RequestItem" .= DA.String "NRequest"
+                   , "Item"        .= toJSON item
+                   , "Property"    .= toJSON property
+                   ]
+       toJSON (ReqLS ls) = object
+                   [ "ReqLS" .= DA.String "NRequest"
+                   , "Requests" .= toJSON ls
+                   ]
+       toJSON (TierRequest ls) = object
+                   [ "TierRequest" .= DA.String "NRequest"
+                   , "Requests"    .= toJSON ls
+                   ]
+instance FromJSON NRequest where
+         parseJSON (DA.Object o) | HM.member "ProtoNum" o    = ProtoNum    <$> o .: "Num"
+                                 -- | HM.member "Process" o     = Process     <$> o .: "Proc" --TODO implement to/fro JSON for Process... :D
+                                 | HM.member "RequestItem" o = RequestItem <$> o .: "Item"
+                                                                           <*> o .: "Property"
+                                 | HM.member "ReqLS" o       = ReqLS       <$> o .: "Requests"
+                                 | HM.member "TierRequest" o = TierRequest <$> o .: "Requests"
 
+instance ToJSON NResponse where
+         toJSON No = object
+                ["No" .= DA.String "NResponse"]
+         toJSON (Measurement item prop val) = object
+                ["Measurement" .= DA.String "NResponse"
+                , "Item"       .= toJSON item
+                , "Property"   .= toJSON prop 
+                , "Value"      .= toJSON val
+                ]
+         toJSON (Counter itemProplsLS req) = object
+                ["Counter"     .= DA.String "NResonse"
+                , "ItemPropertylsLS" .= toJSON itemProplsLS --I really hope this is all I have to do here..
+                , "Request"          .= toJSON req 
+                ]
+         toJSON (RespLS responselS) = object
+                ["RespLS"         .= DA.String "NResponse"
+                , "Responses"     .= toJSON responselS
+                ]
+instance FromJSON NResponse where
+         parseJSON (DA.Object o) | HM.member "No" o = pure No 
+                                 | HM.member "Measurement" o = Measurement <$> o .: "Item"
+                                                                           <*> o .: "Property"
+                                                                           <*> o .: "Value"
+                                 | HM.member "Counter" o = Counter <$> o .: "ItemPropertylsLS"
+                                                                   <*> o .: "Request"
+                                 | HM.member "RespLS" o = RespLS   <$> o .: "Responses"
 
+instance ToJSON Item where
+         toJSON OS = object
+                ["OS" .= DA.String "Item"]
+         toJSON VC = object
+                ["VC" .= DA.String "Item"]
+         toJSON (PCR intLS) = object
+                [ "PCR" .= DA.String "Item"
+                , "Ints" .= toJSON intLS
+                ]         
+         toJSON ID = object
+                ["ID" .= DA.String "Item"]
+instance FromJSON Item where
+         parseJSON (DA.Object o) | HM.member "OS" o = pure OS
+                                 | HM.member "VC" o = pure VC
+                                 | HM.member "PCR" o = PCR <$> o .: "Ints"
+                                 | HM.member "ID" o = pure ID
+
+instance ToJSON Property where
+         toJSON Name = object
+                [ "Name" .= DA.String "Property"]
+         toJSON Version = object
+                [ "Version" .= DA.String "Property"]                
+instance FromJSON Property where
+         parseJSON (DA.Object o) | HM.member "Name" o = pure Name
+                                 | HM.member "Version" o = pure Version
+
+instance ToJSON PrivacyRule where
+         toJSON (Reveal itemProplsLS condition) = object
+                ["Reveal" .= DA.String "PrivacyRule"
+                , "ItemPropertylsLS" .= toJSON itemProplsLS 
+                , "Condition"        .= toJSON condition
+                ]
+instance FromJSON PrivacyRule where
+         parseJSON (DA.Object o) | HM.member "Reveal" o = Reveal <$> o .: "ItemPropertylsLS"
+                                                                 <*> o .: "Condition"
+
+instance ToJSON Condition where
+         toJSON (Equals item prop val) = object
+                [ "Equals" .= DA.String "Condition"
+                , "Item"   .= toJSON item
+                , "Property" .= toJSON prop 
+                , "Value"    .= toJSON val
+                ]
+         toJSON (OneOf item prop valLS) = object
+                [ "OneOf" .= DA.String "Condition"
+                , "Item"   .= toJSON item
+                , "Property" .= toJSON prop
+                , "Values"    .= toJSON valLS
+                ]  
+         toJSON (NoneOf item prop valLS) = object
+                [ "NoneOf" .= DA.String "Condition"
+                , "Item"   .= toJSON item
+                , "Property" .= toJSON prop
+                , "Values"    .= toJSON valLS
+                ] 
+         toJSON (GTV item prop val) = object
+                [ "GTV" .= DA.String "Condition"
+                , "Item"   .= toJSON item
+                , "Property" .= toJSON prop
+                , "Value"    .= toJSON val
+                ] 
+         toJSON (LTV item prop val) = object
+                [ "LTV" .= DA.String "Condition"
+                , "Item"   .= toJSON item
+                , "Property" .= toJSON prop
+                , "Value"    .= toJSON val
+                ] 
+         toJSON (GTETV item prop val) = object
+                [ "GTETV" .= DA.String "Condition"
+                , "Item"   .= toJSON item
+                , "Property" .= toJSON prop
+                , "Value"    .= toJSON val
+                ] 
+         toJSON (LTETV item prop val) = object
+                [ "LTETV" .= DA.String "Condition"
+                , "Item"   .= toJSON item
+                , "Property" .= toJSON prop
+                , "Value"    .= toJSON val
+                ]
+         toJSON (Or c1 c2) = object
+                [ "Or" .= DA.String "Condition"
+                , "Condition1" .= toJSON c1
+                , "Condition2" .= toJSON c2
+                ]
+         toJSON (And c1 c2) = object
+                [ "And" .= DA.String "Condition"
+                , "Condition1" .= toJSON c1
+                , "Condition2" .= toJSON c2
+                ]
+instance FromJSON Condition where
+         parseJSON (DA.Object o) | HM.member "Equals" o = Equals <$> o .: "Item"
+                                                                 <*> o .: "Property"
+                                                                 <*> o .: "Value"
+                                 | HM.member "OneOf" o = OneOf   <$> o .: "Item"
+                                                                 <*> o .:  "Property"
+                                                                 <*> o .:  "Values"
+                                 | HM.member "NoneOf" o = NoneOf <$> o .: "Item"
+                                                                 <*> o .: "Property"
+                                                                 <*> o .: "Values"
+                                 | HM.member "GTV" o    = GTV    <$> o .: "Item"
+                                                                 <*> o .: "Property"
+                                                                 <*> o .: "Value"
+                                 | HM.member "LTV" o    = LTV    <$> o .: "Item"
+                                                                 <*> o .: "Property"
+                                                                 <*> o .: "Value"
+                                 | HM.member "GTETV" o    = GTETV <$> o  .: "Item"
+                                                                 <*> o .: "Property"
+                                                                 <*> o .: "Value"
+                                 | HM.member "LTETV" o    = LTETV <$> o .: "Item"
+                                                                 <*> o .: "Property"
+                                                                 <*> o .: "Value"
+                                 | HM.member "Or" o = Or <$> o .: "Condition1"
+                                                         <*> o .: "Condition2"
+                                 | HM.member "And" o = And <$> o .: "Condition1"
+                                                           <*> o .: "Condition2"
+ 
+instance ToJSON Value where
+         toJSON (ValString str) = object
+                ["ValString" .= DA.String "Value"
+                , "String"   .= toJSON str
+                ]
+         toJSON (ValInt int) = object
+                ["ValInt" .= DA.String "Value"
+                , "Int"   .= toJSON int
+                ]
+         toJSON (ValDouble doub) = object
+                ["ValDouble" .= DA.String "Value"
+                , "Double"   .= toJSON doub 
+                ]
+         toJSON (ValBool bool) = object
+                ["ValBool" .= DA.String "Value"
+                , "Bool"   .= toJSON bool 
+                ]
+         toJSON (ValByteString bs) = object
+                ["ValByteString" .= DA.String "Value"
+                , "ByteString"   .= encodeToText (toStrict bs) 
+                ]
+
+instance FromJSON Value where
+         parseJSON (DA.Object o) | HM.member "ValString" o = ValString <$> o .: "String"
+                                 | HM.member "ValInt" o = ValInt <$> o .: "Int"
+                                 | HM.member "ValDouble" o = ValDouble <$> o .: "Double"
+                                 | HM.member "ValBool" o = ValBool <$> o .: "Bool"
+                                 | HM.member "ValByteString" o = ValByteString <$> ((o .: "ByteString") >>= decodeFromTextL)
+         
+instance ToJSON ArmoredConfig where
+         toJSON (ArmoredConfig req condition pripo) = object
+                        [ "ArmoredConfig" .= DA.String "ArmoredConfig"
+                        , "Request"       .= toJSON req 
+                        , "Condition"     .= toJSON condition
+                        , "PrivacyPolicy" .= toJSON pripo 
+                        ]
+instance FromJSON ArmoredConfig where
+         parseJSON (DA.Object o) | HM.member "ArmoredConfig" o = ArmoredConfig <$> o .: "Request"
+                                                                               <*> o .: "Condition"
+                                                                               <*> o .: "PrivacyPolicy"
+                          
 instance ToJSON CommRequest where
 	toJSON (PortRequest entity port nonce) =  object 
 		   ["PortRequest" .= DA.String "CommRequest"
