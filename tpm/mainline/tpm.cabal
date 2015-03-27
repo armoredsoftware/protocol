@@ -37,7 +37,7 @@ executable              Project
                         transformers,
                         scotty
   Main-is:              Main.hs
-  ghc-options:          -O
+  ghc-options:          -O -threaded
 
 executable tpmi
   hs-source-dirs:       api, shell, src, shared

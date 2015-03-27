@@ -63,6 +63,7 @@ data Shared   = WRequest AD.Request
               | HttpFailure String
               | VChanSuccess String
               | HttpSuccess Port
+              | WNRequest NRequest
 
 instance Show Shared where
     show (WRequest app) = "Appraisal: " ++ show app
@@ -76,7 +77,7 @@ instance Show Shared where
     show (VChanSuccess str) = "VChanSuccess: " ++ str
     show (HttpSuccess p)  = "HttpSuccess: " ++ (show p)
     show (WNonce n)      = "WNonce: " ++ (show n)
-    
+    show (WNRequest nreq) = "WNRequest: " ++ (show nreq)
 --  show (WCommRequest commreq) = "WCommRequest " ++ (show commreq)
 --  show (WPort p) = "WPort: " ++ (show p)
 --  show (WPortRequest pr) = "WPortRequest " ++ (show pr)
@@ -112,7 +113,7 @@ instance ToJSON Shared where
 	toJSON (HttpFailure str)	   = object ["HttpFailure" .= toJSON str]
 	toJSON (VChanSuccess str)         =  object ["VChanSuccess" .= toJSON str]
 	toJSON (HttpSuccess port)     = object ["HttpSuccess" .= port]
-
+        toJSON (WNRequest nreq)       = object ["WNRequest" .= toJSON nreq]
 instance FromJSON Shared where
 	parseJSON (A.Object o)  | HM.member "WRequest" o = WRequest <$> o .: "WRequest"
 				| HM.member "WResponse" o = WResponse <$> o .: "WResponse"
@@ -127,6 +128,7 @@ instance FromJSON Shared where
 				| HM.member "VChanFailure" o = VChanFailure <$> o .: "VChanFailure"
 				| HM.member "HttpFailure" o = HttpFailure <$> o .: "HttpFailure"
 				| HM.member "VChanSuccess" o = VChanSuccess <$> o .: "VChanSuccess"
+                                | HM.member "WNRequest" o = WNRequest <$> o .: "WNRequest"
     
 receiveG :: Channel -> IO Armored
 receiveG chan = do
@@ -143,7 +145,7 @@ receiveG chan = do
           putStrLn ("ERROR: " ++ err)
           return (AFailure ("RECEIVE MESSAGE FAIL: " ++ err))
         Right shared -> return (sharedToArmored shared)
-  (Channel ent (HttpInfo _ _ _ maybeConn1 tmvMsgs tmvUnit)) -> do
+  (Channel ent (HttpInfo _ _ _ _ maybeConn1 tmvMsgs tmvUnit)) -> do
     putStrLn "Waiting to receive message..."
     unitval <- atomically $ takeTMVar tmvUnit
     msgls <- atomically $ takeTMVar tmvMsgs
@@ -175,7 +177,7 @@ sendG chan armored = do
                        (Channel ent (VChanInfo maybeChan))      -> case maybeChan of
                          Nothing -> putStrLn "ERROR: no vchannel stored!! I can't send on nothing!"
                          Just c  -> sendShared' c (armoredToShared armored)
-                       (Channel ent (HttpInfo _ mTheirPort theirIP maybeConn1 _ _)) ->do
+                       (Channel ent (HttpInfo _ _ mTheirPort theirIP maybeConn1 _ _)) ->do
                           case mTheirPort of 
                             Nothing -> do
                               let err = "no port of theirs given!!!! I'm trying to send here!!!"

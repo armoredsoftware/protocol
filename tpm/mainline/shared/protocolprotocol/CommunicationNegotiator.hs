@@ -26,6 +26,8 @@ import System.Random
 import VChanUtil
 import Data.Time
 import Control.Concurrent
+import System.Timeout
+
 import qualified Data.List as List
 negotiationport = 3000
 
@@ -51,9 +53,17 @@ vChanMVarListener :: LibXenVChan -> MVar (Either String Shared) -> IO ()
 vChanMVarListener rChan mvar = do
 				yield
 				putStrLn "IN VCHANLISTENER"
-				eitherShared <- receiveShared rChan
-                                putStrLn $ "I received somethings on vChannel!!: " ++ (show eitherShared)
-				putMVar mvar eitherShared
+                                --receiveShared :: IO (Either String Shared)
+                                maybeEitherShared <- timeout 1000000 (receiveShared rChan)
+--				eitherShared <- receiveShared rChan
+                                case maybeEitherShared of 
+                                  Nothing -> do 
+                                    putMVar mvar (Left "TIMEOUT from System.Timeout I wish I found sooner")  
+                                  Just eitherShared -> do
+                                    putStrLn $ "I received somethings on vChannel!!: " ++ (show eitherShared)
+                                    putMVar mvar eitherShared
+                                
+				--putMVar mvar eitherShared
 				return ()
 				  			    
 pingVChannel :: LibXenVChan -> Integer -> Integer -> IO Bool
@@ -177,7 +187,7 @@ tryCreateHttpChannel ent chanName = do
       let portRequest =  PortRequest me myPort nonce1 
       armoredlsTMVar <- liftIO ( newTMVarIO [] :: IO (TMVar [Armored]))
       unitTMVar <- liftIO (newEmptyTMVarIO  :: IO (TMVar ()) ) --empty since obviously no messages yet.
-      let httpChanInfo = HttpInfo myPort Nothing entIP Nothing armoredlsTMVar unitTMVar
+      let httpChanInfo = HttpInfo Nothing myPort Nothing entIP Nothing armoredlsTMVar unitTMVar
       expectedNonceMVar <- liftIO $ newEmptyMVar
       
       threadID <- liftIO $ forkIO $  httpExpectNonce httpChanInfo expectedNonceMVar                          
@@ -208,7 +218,7 @@ tryCreateHttpChannel ent chanName = do
                     liftIO $ atomically $ putTMVar chanETMVar (chanls) ------------------
                     return Nothing
                   (Right (HttpSuccess theirPort)) -> do --everything went nicely if we got to here. 
-      	  	    let httpInfo' = HttpInfo myPort (Just theirPort) entIP (Nothing) armoredlsTMVar unitTMVar
+      	  	    let httpInfo' = HttpInfo (Just threadID) myPort (Just theirPort) entIP (Nothing) armoredlsTMVar unitTMVar
       	  	    let channel = Channel ent httpInfo'
       	  	    let channelEntry = ChannelEntry (chanName) channel
       	  	    liftIO $ atomically $ putTMVar chanETMVar (channelEntry:chanls)
@@ -378,7 +388,7 @@ negotiator = do
 	      	   				  (VChanInfo vchan ) -> case (vchan) of
 	      	   				  				Just _ -> VChanSuccess "yaaay"
 	      	   				  				_      -> VChanFailure "woooohooo"
-	      	   				  (HttpInfo myPort _ _ _ _ _) -> HttpSuccess myPort
+	      	   				  (HttpInfo _ myPort _ _ _ _ _) -> HttpSuccess myPort
 	      	   				  				
 	      	   		liftIO $ atomically $ putTMVar chanETMVar chanls
 	      	  		json $ respThingy
@@ -399,18 +409,19 @@ negotiator = do
 				     --TODO send nonce + 1 here.
 				     armoredlsTMVar <- liftIO ( newTMVarIO [] :: IO (TMVar [Armored]))
       	  		   	     unitTMVar <- liftIO (newEmptyTMVarIO  :: IO (TMVar ()) ) --empty since obviously no messages yet.
-      	  		   	     let httpInfo = HttpInfo myport (Just portSuggestion) ip (Just conn) armoredlsTMVar unitTMVar
-      	  		   	     let channel = Channel entity httpInfo
+      	  		   	     let httpInfo = HttpInfo Nothing myport (Just portSuggestion) ip (Just conn) armoredlsTMVar unitTMVar
+                                     threadID <- liftIO $ forkIO (httpServe httpInfo)
+                                     let httpInfo' = HttpInfo (Just threadID) myport (Just portSuggestion) ip (Just conn) armoredlsTMVar unitTMVar
+      	  		   	     let channel = Channel entity httpInfo'
       	  		   	     let channelEntry = ChannelEntry ("ChannelWith" ++ (entityName entity)) channel
-      	  		   	     liftIO ( do
-      	  		   	     	forkIO (httpServe httpInfo)
-      	  		   	     	return () )
+      	  		   	     
       	  		   	     liftIO $ atomically $ putTMVar chanETMVar (channelEntry:chanls)
+                                     liftIO $ putStrLn "Added channel to canETMVar list of channels"
       	  		   	     json $ HttpSuccess myport	
     return ()
 
 httpExpectNonce :: ChannelInfo -> MVar (Either String Shared) -> IO ()
-httpExpectNonce (HttpInfo myport theirPort theirIP maybeConn msglsTMVar unitTMVar) mvar = do
+httpExpectNonce (HttpInfo _ myport theirPort theirIP maybeConn msglsTMVar unitTMVar) mvar = do
   let intPort = (fromIntegral (myport) :: Int)
   Scotty.scotty intPort $ do
     Scotty.post "/" $ do
@@ -434,8 +445,10 @@ httpExpectNonce (HttpInfo myport theirPort theirIP maybeConn msglsTMVar unitTMVa
 	      json (HttpSuccess (myport)) -- don't know why it won't let me put an empty string in there.
 		  
   return ()
+
+
 httpServe :: ChannelInfo -> IO ()
-httpServe (HttpInfo myport theirPort theirIP maybeConn msglsTMVar unitTMVar) = do
+httpServe (HttpInfo _ myport theirPort theirIP maybeConn msglsTMVar unitTMVar) = do
   let intPort = (fromIntegral(myport) :: Int)
   Scotty.scotty intPort $ do
   	    Scotty.get "/" $ Scotty.text "serving\n"  --a quick way to check if the CA is 
@@ -469,11 +482,43 @@ harvestPorts :: [ChannelEntry] -> [HttpClient.Port]
 harvestPorts []     = []
 harvestPorts (x:xs) = case (channelInfo (channelEntryChannel x)) of
 			(VChanInfo _)          -> harvestPorts xs
-			h@(HttpInfo _ _ _ _ _ _) -> (httpInfoMyServingPort h) : (harvestPorts xs)
+			h@(HttpInfo _ _ _ _ _ _ _) -> (httpInfoMyServingPort h) : (harvestPorts xs)
 
 
 
+killChannels :: ArmoredStateTMonad ()
+killChannels = do
+  s <- get
+  let chanETMVar = channelEntriesTMVar s
+  chanELS <- liftIO $ atomically ( do 
+                                     val <- takeTMVar chanETMVar
+                                     putTMVar chanETMVar [] 
+                                     return val)
+  liftIO $ sequence $ map killChannel chanELS
+--  liftIO $ atomically $
+  return ()
 
 
+killChannel :: ChannelEntry -> IO ()
+killChannel chanE  = do 
+  let chanInfo = channelInfo $ channelEntryChannel chanE
+  case chanInfo of
+    (HttpInfo mTid myPort mTheirPort theirIP mConn msgTMVar unitTMVar) -> do
+      case mTid of
+       Nothing -> 
+         return ()
+       Just tid -> 
+         killThread tid
+      case mConn of
+        Nothing ->
+          return ()
+        Just conn -> do 
+          closeConnection conn
+    (VChanInfo mChan) -> do
+      case mChan of
+        Nothing -> do
+          return ()
+        Just c  -> do
+          close c
 
  

@@ -15,50 +15,57 @@ import CommunicationNegotiator
 import Control.Concurrent
 import Control.Monad
 import Control.Monad.State.Strict
-{-
-appAddress = Address {
-	        name= "Appraiser",
-	        ip   = (Just "10.100.0.246"),
-	        port = (Just 3000),
-	        getid   = Just 1,
-	        note = (Just "Just a lonely Appraiser")
-	      }
-	      
-attAddress = Address {
-	        name= "Attester",
-	        ip   = (Just "10.100.0.208"),
-	        port = (Just 3000),
-	        getid   = Just 2,
-	        note = (Just "Just an attestered here to do your bidding")
-	      }
-
-pCAAddress = Address {
-	        name= "PrivacyCA",
-	        ip   = (Just "10.100.0.6") :: (Maybe Hostname),
-	        port = Just 3000,
-	        getid   = Nothing,
-	        note = (Just "Just a lonely Privacy CA out here in the deep web")
-	      }	
-	      
-app = Appraiser appAddress
-att = Attester attAddress
-pca = PrivacyCA pCAAddress
--}	      
+import Web.Scotty hiding (get, put)
+import qualified Web.Scotty as Scotty
+import qualified Demo3Shared as AD
+import qualified Data.Text.Lazy as LazyText
+import qualified Data.Text.Lazy.Encoding as LazyEncoding
+appraiseReqPort = 55555	      
 appraise = do
 	    putStrLn "Appraise be to Attester"
 	    let knownguys = [att,pCA]
 	    let emptyvars = []
 	    emptyTMVarChans <- newTMVarIO []
+            t <- newEmptyMVar
 	    let me = app
-	    let s0 = ArmoredState emptyvars me knownguys emptyTMVarChans
+	    let s0 = ArmoredState emptyvars me knownguys t emptyTMVarChans
 	    forkIO ( do 
 	    		runStateT negotiator s0
 	    		return ()
 	    	   )
-	    threadDelay 6000000
-	    runExecute' myProto s0
-	    
-myProto =     CreateChannel (AChannel "attesterChan") (AEntity att)
+	    --threadDelay 1000000
+	    --runExecute' myProto s0
+            awaitAppraisalReq s0
+awaitAppraisalReq :: ArmoredState -> IO ()
+awaitAppraisalReq s = do
+  Scotty.scotty (fromIntegral appraiseReqPort) $ do
+	    Scotty.get "/" $ Scotty.text "serving\n"  --a quick way to check if is 
+	    				 	--serving, client should see "serving" 
+	    				 	
+
+	    Scotty.post "/" $ do
+              liftIO $ putStrLn ("IN POST")
+	      --reads in "potential" request (parsing it could fail). 
+	      --Note: no en/de-crypting is yet taking place.
+	      a <- (param "request") :: ActionM LazyText.Text  
+	     -- myprint' ("Received (Text):\n" ++ (show a)) 2 --debug show of text.
+	     -- myprint' ("Received (UTF8):\n" ++ (show (LazyEncoding.encodeUtf8 a))) 2 --debug printout.
+	     -- myprint' ("Data received on port: " ++ (show port)) 1
+	      liftIO $ putStrLn ("thingy received: " ++ (show a))
+	      --first converts the Text to UTF8, then then attempts to read a CARequest
+	      let jj = AD.jsonEitherDecode (LazyEncoding.encodeUtf8 a) :: Either String FormalRequest
+	      case jj of 
+                (Left err) -> text (LazyText.pack ("ERROR Improper Request: " ++ err))
+                (Right (FormalRequest target nreq)) -> do 
+                  let mvar = getInternalStateMVar s
+                  maybeE <- liftIO $ tryTakeMVar mvar
+                  liftIO $ putMVar mvar (AppState target)
+                  (proc,armoredstate) <- liftIO $ runExecute' myProto s
+                  text (LazyText.pack (show proc))
+                  return ()
+                  
+
+myProto =     CreateChannel (AChannel "attesterChan") Target
 	     (Let (Var "evDes") (AEvidenceDescriptor D0)	      
  	     (Send (Var "evDes") (AChannel "attesterChan")
 	     (Receive (Var "response") (AChannel "attesterChan")

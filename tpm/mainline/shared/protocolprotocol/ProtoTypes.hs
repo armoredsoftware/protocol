@@ -18,6 +18,9 @@ import Control.Applicative ( (<$>), (<*>), pure )                           --fo
 import qualified Data.HashMap.Strict as HM (member, lookup)                 --for JSON stuff
 import Data.Aeson (toJSON, parseJSON, ToJSON,FromJSON, object , (.=), (.:) )--for JSON stuff
 import Data.ByteString.Lazy(ByteString, empty, append, pack, toStrict, fromStrict) --for JSON stuff
+import Control.Concurrent (ThreadId)
+
+data FormalRequest = FormalRequest Entity NRequest deriving (Show)
 
 data NRequest = ProtoNum Int
               | Process Process
@@ -118,6 +121,7 @@ data Armored = Var String
 	     | ArmoredCreateQuote
 	     | ArmoredCreateAppResponse
 	     | AAttester  --constants for state
+             | Target
 	     | AAppraiser
 	     | AMeasurer
 	     | APrivacyCA
@@ -126,15 +130,24 @@ data ChannelEntry = ChannelEntry {
 		channelEntryName    :: String,
 		channelEntryChannel :: Channel		
 		} deriving (Show)
+
+instance Eq ChannelEntry where
+  (ChannelEntry name1 chan1) == (ChannelEntry name2 chan2) = chan1 == chan2
 data Channel = Channel {
 	channelEntity      :: Entity,
 	channelInfo :: ChannelInfo
-	} deriving (Eq, Show)
+	} deriving (Show)
+
+
+--di this because the deriving Eq ends thinks when I change the name, it's a new channel, not so!
+instance Eq Channel where
+  (Channel ent1 info1) == (Channel ent2 info2) = ent1 == ent2 && info1 == info2
                            -- server chan         client channel
 data ChannelInfo = VChanInfo {
 		    vChanInfoMaybeChan    :: (Maybe LibXenVChan)
 		 	}
 		 | HttpInfo{
+                    httpInfoThreadID         :: Maybe ThreadId,
 		    httpInfoMyServingPort    :: HttpClient.Port,
 		    httpInfoTheirServingPort :: Maybe HttpClient.Port,
 		    httpInfoTheirIp 	     :: HttpClient.Hostname,
@@ -142,10 +155,10 @@ data ChannelInfo = VChanInfo {
 		    httpInfoTMVarMsgList     :: TMVar [Armored],
 		    httpInfoTMVarUnit        :: TMVar ()
 		   }
-		   
+	   
 instance Show ChannelInfo where
   show (VChanInfo vchan) = ("VChanInfo " ++ (show vchan))
-  show (HttpInfo mp tp tip mconn tmls tmunit) = ("HttpInfo " ++ (show mp) ++ " " ++ (show tp) ++ " " ++ (show tip))
+  show (HttpInfo mt mp tp tip mconn tmls tmunit) = ("HttpInfo " ++ (show mp) ++ " " ++ (show tp) ++ " " ++ (show tip))
   
 data CommRequest = PortRequest {
 		   portRequestEntity  :: Entity,		 
@@ -157,10 +170,11 @@ data CommRequest = PortRequest {
 		     vChanReqquestNonce :: Integer		     
 		   }
 
+
 instance Eq ChannelInfo where
- (VChanInfo _) == (HttpInfo _ _ _ _ _ _ ) = False
+ (VChanInfo _) == (HttpInfo _ _ _ _ _ _ _ ) = False
  (VChanInfo m1) == (VChanInfo m1' ) = m1 == m1'
- (HttpInfo mp tp tip mconn tmls tmunit) == (HttpInfo mp' tp' tip' mconn' tmls' tmunit') = and [mp == mp', tp == tp', tip == tip']
+ (HttpInfo mt mp tp tip mconn tmls tmunit) == (HttpInfo mt' mp' tp' tip' mconn' tmls' tmunit') = and [mt == mt', mp == mp', tp == tp', tip == tip']
 data Role = Appraiser
     	  | Attester
 	  | Measurer
@@ -188,16 +202,17 @@ data ArmoredState = ArmoredState {
                             vars :: VariableBindings,
                             executor :: Entity,
                             knownentities  :: [Entity],
+                            getInternalStateMVar       :: MVar InternalState,
                             channelEntriesTMVar :: TMVar [ChannelEntry]                         
-                          } 
-                          
-                          
-	
+                          }                                                     
 
-
+data InternalState = AppState {
+                       appStateTarget :: Entity
+                     }
+                       
 app = Entity {
 	        entityName = "Appraiser",
-	        entityIp   = (Just "10.100.0.229"),
+	        entityIp   = (Just "10.100.0.225"),
 	        entityId   = Just 3,
 	        entityRole = Appraiser,
 	        entityNote = (Just "Just a lonely Appraiser")
@@ -205,8 +220,8 @@ app = Entity {
 	      
 att = Entity {
 	        entityName = "Attester",
-	        entityIp   = (Just "10.100.0.225"),
-	        entityId   = Nothing, -- Just 4,
+	        entityIp   = (Just "10.100.0.229"),
+	        entityId   = Nothing, --Just 2,
 	        entityRole = Attester,
 	        entityNote = (Just "Just an attestered here to do your bidding")
 	      }
@@ -218,7 +233,14 @@ pCA = Entity {
 	        entityRole = PrivacyCA,
 	        entityNote = (Just "Just a lonely Privacy CA out here in the deep web")
 	      }	
-
+instance ToJSON FormalRequest where
+       toJSON (FormalRequest ent nreq) = object
+                   [ "Entity" .= toJSON ent
+                   , "NRequest" .= toJSON nreq
+                   ]
+instance FromJSON FormalRequest where
+       parseJSON (DA.Object o) = FormalRequest <$> o .: "Entity"
+                                               <*> o .: "NRequest"
 instance ToJSON NRequest where
        toJSON (ProtoNum i) = object
                    [ "ProtoNum" .= DA.String "NRequest"

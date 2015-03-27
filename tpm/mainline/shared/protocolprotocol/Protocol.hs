@@ -26,7 +26,8 @@ runExecute :: Process -> Entity ->IO (Process, ArmoredState)
 runExecute proto entity= do
    let emptyvars = []
    e <- newTMVarIO []
-   let s0 = ArmoredState emptyvars entity [] e
+   t <- newEmptyMVar
+   let s0 = ArmoredState emptyvars entity [] t e
    forkIO $ do 
    	     runStateT negotiator s0
    	     return ()
@@ -51,8 +52,22 @@ execute (CreateChannel achan ent1 proc) = do
    achan' <- subIfVar achan
    ent1' <- subIfVar ent1
    case achan' of
-     (AChannel chanName) ->
-       case ent1' of
+     (AChannel chanName) -> do
+       entr <- case ent1' of 
+                     Target -> do 
+                       s <- get
+                       let internalMVar = (getInternalStateMVar s)
+                       b <- liftIO $ isEmptyMVar internalMVar
+                       if b
+                         then do
+                           let q = "Error: No Target Specified in state. exiting."
+                           liftIO $ putStrLn q                        
+                           return ent1'
+                         else do 
+                          iState <- liftIO $ readMVar internalMVar                       
+                          return $ AEntity $ appStateTarget iState    
+                     x@_ -> return x                                            
+       case entr of
         (AEntity ent1'') -> do
           mVChannel <- maybeCreateVChannelWith ent1'' chanName
           case mVChannel of 
@@ -64,6 +79,7 @@ execute (CreateChannel achan ent1 proc) = do
                 Nothing -> do
                   let  str2 = "super error! no channel created. vchan and http failed."                 
                   liftIO $ putStrLn str2
+                  killChannels
                   return $ Stuck str2
                 Just hChan -> do
                   let str3 = "successfully created httpChannel"
@@ -74,10 +90,12 @@ execute (CreateChannel achan ent1 proc) = do
               execute proc  
         (_)              -> do
           liftIO $ putStrLn "not an entity in create channel!!! stopping now."
+          killChannels
           return $ Stuck "didn't have an entity in the CreateChannel command. sorry, I gave up."
      a@_ -> do 
        let err = "unexpected type in first argument to CreateChannel: " ++ (show a) ++ " stuck!"
        liftIO $ putStrLn $ err
+       killChannels
        return $ Stuck err
    
        
@@ -101,7 +119,9 @@ execute (Send mess chan proc) = do
          liftIO $ atomically $ putTMVar chanEntryTMVar chanEntryLS
          liftIO $ sendG chan mess' 
      execute proc 
-   _		      -> return (Stuck "attempt to send on non-channel")
+   _		      -> do
+                          killChannels
+                          return (Stuck "attempt to send on non-channel")
   
 execute (Receive var chan proc) = do
   liftIO $ putStrLn "receiving on channel"
@@ -117,6 +137,7 @@ execute (Receive var chan proc) = do
          let strer = "Error!! channel with name: " ++ str ++ " not found!!"
          liftIO $ putStrLn strer 
          liftIO $ atomically $ putTMVar chanEntryTMVar chanEntryLS
+         killChannels
          return (Stuck str)
        Just chanEntry -> do 
          let chan = channelEntryChannel chanEntry 
@@ -125,23 +146,29 @@ execute (Receive var chan proc) = do
          case armoredGift of
            AFailure str -> do 
              liftIO $ putStrLn ("Crap. failed in recieved: " ++ str )
+             killChannels
              return $ Stuck str 
            x@_          -> do 
              addVariable var x 
              execute proc 
-   _		      -> return (Stuck "attempt to send on non-channel")
+   _		      -> do
+                           killChannels
+                           return (Stuck "attempt to send on non-channel")
 execute (Result res) = do
 			res' <- subIfVar res
-			liftIO $ putStrLn ("Result: " ++ (show res'))			
+			liftIO $ putStrLn ("Result: " ++ (show res'))
+                        killChannels			
 			return (Result res')
-execute (Stop) = return Stop
+execute (Stop) = do
+                   killChannels
+                   return Stop
      
 addVariable :: Armored -> Armored -> ArmoredStateTMonad ()
 addVariable var val = do
 		    s <- get
 		    let variables = vars s
 		    let variables' = (var,val) : variables
-		    put (ArmoredState variables' (executor s) (knownentities s) (channelEntriesTMVar s))
+		    put (ArmoredState variables' (executor s) (knownentities s) (getInternalStateMVar s) (channelEntriesTMVar s))
 		    return ()
        --channel name
 addChannel :: Armored -> Channel -> ArmoredStateTMonad ()
