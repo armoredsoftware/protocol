@@ -219,38 +219,6 @@ executable              BMain
   Main-is: BMain.hs
   ghc-options: -O
 
-executable              Protocol
-  hs-source-dirs:       api, shell, src, shared, provisioning, attestation, shared/protocolprotocol
-  build-depends:        base >= 4,
-                        shell >= 1.0,
-                        network < 2.6, 
-                        network-uri < 2.6,
-                        stm,
-                        time
-  Main-is: ProtocolMain.hs
-  ghc-options: -O -threaded
-
-xecutable              AttesterProtocol
-  hs-source-dirs:       api, shell, src, shared, provisioning, shared/protocolprotocol/AttesterProtocol, shared/protocolprotocol
-  build-depends:        base >= 4,
-                        shell >= 1.0,
-                        network < 2.6, 
-                        network-uri < 2.6
-
-                       
-  Main-is: AttesterProtocolMain.hs
-  ghc-options: -O -threaded
-
-executable              AppraiserProtocol
-  hs-source-dirs:       api, shell, src, shared, provisioning, shared/protocolprotocol/AppraiserProtocol, shared/protocolprotocol
-  build-depends:        base >= 4,
-                        shell >= 1.0,
-                        network < 2.6, 
-                        network-uri < 2.6
-
-                       
-  Main-is: AppraiserProtocolMain.hs
-  ghc-options: -O -threaded
 
 executable              AttesterMain
   hs-source-dirs:       api, shell, src, shared, protoMonad

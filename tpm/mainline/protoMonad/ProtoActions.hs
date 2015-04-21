@@ -1,6 +1,6 @@
 module ProtoActions where
 
-import ProtoTypes
+import ProtoTypesA
 import ProtoMonad
 import VChanUtil
 
