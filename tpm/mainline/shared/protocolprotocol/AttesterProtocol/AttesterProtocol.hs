@@ -9,7 +9,7 @@ import qualified Data.ByteString as S
 import Protocol
 import ProtoTypes
 import Network.Http.Client
-import Demo3Shared hiding (Result)
+import Demo3Shared hiding (Result, AttState)
 import Control.Concurrent.STM.TMVar
 import Control.Monad
 import Control.Monad.State.Strict
@@ -19,6 +19,7 @@ import Data.List
 import Control.Concurrent.STM
   
 attest = do
+            clearLogf
 	    putStrLn "Appraise be to Attester"
 	    let knownguys = [att,pCA]
 	    let emptyvars = []
@@ -40,16 +41,18 @@ newChannelTrigger chanETMVar handled = do
   chanELS <- atomically $ takeTMVar chanETMVar
   let unhandled = chanELS \\ handled
   putStrLn $ (show unhandled)
-  theadIDs <- sequence $ map (\chan -> do 
+  theadIDs <- sequence $ map (\chanE -> do 
         forkIO (
           do 
             putStrLn "Appraise be to Attester. Poppin' a thread."
 	    let knownguys = [att,pCA]
 	    let emptyvars = []	   
-            t <- newEmptyMVar
-	    let me = att
+            let requester = channelEntity (channelEntryChannel chanE)
+            t <- newMVar (AttState requester) 
+	    
+            let me = att
             atomically $ tryPutTMVar chanETMVar chanELS
-	    let s0 = ArmoredState emptyvars me knownguys privacyPol (Just chan) t chanETMVar  
+	    let s0 = ArmoredState emptyvars me knownguys privacyPol (Just chanE) t chanETMVar  
             runExecute' myProto s0
             return ())) unhandled 
   let handled' = unhandled ++ handled
@@ -59,7 +62,7 @@ newChannelTrigger chanETMVar handled = do
   newChannelTrigger chanETMVar handled'
   
 myProto =    (CreateChannel (AChannel "chan") Requester
-	     (Receive (Var "request") Requester
+	     (Receive (Var "request") (AChannel "chan")
              (ComputeCounterOffer (Var "counterOffer") (Var "request")	      
  	     (Send (Var "counterOffer") (AChannel "chan")
              (Receive (Var "theirFinalChoice") (AChannel "chan")

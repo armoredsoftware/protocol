@@ -310,6 +310,10 @@ data CARequest = CARequest {
   pId :: PlatformID, 
   mkIdResult :: MakeIdResult
   } deriving ({-Show, -}Read)
+
+instance Eq CARequest where 
+ c1 == c2 = (pId c1) == (pId c2)
+--TODO THIS IS WRONG
              
 instance Show CARequest where
   show (CARequest p (Signed (TPM_IDENTITY_CONTENTS lab (TPM_PUBKEY parms dat)) _ )) = "CARequest {\n\npid = " ++ (show p) ++ ",\n\n" ++ "mkIdResult = " {-Signed-} ++ "TPM_IDENTITY_CONTENTS\n}" {-{dat = TPM_IDENTITY_CONTENTS {" ++ (show lab) ++ "\n identityPubKey = TPM_PUBKEY {" ++ (show parms) ++ (take 10 (show dat)) ++ "..." -}

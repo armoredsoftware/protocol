@@ -22,6 +22,7 @@ import qualified Data.Text.Lazy as LazyText
 import qualified Data.Text.Lazy.Encoding as LazyEncoding
 appraiseReqPort = 55555	      
 appraise = do
+            clearLogf
 	    putStrLn "Appraise be to Attester"
 	    let knownguys = [att,pCA]
 	    let emptyvars = []
@@ -59,6 +60,7 @@ awaitAppraisalReq s = do
                 (Right (FormalRequest target nreq)) -> do 
                   let mvar = getInternalStateMVar s
                   maybeE <- liftIO $ tryTakeMVar mvar
+                  liftIO $ putStrLn $ "Target is: " ++ (show target)
                   liftIO $ putMVar mvar (AppState target (convertNReq nreq))
                   (proc,armoredstate) <- liftIO $ runExecute' myProto s
                   text (LazyText.pack (show proc))

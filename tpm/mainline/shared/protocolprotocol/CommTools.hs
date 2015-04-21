@@ -9,7 +9,7 @@ import qualified Network.URI as UR
 import Control.Applicative ( (<$>), (<*>), pure )
 import qualified Data.HashMap.Strict as HM (member, lookup)
 import VChanUtil
-
+import Control.Monad.State.Strict
 import System.IO.Streams (InputStream, OutputStream, stdout)
 import qualified System.IO.Streams as Streams
 import qualified Data.Aeson as A
@@ -39,6 +39,7 @@ armoredToShared (AEvidencePiece evpiece)    = WEvidencePiece evpiece
 armoredToShared (ACARequest careq)          = WCARequest careq
 armoredToShared (ACAResponse caresp)	    = WCAResponse caresp
 armoredToShared (ANRequestV nreq)           = WNRequest nreq 
+armoredToShared (ANResponse nres)           = WNResponse nres
 armoredToShared _			    = Result False
 
 sharedToArmored :: Shared -> Armored
@@ -49,6 +50,7 @@ sharedToArmored (WEvidencePiece evpiece)    = AEvidencePiece evpiece
 sharedToArmored (WCARequest careq)          = ACARequest careq
 sharedToArmored (WCAResponse caresp)	    = ACAResponse caresp
 sharedToArmored (WNRequest nreq)            = ANRequestV nreq
+sharedToArmored (WNResponse nres)           = ANResponse nres
 sharedToArmored x@_			    = AFailure ("attempted to convert to non-supported armored type: " ++ (show x))        
 
 
@@ -67,6 +69,7 @@ data Shared   = WRequest AD.Request
               | VChanSuccess String
               | HttpSuccess Port
               | WNRequest NRequest
+              | WNResponse NResponse
 
 instance Show Shared where
     show (WRequest app) = "Appraisal: " ++ show app
@@ -81,6 +84,8 @@ instance Show Shared where
     show (HttpSuccess p)  = "HttpSuccess: " ++ (show p)
     show (WNonce n)      = "WNonce: " ++ (show n)
     show (WNRequest nreq) = "WNRequest: " ++ (show nreq)
+    show (WNResponse nres) = "WNResponse: " ++ (show nres)
+
 --  show (WCommRequest commreq) = "WCommRequest " ++ (show commreq)
 --  show (WPort p) = "WPort: " ++ (show p)
 --  show (WPortRequest pr) = "WPortRequest " ++ (show pr)
@@ -117,6 +122,7 @@ instance ToJSON Shared where
 	toJSON (VChanSuccess str)         =  object ["VChanSuccess" .= toJSON str]
 	toJSON (HttpSuccess port)     = object ["HttpSuccess" .= port]
         toJSON (WNRequest nreq)       = object ["WNRequest" .= toJSON nreq]
+        toJSON (WNResponse nres)      = object ["WNResponse" .= toJSON nres]
 instance FromJSON Shared where
 	parseJSON (A.Object o)  | HM.member "WRequest" o = WRequest <$> o .: "WRequest"
 				| HM.member "WResponse" o = WResponse <$> o .: "WResponse"
@@ -132,6 +138,7 @@ instance FromJSON Shared where
 				| HM.member "HttpFailure" o = HttpFailure <$> o .: "HttpFailure"
 				| HM.member "VChanSuccess" o = VChanSuccess <$> o .: "VChanSuccess"
                                 | HM.member "WNRequest" o = WNRequest <$> o .: "WNRequest"
+                                | HM.member "WNResponse" o = WNResponse <$> o .: "WNResponse"
     
 receiveG :: Channel -> IO Armored
 receiveG chan = do
@@ -246,6 +253,16 @@ receiveHttp c = receiveResponse c (\p i -> do
 
 mylift :: a -> IO a
 mylift x = return x
+
+
+logf ::String -> IO ()
+logf m = do 
+  h <- openFile "log.1" AppendMode
+  hPutStrLn h m 
+  hClose h
+
+logf' :: String -> ArmoredStateTMonad ()
+logf' = (liftIO . logf)
 
 --uriAuth = UR.URIAuth "" "129.237.123.78" ":3000" 
 --uri = UR.URI "http:" (Just uriAuth) "" "" ""

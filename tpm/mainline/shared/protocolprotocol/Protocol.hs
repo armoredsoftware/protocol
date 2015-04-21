@@ -22,7 +22,7 @@ import Control.Concurrent
 import Data.Tuple
 import ExampleArmoredConfig
 import Data.Maybe
-                          	      
+import System.IO                          	      
 runExecute :: Process -> Entity ->IO (Process, ArmoredState)
 runExecute proto executor = do
    let emptyvars = []
@@ -49,11 +49,15 @@ execute (Let var val proc) = do
    --var' <- subIfVar var
    val' <- subIfVar val
    addVariable var val'
-   liftIO $ putStrLn ("performing let: variable: " ++ (show var) ++ (" val: " ++ (show val')))
+   let str = ("performing let: variable: " ++ (show var) ++ (" val: " ++ (show val')))
+   liftIO $ putStrLn str 
+   logf' str
    execute proc
    
 execute (CreateChannel achan ent1 proc) = do
-   liftIO $ putStrLn "EXECUTING CREATECHANNEL COMMAND\n"
+   let str = "EXECUTING CREATECHANNEL COMMAND\n" 
+   liftIO $ putStrLn str
+   logf' str
    achan' <- subIfVar achan
    ent1' <- subIfVar ent1
    case achan' of
@@ -65,34 +69,42 @@ execute (CreateChannel achan ent1 proc) = do
             Nothing -> do
               let str = "vchan failed. Here is where Http channel set up should be."
               liftIO $ putStrLn $ str
+              logf' str
               mHttpChannel <- tryCreateHttpChannel ent1'' chanName 
               case mHttpChannel of
                 Nothing -> do
                   let  str2 = "super error! no channel created. vchan and http failed."                 
                   liftIO $ putStrLn str2
+                  logf' str2
                   killChannels
                   return $ Stuck str2
                 Just hChan -> do
                   let str3 = "successfully created httpChannel"
                   liftIO $ putStrLn $ str3
+                  logf' str3
                   --http chan added to state in tryCreateHttpChannel
                   execute proc 
             Just vchan -> do --could be because channel existed, or because I just made it. 
               execute proc  
         (_)              -> do
-          liftIO $ putStrLn "not an entity in create channel!!! stopping now."
+          let str = "not an entity in create channel!!! stopping now."
+          liftIO $ putStrLn str
+          logf' str
           killChannels
           return $ Stuck "didn't have an entity in the CreateChannel command. sorry, I gave up."
      a@_ -> do 
        let err = "unexpected type in first argument to CreateChannel: " ++ (show a) ++ " stuck!"
        liftIO $ putStrLn $ err
+       logf' err
        killChannels
        return $ Stuck err
    
        
            --addChannel achan' (Channel entity1 entity2 (HttpInfo ip2 port2 Nothing )) -- conn))                        
 execute (Send mess chan proc) = do
-  liftIO $ putStrLn "sending on channel"
+  let str = "sending on channel"
+  liftIO $ putStrLn str 
+  logf' str 
   chan' <- subIfVar chan
   mess' <- subIfVar mess 
   case chan' of
@@ -102,11 +114,15 @@ execute (Send mess chan proc) = do
      chanEntryLS <- liftIO $ atomically $ takeTMVar chanEntryTMVar 
      case lookupViaName str chanEntryLS of
        Nothing        -> do 
-         liftIO $ putStrLn $ "Error for now: Send without creating first. easily change to create channel call here."
+         let str = "Error for now: Send without creating first. easily change to create channel call here."
+         liftIO $ putStrLn str 
+         logf' str
          liftIO $ atomically $ putTMVar chanEntryTMVar chanEntryLS
        Just chanEntry -> do 
          let chan = channelEntryChannel chanEntry 
-         liftIO $ putStrLn $ "About to send: " ++ (show mess') ++ " which converted to shared is: " ++ (show (armoredToShared mess'))
+         let str =  "About to send: " ++ (show mess') ++ " which converted to shared is: " ++ (show (armoredToShared mess'))
+         liftIO $ putStrLn str
+         logf' str
          liftIO $ atomically $ putTMVar chanEntryTMVar chanEntryLS
          liftIO $ sendG chan mess' 
      execute proc 
@@ -115,7 +131,9 @@ execute (Send mess chan proc) = do
                           return (Stuck "attempt to send on non-channel")
   
 execute (Receive var chan proc) = do
-  liftIO $ putStrLn "receiving on channel"
+  let str =  "receiving on channel"
+  liftIO $ putStrLn str
+  logf' str
   chan' <- subIfVar chan
   case chan' of
    (AChannel str) -> do
@@ -127,6 +145,7 @@ execute (Receive var chan proc) = do
        Nothing        -> do 
          let strer = "Error!! channel with name: " ++ str ++ " not found!!"
          liftIO $ putStrLn strer 
+         logf' strer
          liftIO $ atomically $ putTMVar chanEntryTMVar chanEntryLS
          killChannels
          return (Stuck str)
@@ -136,7 +155,9 @@ execute (Receive var chan proc) = do
          liftIO $ atomically $ putTMVar chanEntryTMVar chanEntryLS
          case armoredGift of
            AFailure str -> do 
-             liftIO $ putStrLn ("Crap. failed in recieved: " ++ str )
+             let str =  ("Crap. failed in recieved: " ++ str )
+             liftIO $ putStrLn str 
+             logf' str 
              killChannels
              return $ Stuck str 
            x@_          -> do 
@@ -153,7 +174,9 @@ execute (Case v1 ls procSucceed procFail) = do
     False -> execute procFail
 execute (Result res) = do
 			res' <- subIfVar res
-			liftIO $ putStrLn ("Result: " ++ (show res'))
+			let str = ("Result: " ++ (show res'))
+                        liftIO $ putStrLn str 
+                        logf' str
                         killChannels			
 			return (Result res')
 execute (Stop) = do
@@ -166,7 +189,9 @@ execute (Try ls) = do
                         final <- execute x
                         case final of 
                           (Stuck str) -> do 
-                            liftIO $ putStrLn $ "reached a stuck in the Try statement: " ++ str ++ "\n Trying next.."
+                            let str = "reached a stuck in the Try statement: " ++ str ++ "\n Trying next.."
+                            liftIO $ putStrLn str 
+                            logf' str
                             execute (Try xs)
 execute (ComputeCounterOffer storeVar armReq proc) = do
   armReq' <- subIfVar armReq
@@ -174,11 +199,15 @@ execute (ComputeCounterOffer storeVar armReq proc) = do
     (ANRequestV nreq) -> do 
       ArmoredState {..} <- get 
       let counteroffer = createCounterOffer nreq getPrivacyPolicy
+      let str = "computed counter offer: " ++ (show counteroffer)
+      liftIO $ putStrLn str 
+      logf' str 
       addVariable storeVar (ANResponse counteroffer)
       execute proc
     a@_               -> do 
       let str = "Error: tried to compute counter offer with: " ++ (show armReq') ++ "\n but expected an NRequest" 
       liftIO $ putStrLn str 
+      logf' str
       return $ Stuck str 
 execute (CalculateFinalRequest storeVar myOriginalRequest counterOffer proc) = do 
 --TODO measurement deadlock resolution here
@@ -193,22 +222,28 @@ execute (CalculateFinalRequest storeVar myOriginalRequest counterOffer proc) = d
                                                    [] -> acc --my privacy policy says I won't give you that. 
                                                    a@_ -> (i,p):acc) [] ls
           finalReq = pairsToN1Req finalItemPropPairs
+      let str = "calculated final Request: " ++ (show finalReq)
+      liftIO $ putStrLn str 
+      logf' str 
       addVariable storeVar (ANRequestV finalReq)
       execute proc 
     a@_               -> do 
       let str = "Error: tried to compute final request expected counteroffer but found: " ++ (show counterOffer') 
       liftIO $ putStrLn str 
+      logf' str
       return $ Stuck str 
 execute (CheckFinalChoice storeVar anreq proc) = do 
   anreq' <- subIfVar anreq 
   case anreq' of 
     (ANRequestV nreq) -> do 
       ArmoredState {..} <- get 
-      case nreq `completelyAbidesBy` getPrivacyPolicy of 
-       False -> do -- say, what you trying to pull??!?! 
-         addVariable storeVar (ANResponse No)
-       True  -> do
-         addVariable storeVar anreq'
+      let val = (case nreq `completelyAbidesBy` getPrivacyPolicy of 
+                      False -> (ANResponse No)
+                      True  -> anreq')
+      addVariable storeVar val
+      let str = "checked final choice: " ++ (show val)
+      liftIO $ putStrLn str 
+      logf' str
       execute proc 
  
 execute (HandleFinalChoice storeVar finalNReq  proc) = do 
@@ -220,15 +255,18 @@ execute (HandleFinalChoice storeVar finalNReq  proc) = do
          Appraiser -> do 
            let str = "SUCCESS. Here is where the appraiser would do its thing. Here's the final req: " ++ (show nreq)
            liftIO $ putStrLn str 
+           logf' str
            return $ Stuck str 
 
          Attester  -> do 
            let str = "SUCCESS. Here is where the attester would do its thing. Here's the final req: " ++ (show nreq)
            liftIO $ putStrLn str 
+           logf' str
            return $ Stuck str 
     a@_                 -> do 
           let str = "Error: in HandleFinalChoice. Expected to be NResponse, but instead found: " ++ (show a)
           liftIO $ putStrLn str 
+          logf' str 
           return $ Stuck str                      
 --execute (PrivacyPolicyInsertion proc) = do 
   --      ArmoredState {..} <- get 
@@ -270,6 +308,7 @@ subIfVar  armItem = do
         Nothing -> do 
           let str = "Error: Encountered ANRequest, but No internal State in MVar!!"
           liftIO $ putStrLn str 
+          logf' str
           return $ AFailure str 
         Just is -> do 
           liftIO $ putMVar mvarinternal is 
@@ -282,6 +321,7 @@ subIfVar  armItem = do
                          then do
                            let q = "Error: No Target Specified in state. exiting."
                            liftIO $ putStrLn q
+                           logf' q
                            return $ AFailure q                         
                          else do 
                           iState <- liftIO $ readMVar internalMVar                       
@@ -294,6 +334,7 @@ subIfVar  armItem = do
         then do
          let q = "Error: No Requester Specified in state. exiting."
          liftIO $ putStrLn q
+         logf' q
          return $ AFailure q                         
            else do 
             iState <- liftIO $ readMVar internalMVar     
@@ -301,6 +342,7 @@ subIfVar  armItem = do
              (AppState {..}) -> do 
                let q = "Error: Wrong state! Appraiser state found, but code called for 'Requester' which is only available in attester state"
                liftIO $ putStrLn q 
+               logf' q
                return $ AFailure q
              (AttState x) -> do 
                return $ AEntity x
@@ -460,3 +502,10 @@ convertNReq (ProtoNum i) = RequestItem ProtocolItem (IntProperty i)
 convertNReq (ReqLS ls)   = ReqLS (map convertNReq ls)
 convertNReq (TierRequest ls) = TierRequest (map convertNReq ls)
 convertNReq x@_              = x 
+
+clearLogf :: IO ()
+clearLogf = do 
+         h <- openFile "log.1" WriteMode
+         hPutStr h ""
+         hClose h
+
