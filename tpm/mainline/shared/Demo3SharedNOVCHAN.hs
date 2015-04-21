@@ -22,6 +22,7 @@ import qualified Data.HashMap.Strict as HM (member, lookup)
 import Data.Maybe
 import qualified Data.ByteString.Char8 as Char8
 
+import qualified Network.Http.Client as HttpClient
 --import Prelude ( ($!) )
 import Data.List (isInfixOf, head) --for parsing the id file.
 import Text.Read (readMaybe) --for parsin'
@@ -178,39 +179,6 @@ signPack priKey x = Signed x sig
 
 --instance Signable TPM_QUOTE_INFO
 
-data Shared   = WRequest Request
-              | WResponse Response
-	      | WEvidenceDescriptor EvidenceDescriptor
-	      | WEvidencePiece EvidencePiece
-	      | WCARequest CARequest
-	      | WCAResponse CAResponse
-              | Result Bool
-
-instance Show Shared where
-    show (WRequest app) = "Appraisal: " ++ show app
-    show (WResponse att) = "Attestation: " ++ show att
-    show (WEvidenceDescriptor evdes) = "EvidenceDescriptor: " ++ (show evdes)
-    show (WEvidencePiece evPiece) = "EvidencePiece: " ++ (show evPiece) 
-    show (Result True) = "Appraisal succeeded."
-    show (Result False) = "Appraisal failed."
-    
-instance Binary Shared where
-  put (WRequest app)             = do  put (0::Word8)
-                                       put app
-  put (WResponse att)           = do   put (1::Word8)
-                                       put att
-  put (Result res)                = do put(2::Word8)
-                                       put res
-
-  get = do t<- get :: Get Word8
-           case t of
-             0 -> do app <- get
-                     return (WRequest app)
-             1 -> do att <- get
-                     return (WResponse att)
-             2 -> do res <- get
-                     return (Result res)
-                     
 
 -- Primitive types
 type Signature = ByteString
@@ -219,14 +187,14 @@ type Signature = ByteString
 data Signed a = Signed {
   dat :: a, 
   sig :: Signature
-  } deriving (Show, Read)
+  } deriving (Eq, Show, Read)
 
 --Request
 data Request = Request {
   desiredE :: DesiredEvidence,
   pcrSelect :: TPM_PCR_SELECTION,
   nonce :: TPM_NONCE
-  } deriving ({-Show-})
+  } deriving (Eq{-Show-})
              
 instance Show Request where
   show (Request e c q) = "Request {\n\ndesiredE = " ++ (show e) ++ ",\n\npcrSelect = " ++ (show c) ++ ",\n\nnonce = " ++ (show q) ++ "\n}"
@@ -261,7 +229,7 @@ instance Show EvidenceDescriptor where
 data Quote = Quote {
   pcrComposite :: TPM_PCR_COMPOSITE,
   qSig :: Signature
-  } deriving ({-Show-})
+  } deriving (Eq{-Show-})
              
 instance Show Quote where
   show (Quote p s) = "Quote {\npcrComposite = " ++ (take 200 (show p)) ++ "\"...} ,\n\n" ++ "qSig = " ++ (take 20 (show s)) ++ "\"..."
@@ -273,7 +241,7 @@ data Response = Response {
   evPack :: EvidencePackage, 
   caCert :: CACertificate,
   quote :: Quote
-  } deriving ({-Show-})
+  } deriving (Eq {-Show-})
 
 instance Show Response where
   show (Response e c q) = "Response {\n\nevPack = " ++ (show e) ++ ",\n\ncaCert = " ++ (show c) ++ ",\n\nquote = " ++ (show q) ++ "\n}"
@@ -282,7 +250,7 @@ data EvidencePackage = EvidencePackage {
   evList :: Evidence, 
   eNonce :: TPM_NONCE,
   eSig :: Signature
-  } deriving (Show)
+  } deriving (Eq, Show)
              
 
     
@@ -342,6 +310,10 @@ data CARequest = CARequest {
   pId :: PlatformID, 
   mkIdResult :: MakeIdResult
   } deriving ({-Show, -}Read)
+
+instance Eq CARequest where 
+ c1 == c2 = (pId c1) == (pId c2)
+--TODO THIS IS WRONG
              
 instance Show CARequest where
   show (CARequest p (Signed (TPM_IDENTITY_CONTENTS lab (TPM_PUBKEY parms dat)) _ )) = "CARequest {\n\npid = " ++ (show p) ++ ",\n\n" ++ "mkIdResult = " {-Signed-} ++ "TPM_IDENTITY_CONTENTS\n}" {-{dat = TPM_IDENTITY_CONTENTS {" ++ (show lab) ++ "\n identityPubKey = TPM_PUBKEY {" ++ (show parms) ++ (take 10 (show dat)) ++ "..." -}
@@ -349,7 +321,7 @@ instance Show CARequest where
 data CAResponse = CAResponse {
   encCACert :: Encrypted, 
   encActIdInput :: Encrypted
-  } deriving ({-Show-})
+  } deriving (Eq{-Show-})
              
 instance Show CAResponse where
   show (CAResponse a b) = 
@@ -602,6 +574,7 @@ data TPM_KEY_PARMS_DATA = RSA_DATA TPM_RSA_KEY_PARMS
                         | AES_DATA TPM_SYMMETRIC_KEY_PARMS
                         | NO_DATA 
                         deriving (Eq, Read, Show)					    -}
+						                          
 instance ToJSON TPM_KEY_PARMS_DATA where
 	toJSON (RSA_DATA tpm_RSA_KEY_PARMS) = object [ "RSA_DATA" .= toJSON tpm_RSA_KEY_PARMS ]						     
 	toJSON (AES_DATA tpm_SYMMETRIC_KEY_PARMS) = object [ "AES_DATA" .= toJSON tpm_SYMMETRIC_KEY_PARMS ] 
@@ -713,24 +686,18 @@ ata TPM_SYMMETRIC_KEY_PARMS = TPM_SYMMETRIC_KEY_PARMS {
               | Attestation Response
               | Result Bool-}
 
-instance ToJSON Shared where
-	toJSON (WRequest req) = object [ "WRequest" .= toJSON req]
-	toJSON (WResponse resp) = object [ "WResponse" .= toJSON resp ]
-	toJSON (Result bool) = object [ "Result" .= toJSON bool]
-	toJSON (WEvidenceDescriptor evdes) = object [ "WEvidenceDescriptor" .= toJSON evdes ]
-	toJSON (WEvidencePiece evPiece) = object ["WEvidencePiece" .= toJSON evPiece]
-	toJSON (WCARequest caRequest) = object [ "WCARequest" .= toJSON caRequest ]
-	toJSON (WCAResponse caResponse) = object [ "WCAResponse" .= toJSON caResponse]
+--PortRequest Entity  HttpClient.Port
+--		 | VChanRequest Entity Int
 
-instance FromJSON Shared where
-	parseJSON (DA.Object o) | HM.member "WRequest" o = WRequest <$> o .: "WRequest"
-				| HM.member "WResponse" o = WResponse <$> o .: "WResponse"
-				| HM.member "Result" o = Result <$> o .: "Result"
-				| HM.member "WEvidenceDescriptor" o = WEvidenceDescriptor <$> o .: "WEvidenceDescriptor"
-				| HM.member "WEvidencePiece" o = WEvidencePiece <$> o .: "WEvidencePiece"
-				| HM.member "WCARequest" o = WCARequest <$> o .: "WCARequest"
-				| HM.member "WCAResponse" o = WCAResponse <$> o .: "WCAResponse"
- 		          
+{- instance ToJSON PortRequest where
+	toJSON (PortRequest port entity) = object [ "port" .= toJSON port
+						  , "entity" .= toJSON entity
+						  ]-}
+instance ToJSON B.ByteString where
+	toJSON = DA.String . encodeToText
+instance FromJSON B.ByteString where
+	parseJSON (DA.String str) = pure $ decodeFromText str	
+				 		         
 encodeToText :: B.ByteString -> T.Text
 encodeToText = TE.decodeUtf8 . Base64.encode
 
@@ -740,6 +707,10 @@ decodeFromText = {-either fail return .-} Base64.decodeLenient . TE.encodeUtf8
 decodeFromTextL :: (Monad m) => T.Text -> m ByteString
 decodeFromTextL x = let bs = decodeFromText x in
 		       return (fromStrict bs)  
+
+decodeFromTextLStayStrict :: (Monad m) => T.Text -> m B.ByteString
+decodeFromTextLStayStrict x = let bs = decodeFromText x in
+		       return (bs)  
 
 
 decodeFromTextL' :: T.Text -> ByteString

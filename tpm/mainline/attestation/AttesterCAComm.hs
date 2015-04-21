@@ -12,6 +12,7 @@ import qualified System.IO.Streams as Streams
 import qualified Data.Aeson as A
 import qualified Demo3SharedNOVCHAN as AD
 
+import qualified CommTools as CommTools
 import System.IO
 import Data.Word
 
@@ -23,8 +24,7 @@ type ID = String
 
 ip="10.100.0.6" -- "192.168.122.1" 
 port=3000
-
-
+			    
 
 converseWithScottyCA :: AD.CARequest -> IO (Either String AD.CAResponse)
 converseWithScottyCA req = do

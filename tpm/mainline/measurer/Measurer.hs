@@ -5,7 +5,7 @@ module Measurer where
 import TPM
 import Demo3Shared
 import VChanUtil
-
+import CommTools
 import Data.Bits
 import Data.ByteString.Lazy (ByteString, cons, empty)
 import Control.Monad.Loops

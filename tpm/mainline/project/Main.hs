@@ -41,6 +41,11 @@ import ProtoMain
 import CAProtoMain
 --import AttesterMain
 --import AppMain
+
+import Protocol
+
+import AppraiserProtocol
+import AttesterProtocol
 --import CAMain
 --import AttMain
 --import AMain
