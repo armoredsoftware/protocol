@@ -25,7 +25,7 @@ attest = do
 	    emptychans <- newTMVarIO []
             t <- newEmptyMVar
 	    let me = att
-	    let s0 = ArmoredState emptyvars me knownguys t emptychans
+	    let s0 = ArmoredState emptyvars me knownguys [] Nothing t emptychans
 	    forkIO ( do
 	    	runStateT negotiator s0
 	    	return ()
@@ -49,7 +49,7 @@ newChannelTrigger chanETMVar handled = do
             t <- newEmptyMVar
 	    let me = att
             atomically $ tryPutTMVar chanETMVar chanELS
-	    let s0 = ArmoredState emptyvars me knownguys t chanETMVar  
+	    let s0 = ArmoredState emptyvars me knownguys privacyPol (Just chan) t chanETMVar  
             runExecute' myProto s0
             return ())) unhandled 
   let handled' = unhandled ++ handled
@@ -58,10 +58,25 @@ newChannelTrigger chanETMVar handled = do
   threadDelay 1000000 -- 1 second delay
   newChannelTrigger chanETMVar handled'
   
-myProto =     CreateChannel (AChannel "chan") (AEntity app)
-	     (Receive (Var "mess") (AChannel "chan")	      
- 	     (Send (Var "mess") (AChannel "chan")
-	     (Result (Var "mess"))
-	      ))
+myProto =    (CreateChannel (AChannel "chan") Requester
+	     (Receive (Var "request") Requester
+             (ComputeCounterOffer (Var "counterOffer") (Var "request")	      
+ 	     (Send (Var "counterOffer") (AChannel "chan")
+             (Receive (Var "theirFinalChoice") (AChannel "chan")
+             (CheckFinalChoice (Var "finalAgreement") (Var "theirFinalChoice")
+             (Send (Var "finalAgreement") (AChannel "chan")
+             (HandleFinalChoice (Var "result") (Var "finalAgreement") 
+	     (Result (Var "result"))
+	      ))))))))
+
+privacyPol = [Reveal [(ProtocolItem, [IntProperty 1])] FREE 
+             ]
 	      
 --	      -}
+
+data T1 = T1 T2 deriving (Show)
+
+data T2 = T2 T1 deriving (Show)
+
+f :: T1
+f = T1 (T2 f)

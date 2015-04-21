@@ -26,22 +26,30 @@ data NRequest = ProtoNum Int
               | Process Process
               | RequestItem Item Property
               | ReqLS [NRequest]
-              | TierRequest [NRequest] deriving ( Show)
+              | TierRequest [NRequest] deriving (Eq, Show)
 data NResponse = No
                | Measurement Item Property Value
-               | Counter [(Item,[Property])] NRequest
-               | RespLS [NResponse] deriving (Show)
+               | CounterOffer [((Item,Property), Maybe NRequest)]
+               --Counter [(Item,[Property])] NRequest
+               | RespLS [NResponse] deriving (Show, Eq)
 --Privacy Policy related types -----------------------------------------------------------------------
 data Item = OS
           | VC
           | PCR [Int]
-          | ID deriving (Eq, Show)
+          | ID 
+          | EntityProp 
+          | ProtocolItem deriving (Eq, Show)
 
 data Property = Name
-              | Version deriving (Eq, Show)
+              | Version 
+              | IPAddr 
+              | IntProperty Int deriving (Eq, Show)
  
 type PrivacyPolicy = [PrivacyRule]
-data PrivacyRule = Reveal [(Item,[Property])] Condition deriving (Eq, Show)
+
+type ProtocolId = Int 
+data PrivacyRule = Reveal [(Item,[Property])] Condition 
+                {- | WillExecute ProtocolId Condition-} deriving (Eq, Show)
 data Condition = Equals Item Property Value
                | OneOf Item Property  [Value]
                | NoneOf Item Property [Value]
@@ -50,14 +58,15 @@ data Condition = Equals Item Property Value
                | GTETV Item Property Value
                | LTETV Item Property Value
                | Or Condition Condition
-               | And Condition Condition deriving (Eq, Show)
+               | And Condition Condition
+               | FREE deriving (Eq, Show)
 
 
 data Value = ValString String
            | ValInt Int
            | ValDouble Double
            | ValBool Bool
-           | ValByteString ByteString deriving (Eq, Show)
+           | ValByteString ByteString  deriving (Eq, Show)
 
 data ArmoredConfig = ArmoredConfig NRequest Condition PrivacyPolicy deriving ( Show)
 --end Privacy Policy related types -------------------------------------------------------------------
@@ -74,18 +83,28 @@ data Process = Send Armored Armored Process
 	            --   _  with  _  store var  nextProc  
 	     | Encrypt Armored Armored Armored Process
 	                   -- _ with  _  store _, success,  failure
-	     | CaseDecrypt Armored Armored Armored Process Process
-	           --var     val1   proc1,  val2    proc2
-	     | Case Armored Armored Process Armored Process
+	   --  | CaseDecrypt Armored Armored Armored Process Process
+	           --var     val1   proc1,  val2    otherwiseproc2
+	     | Case Armored [Armored] Process  Process
+             | CaseCompare Armored Ordering Armored Process Process
+                 -- these  onONEsucceed  onfail
+             | Try [Process]
+             | Measure Armored Item Property Process
 	                --sig    key   succeed  fail
 	     | CheckSig Armored Armored Process Process
 	              --array  do      finally
 	     | ForEach Armored Process Process
 	                 --array   val     finally
 	     | AppendArray Armored Armored Process--first armored is array, second is val to append
+             | ComputeCounterOffer Armored Armored Process
+             | CalculateFinalRequest Armored Armored Armored Process
+             | HandleFinalChoice Armored Armored Process
+             | CheckFinalChoice Armored Armored Process
 	     | Result Armored
 	     | Stuck String
-	     | Stop deriving (Show)
+	     | Stop 
+             | StopM String
+             | PLACEHOLDER deriving (Show, Eq) 
 
 --these are the 'nouns'	   
 --putOnArmor :: a -> Armored
@@ -122,10 +141,15 @@ data Armored = Var String
 	     | ArmoredCreateAppResponse
 	     | AAttester  --constants for state
              | Target
+             | ANRequest
+             | ANRequestV NRequest
+             | ANResponse NResponse
+             | Requester
+             | AVal Value
 	     | AAppraiser
 	     | AMeasurer
 	     | APrivacyCA
-	     | AFailure String deriving (Show)
+	     | AFailure String deriving (Show, Eq)
 data ChannelEntry = ChannelEntry {
 		channelEntryName    :: String,
 		channelEntryChannel :: Channel		
@@ -199,17 +223,22 @@ data Key = Rsa ByteString
 type ArmoredStateTMonad a = StateT ArmoredState IO a 
 type VariableBindings = [(Armored,Armored)]
 data ArmoredState = ArmoredState {
-                            vars :: VariableBindings,
-                            executor :: Entity,
-                            knownentities  :: [Entity],
+                            getVars :: VariableBindings,
+                            getExecutor :: Entity,
+                            getKnownentities  :: [Entity],
+                            getPrivacyPolicy :: PrivacyPolicy,
+                            getmStateChanel :: Maybe ChannelEntry,
                             getInternalStateMVar       :: MVar InternalState,
-                            channelEntriesTMVar :: TMVar [ChannelEntry]                         
+                            getChannelEntriesTMVar :: TMVar [ChannelEntry]                         
                           }                                                     
 
 data InternalState = AppState {
-                       appStateTarget :: Entity
+                       appStateTarget :: Entity,
+                       appStateNRequest :: NRequest
                      }
-                       
+                   | AttState {
+                       attStateRequester :: Entity
+                     }                       
 app = Entity {
 	        entityName = "Appraiser",
 	        entityIp   = (Just "10.100.0.225"),
@@ -221,7 +250,7 @@ app = Entity {
 att = Entity {
 	        entityName = "Attester",
 	        entityIp   = (Just "10.100.0.229"),
-	        entityId   = Nothing, --Just 2,
+	        entityId   = Just 8,
 	        entityRole = Attester,
 	        entityNote = (Just "Just an attestered here to do your bidding")
 	      }
@@ -280,11 +309,12 @@ instance ToJSON NResponse where
                 , "Property"   .= toJSON prop 
                 , "Value"      .= toJSON val
                 ]
-         toJSON (Counter itemProplsLS req) = object
-                ["Counter"     .= DA.String "NResonse"
-                , "ItemPropertylsLS" .= toJSON itemProplsLS --I really hope this is all I have to do here..
+         toJSON (CounterOffer ls) = object
+                ["CounterOffer"     .= DA.String "NResonse"
+                , "CounterOfferLS" .=  toJSON ls
+                ] {- 
                 , "Request"          .= toJSON req 
-                ]
+                ]-}
          toJSON (RespLS responselS) = object
                 ["RespLS"         .= DA.String "NResponse"
                 , "Responses"     .= toJSON responselS
@@ -294,8 +324,8 @@ instance FromJSON NResponse where
                                  | HM.member "Measurement" o = Measurement <$> o .: "Item"
                                                                            <*> o .: "Property"
                                                                            <*> o .: "Value"
-                                 | HM.member "Counter" o = Counter <$> o .: "ItemPropertylsLS"
-                                                                   <*> o .: "Request"
+                                 | HM.member "CounterOffer" o = CounterOffer <$> o .: "CounterOfferLS"
+                                                                   -- <*> o .: "Request"
                                  | HM.member "RespLS" o = RespLS   <$> o .: "Responses"
 
 instance ToJSON Item where
@@ -307,23 +337,30 @@ instance ToJSON Item where
                 [ "PCR" .= DA.String "Item"
                 , "Ints" .= toJSON intLS
                 ]         
-         toJSON ID = object
-                ["ID" .= DA.String "Item"]
+         toJSON EntityProp = object
+                ["EntityProp" .= DA.String "Item"]
+         toJSON ProtocolItem = object
+                ["ProtocolItem" .= DA.String "Item"]
+
 instance FromJSON Item where
          parseJSON (DA.Object o) | HM.member "OS" o = pure OS
                                  | HM.member "VC" o = pure VC
                                  | HM.member "PCR" o = PCR <$> o .: "Ints"
                                  | HM.member "ID" o = pure ID
+                                 | HM.member "EntityProp" o = pure EntityProp
+                                 | HM.member "ProtocolItem" o = pure ProtocolItem
 
 instance ToJSON Property where
          toJSON Name = object
                 [ "Name" .= DA.String "Property"]
          toJSON Version = object
-                [ "Version" .= DA.String "Property"]                
+                [ "Version" .= DA.String "Property"]
+         toJSON (IntProperty i) = object
+                [ "IntProperty" .= i ]                
 instance FromJSON Property where
          parseJSON (DA.Object o) | HM.member "Name" o = pure Name
                                  | HM.member "Version" o = pure Version
-
+                                 | HM.member "IntProperty" o = IntProperty <$> o .: "IntProperty" 
 instance ToJSON PrivacyRule where
          toJSON (Reveal itemProplsLS condition) = object
                 ["Reveal" .= DA.String "PrivacyRule"

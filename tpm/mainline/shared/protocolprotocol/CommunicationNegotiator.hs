@@ -145,8 +145,8 @@ attemptVChanContactR id n1 n2 = do
 maybeCreateVChannelWith :: Entity -> String -> ArmoredStateTMonad (Maybe Channel)
 maybeCreateVChannelWith ent chanName = do
   s <- get
-  let chanETMVar = channelEntriesTMVar s
-  let me = executor s
+  let chanETMVar = getChannelEntriesTMVar s
+  let me = getExecutor s
   chanEls <- liftIO $ atomically $ takeTMVar chanETMVar
   chanExists <- liftIO $ channelExistsWith chanEls ent
   case chanExists of
@@ -179,8 +179,8 @@ tryCreateHttpChannel ent chanName = do
     Nothing    -> return Nothing
     Just entIP -> do  
       s <- get
-      let chanETMVar = channelEntriesTMVar s 
-      let me = executor s
+      let chanETMVar = getChannelEntriesTMVar s 
+      let me = getExecutor s
       chanls <- liftIO $ atomically $ takeTMVar chanETMVar -------------------------------------------------------------
       let myPort = getFreePort chanls
       nonce1 <- liftIO ( randomIO :: IO Integer )
@@ -316,8 +316,8 @@ tryCreateVChannel me ent = do
 negotiator :: ArmoredStateTMonad ()
 negotiator = do
     s <- get
-    let chanETMVar =  channelEntriesTMVar s
-    let me = executor s
+    let chanETMVar =  getChannelEntriesTMVar s
+    let me = getExecutor s
     liftIO $ Scotty.scotty (fromIntegral negotiationport) $ do
 	    Scotty.get "/" $ Scotty.text "serving\n"  --a quick way to check if the CA is 
 	    				 	--serving, client should see "foobar" 
@@ -489,7 +489,7 @@ harvestPorts (x:xs) = case (channelInfo (channelEntryChannel x)) of
 killChannels :: ArmoredStateTMonad ()
 killChannels = do
   s <- get
-  let chanETMVar = channelEntriesTMVar s
+  let chanETMVar = getChannelEntriesTMVar s
   chanELS <- liftIO $ atomically ( do 
                                      val <- takeTMVar chanETMVar
                                      putTMVar chanETMVar [] 

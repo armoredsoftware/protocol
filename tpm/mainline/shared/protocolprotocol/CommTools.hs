@@ -38,6 +38,7 @@ armoredToShared (AEvidenceDescriptor evdes) = WEvidenceDescriptor evdes
 armoredToShared (AEvidencePiece evpiece)    = WEvidencePiece evpiece
 armoredToShared (ACARequest careq)          = WCARequest careq
 armoredToShared (ACAResponse caresp)	    = WCAResponse caresp
+armoredToShared (ANRequestV nreq)           = WNRequest nreq 
 armoredToShared _			    = Result False
 
 sharedToArmored :: Shared -> Armored
@@ -47,7 +48,9 @@ sharedToArmored (WEvidenceDescriptor evdes) = AEvidenceDescriptor evdes
 sharedToArmored (WEvidencePiece evpiece)    = AEvidencePiece evpiece
 sharedToArmored (WCARequest careq)          = ACARequest careq
 sharedToArmored (WCAResponse caresp)	    = ACAResponse caresp
+sharedToArmored (WNRequest nreq)            = ANRequestV nreq
 sharedToArmored x@_			    = AFailure ("attempted to convert to non-supported armored type: " ++ (show x))        
+
 
 
 data Shared   = WRequest AD.Request

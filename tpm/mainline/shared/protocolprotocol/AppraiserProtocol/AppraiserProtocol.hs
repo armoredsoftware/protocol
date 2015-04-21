@@ -28,7 +28,7 @@ appraise = do
 	    emptyTMVarChans <- newTMVarIO []
             t <- newEmptyMVar
 	    let me = app
-	    let s0 = ArmoredState emptyvars me knownguys t emptyTMVarChans
+	    let s0 = ArmoredState emptyvars me knownguys [] Nothing t emptyTMVarChans
 	    forkIO ( do 
 	    		runStateT negotiator s0
 	    		return ()
@@ -59,17 +59,29 @@ awaitAppraisalReq s = do
                 (Right (FormalRequest target nreq)) -> do 
                   let mvar = getInternalStateMVar s
                   maybeE <- liftIO $ tryTakeMVar mvar
-                  liftIO $ putMVar mvar (AppState target)
+                  liftIO $ putMVar mvar (AppState target (convertNReq nreq))
                   (proc,armoredstate) <- liftIO $ runExecute' myProto s
                   text (LazyText.pack (show proc))
                   return ()
                   
 
-myProto =     CreateChannel (AChannel "attesterChan") Target
-	     (Let (Var "evDes") (AEvidenceDescriptor D0)	      
- 	     (Send (Var "evDes") (AChannel "attesterChan")
-	     (Receive (Var "response") (AChannel "attesterChan")
-	     (Result (Var "response"))
-	      )))
+myProto =     CreateChannel (AChannel "attesterChan") Target	      
+ 	     (Send ANRequest (AChannel "attesterChan")
+	     (Receive (Var "counterOffer") (AChannel "attesterChan")
+             (CalculateFinalRequest (Var "finalReq") ANRequest (Var "counterOffer")
+             (Send (Var "finalReq") (AChannel "attesterChan")
+             (Receive (Var "finalConfirmation") (AChannel "attesterChan")
+             (Case (Var "finalConfirmation") [(Var "finalReq")]
+                 (HandleFinalChoice (Var "result") (Var "finalReq")
+                 (Result (Var "result")))
+                 
+                 (Stuck "finalConfirmation and finalReq did not match!!")
+                 ))))))
+                 	     
 	   
 	  -- -}
+{-
+
+{"NRequest":{"Num":3,"ProtoNum":"NRequest"},"Entity":{"EntityName":"Attester","EntityRole":"Attester","EntityIp":"MTAuMTAwLjAuMjI5","EntityNote":"Just an attestered here to do your bidding","EntityId":null}}
+
+-}
