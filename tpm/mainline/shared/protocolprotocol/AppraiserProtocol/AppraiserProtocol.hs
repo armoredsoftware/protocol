@@ -68,17 +68,17 @@ awaitAppraisalReq s = do
                   
 
 myProto =     CreateChannel (AChannel "attesterChan") Target	      
- 	     (Send ANRequest (AChannel "attesterChan")
-	     (Receive (Var "counterOffer") (AChannel "attesterChan")
-             (CalculateFinalRequest (Var "finalReq") ANRequest (Var "counterOffer")
-             (Send (Var "finalReq") (AChannel "attesterChan")
-             (Receive (Var "finalConfirmation") (AChannel "attesterChan")
-             (Case (Var "finalConfirmation") [(Var "finalReq")]
+ 	    $ Send ANRequest (AChannel "attesterChan")
+	    $ Receive (Var "counterOffer") (AChannel "attesterChan")
+            $ CalculateFinalRequest (Var "finalReq") ANRequest (Var "counterOffer")
+            $ Send (Var "finalReq") (AChannel "attesterChan")
+            $ Receive (Var "finalConfirmation") (AChannel "attesterChan")
+            $ Case (Var "finalConfirmation") [(Var "finalReq")]
                  (HandleFinalChoice (Var "result") (Var "finalReq")
                  (Result (Var "result")))
                  
                  (Stuck "finalConfirmation and finalReq did not match!!")
-                 ))))))
+                 
                  	     
 	   
 	  -- -}
