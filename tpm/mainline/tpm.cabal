@@ -283,7 +283,7 @@ executable              CAMain
   Main-is: CAMain.hs
   ghc-options: -O
 executable              Protocol
-  hs-source-dirs:       api, shell, src, shared, provisioning, attestation, shared/protocolprotocol
+  hs-source-dirs:       api, shell, src, shared, provisioning, attestation, shared/protocolprotocol, protoMonad
   build-depends:        base >= 4,
                         shell >= 1.0,
                         network < 2.6, 
@@ -296,7 +296,7 @@ executable              Protocol
   ghc-options: -O -threaded
 
 executable              AttesterProtocol
-  hs-source-dirs:       api, shell, src, shared, provisioning, shared/protocolprotocol/AttesterProtocol, shared/protocolprotocol
+  hs-source-dirs:       api, shell, src, shared, provisioning, shared/protocolprotocol/AttesterProtocol, shared/protocolprotocol, protoMonad
   build-depends:        base >= 4,
                         shell >= 1.0,
                         network < 2.6, 
@@ -307,7 +307,7 @@ executable              AttesterProtocol
   ghc-options: -O -threaded
 
 executable              AppraiserProtocol
-  hs-source-dirs:       api, shell, src, shared, provisioning, shared/protocolprotocol/AppraiserProtocol, shared/protocolprotocol
+  hs-source-dirs:       api, shell, src, shared, provisioning, shared/protocolprotocol/AppraiserProtocol, shared/protocolprotocol, protoMonad
   build-depends:        base >= 4,
                         shell >= 1.0,
                         network < 2.6, 
