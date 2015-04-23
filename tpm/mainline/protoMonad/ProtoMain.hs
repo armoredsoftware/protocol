@@ -2,7 +2,7 @@
 
 module ProtoMain where
 
-import ProtoTypesA
+import ProtoTypes
 import ProtoMonad
 import ProtoActions
 

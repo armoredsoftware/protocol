@@ -2,7 +2,7 @@ module AttesterMain where --Main
 
 import CAProtoMain (caEntity_Att)
 import ProtoMonad
-import ProtoTypesA
+import ProtoTypes
 import ProtoActions
 import VChanUtil
 import TPMUtil

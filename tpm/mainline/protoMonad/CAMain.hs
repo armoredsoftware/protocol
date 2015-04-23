@@ -2,7 +2,7 @@ module CAMain where --Main
 
 import CAProtoMain (caEntity_CA)
 import ProtoMonad
-import ProtoTypesA
+import ProtoTypes
 import ProtoActions
 import VChanUtil
 import TPMUtil

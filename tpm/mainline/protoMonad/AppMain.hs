@@ -2,7 +2,7 @@ module AppMain where
 
 import CAProtoMain (caEntity_App)
 import ProtoMonad
-import ProtoTypesA
+import ProtoTypes
 import ProtoActions
 import VChanUtil
 import TPMUtil

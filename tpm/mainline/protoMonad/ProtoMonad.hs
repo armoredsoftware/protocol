@@ -2,7 +2,7 @@
 
 module ProtoMonad where
 
-import ProtoTypesA
+import ProtoTypes
 import ProtoTypes(Channel)
 import VChanUtil
 

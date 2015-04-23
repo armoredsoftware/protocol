@@ -23,7 +23,7 @@ import Data.Word
 import Control.Concurrent.STM.TMVar
 import Control.Monad.STM
 import TPM.Types (TPM_PCR_SELECTION, TPM_PCR_COMPOSITE, TPM_IDENTITY_CONTENTS, TPM_PUBKEY)
-import qualified ProtoTypesA as Ad 
+import qualified ProtoTypes as Ad 
 --foreign export converseWithScottyCA :: AD.CARequest -> IO (Either String AD.CAResponse)
 
 --import qualified System.IO.Streams.Internal as StreamsI
@@ -47,7 +47,7 @@ armoredToShared _			    = Result False
 
 armoredToAdam :: Armored -> Ad.ArmoredData
 armoredToAdam (ArmoredAdam x) = x 
-armoredToAdam x@_             = Ad.AFailure $ "Error: Wrong Armored type converted to ArmoredData: " ++ (show x)
+armoredToAdam x@_             = Ad.AAFailure $ "Error: Wrong Armored type converted to ArmoredData: " ++ (show x)
 
 adamToShared :: Ad.ArmoredData -> Shared
 adamToShared ad = WAdamData ad 
@@ -79,7 +79,7 @@ sharedToArmored x@_			    = AFailure ("attempted to convert to non-supported arm
 
 sharedToAdam :: Shared -> Ad.ArmoredData
 sharedToAdam (WAdamData d) = d 
-sharedToAdam x@_           = Ad.AFailure ("attempted to convert to non-supported ArmoredData type in method sharedToAdam: " ++ (show x))
+sharedToAdam x@_           = Ad.AAFailure ("attempted to convert to non-supported ArmoredData type in method sharedToAdam: " ++ (show x))
 
 {-
 sharedToAdam (WANonce n) = Ad.ANonce n
@@ -98,7 +98,7 @@ sharedToAdam (WAEvidence e) = Ad.AEvidence e
 
 data Shared   = WRequest AD.Request
               | WResponse AD.Response
-	      | WEvidenceDescriptor EvidenceDescriptor
+	      | WEvidenceDescriptor AD.EvidenceDescriptor
 	      | WEvidencePiece EvidencePiece
 	      | WCARequest CARequest
 	      | WCAResponse CAResponse
@@ -248,13 +248,13 @@ receiveG' chan = do
      Nothing -> do
        let str = "ERROR: no vchannel stored!! I can't receive on nothing!"
        putStrLn str
-       return (Ad.AFailure str)
+       return (Ad.AAFailure str)
      Just c  -> do
        eitherShared <- receiveShared c
        case eitherShared of
         Left err -> do
           putStrLn ("ERROR: " ++ err)
-          return (Ad.AFailure ("RECEIVE MESSAGE FAIL: " ++ err))
+          return (Ad.AAFailure ("RECEIVE MESSAGE FAIL: " ++ err))
         Right shared -> return (sharedToAdam shared)
   (Channel ent (HttpInfo _ _ _ _ maybeConn1 tmvMsgs tmvUnit)) -> do
     putStrLn "Waiting to receive message..."
@@ -265,7 +265,7 @@ receiveG' chan = do
         let str = "Error in receive. Was able to take unitTMVar but msglist was empty"
         putStrLn str
         atomically $ putTMVar tmvMsgs msgls
-        return (Ad.AFailure str)
+        return (Ad.AAFailure str)
       (a:[]) -> do 
         --don't put unitTMVar back because list is empty
         --release tmvMsgs

@@ -2,25 +2,26 @@
 module ProtoTypes where
 
 import Data.Aeson (toJSON, parseJSON, ToJSON,FromJSON, object , (.=), (.:) )
-import Demo3Shared hiding (Result)
+import Demo3Shared hiding (Result, sig, dat, Signature, Evidence, EvidenceDescriptor)
 import Control.Monad
-import Control.Monad.State.Strict
+import Control.Monad.State.Strict hiding (get, put)
 import Data.ByteString.Lazy (ByteString, pack, append, empty, cons, fromStrict, length)
 import TPM
 import qualified Network.Http.Client as HttpClient
---import qualified Demo3Shared as Demo3
+import qualified Demo3Shared as Demo3
 import VChanUtil
 import Control.Concurrent.MVar
 import Control.Concurrent.STM.TMVar
-import Web.Scotty
+import Web.Scotty hiding (get, put)
 import qualified Data.Aeson as DA (Value(..), encode, decode, eitherDecode) --for JSON stuff
 import Control.Applicative ( (<$>), (<*>), pure )                           --for JSON stuff
 import qualified Data.HashMap.Strict as HM (member, lookup)                 --for JSON stuff
 import Data.Aeson (toJSON, parseJSON, ToJSON,FromJSON, object , (.=), (.:) )--for JSON stuff
 import Data.ByteString.Lazy(ByteString, empty, append, pack, toStrict, fromStrict) --for JSON stuff
 import Control.Concurrent (ThreadId)
+import Data.Binary
+import Codec.Crypto.RSA hiding (sign, verify)
 
-import qualified ProtoTypesA as Ad
 data FormalRequest = FormalRequest Entity NRequest deriving (Show)
 
 data NRequest = ProtoNum Int
@@ -113,7 +114,7 @@ data Process = Send Armored Armored Process
 data Armored = Var String
 	     | ARequest Request
  	     | AResponse Response
-             | AEvidenceDescriptor EvidenceDescriptor
+             | AEvidenceDescriptor Demo3.EvidenceDescriptor
 	     | AEvidencePiece EvidencePiece
 	     | ACARequest CARequest
 	     | ACAResponse CAResponse 
@@ -122,8 +123,8 @@ data Armored = Var String
 	     | AEncrypted ByteString
 	     | AEntity Entity 
 	     | AChannel String
-	     | ATPM_PCR_SELECTION TPM_PCR_SELECTION
-	     | ATPM_NONCE TPM_NONCE 
+	    -- | ATPM_PCR_SELECTION TPM_PCR_SELECTION
+	   --  | ATPM_NONCE TPM_NONCE 
 	     | ArmoredPCRSel [Int]
 	     | ArmoredCreateNonce
 	     | ArmoredCreateDesiredEvidence [Int]
@@ -150,7 +151,7 @@ data Armored = Var String
 	     | AAppraiser
 	     | AMeasurer
 	     | APrivacyCA
-             | ArmoredAdam Ad.ArmoredData
+             | ArmoredAdam ArmoredData
 	     | AFailure String deriving (Show, Eq)
 data ChannelEntry = ChannelEntry {
 		channelEntryName    :: String,
@@ -537,3 +538,209 @@ instance FromJSON Role where
 	parseJSON (DA.String "Measurer")  = pure Measurer
 	parseJSON (DA.String "PrivacyCA") = pure PrivacyCA        
 					                 
+
+
+
+--Abstract entity identifier.  The id assignments are LOCAL to the particular protocol being represented.
+type EntityId = Int
+
+type Nonce = Int
+
+data TPM_DATA = 
+  TdTPM_IDENTITY_CONTENTS  TPM_IDENTITY_CONTENTS 
+  | TdTPM_KEY_HANDLE TPM_KEY_HANDLE 
+              
+              
+              deriving (Show)
+
+
+instance ToJSON ArmoredData where
+  toJSON (ANonce n) = object
+    ["ANonce" .= n]
+  toJSON(ACipherText ct) = object
+    ["ACipherText" .= encodeToText (toStrict ct)]
+  toJSON (ATPM_PCR_SELECTION pcrSel) = object
+    ["ATPM_PCR_SELECTION" .= toJSON pcrSel]
+  toJSON (ATPM_PCR_COMPOSITE pcrC) = object 
+    ["ATPM_PCR_COMPOSITE" .= toJSON pcrC]
+  toJSON (ATPM_IDENTITY_CONTENTS c) = object
+    ["ATPM_IDENTITY_CONTENTS" .= toJSON c]
+  toJSON (ATPM_PUBKEY k) = object
+    ["ATPM_PUBKEY" .= toJSON k]
+  toJSON (ASignedData sd) = object
+    ["ASignedData" .= toJSON sd]
+  toJSON (ASignature s) = object
+    ["ASignature" .= encodeToText (toStrict s)]
+  toJSON (AAEvidenceDescriptor ed) = object
+    ["AAEvidenceDescriptor" .= toJSON ed]
+  toJSON (AEvidence e) = object
+    ["AEvidence" .= toJSON e]
+  toJSON (AAFailure s) = object 
+    ["AAFailure" .= s]
+
+instance FromJSON ArmoredData where
+  parseJSON (DA.Object o)  | HM.member "ANonce" o = ANonce <$> o .: "ANonce"
+                          | HM.member "ACipherText" o = ACipherText <$> ((o .: "ACipherText") >>= decodeFromTextL)
+                          | HM.member "ATPM_PCR_SELECTION"o  = ATPM_PCR_SELECTION <$> o .: "ATPM_PCR_SELECTION" 
+                          | HM.member "ATPM_PCR_COMPOSITE" o = ATPM_PCR_COMPOSITE <$> o .: "ATPM_PCR_COMPOSITE"
+                          | HM.member "ATPM_IDENTITY_CONTENTS" o = ATPM_IDENTITY_CONTENTS <$> o .: "ATPM_IDENTITY_CONTENTS"
+                          | HM.member "ATPM_PUBKEY" o = ATPM_PUBKEY <$> o .: "ATPM_PUBKEY"
+                          | HM.member "ASignedData" o = ASignedData <$> o .: "ASignedData"
+                          | HM.member "ASignature" o = ASignature <$> ((o .: "ASignature" ) >>= decodeFromTextL)
+                          | HM.member "AAEvidenceDescriptor" o = AAEvidenceDescriptor <$> o .: "AAEvidenceDescriptor"
+                          | HM.member "AEvidence" o = AEvidence <$> o .: "AEvidence"
+                          | HM.member "AAFailure" o = AAFailure <$> o .: "AAFailure"
+
+--TODO:  Should the following "Command" items be message items(ArmoredData) that must be evaluated in the monad prior to sending?  For now, they are implemented as seperate explicit monadic function calls.
+--Common data that is sent or received by an armored entity.
+data ArmoredData =
+  ANonce Nonce
+  | AEntityInfo EntityInfo
+  | ACipherText CipherText 
+ -- | ATPM_DATA TPM_DATA 
+  | ATPM_PCR_SELECTION TPM_PCR_SELECTION
+  | ATPM_PCR_COMPOSITE TPM_PCR_COMPOSITE
+  | ATPM_IDENTITY_CONTENTS TPM_IDENTITY_CONTENTS
+  | ATPM_PUBKEY TPM_PUBKEY
+  | ASignedData (SignedData ArmoredData)
+  | ASignature Signature
+  | AAEvidenceDescriptor EvidenceDescriptor 
+  | AEvidence Evidence
+  | AAFailure String deriving (Eq,Show)
+{-| GenNonce
+  | Encrypt [ArmoredData]
+  | Decrypt CipherText -} 
+
+--Binary instance necessary for communication, encryption, and decryption(or a combination of these).
+instance Binary ArmoredData where
+  put (ANonce n) = do put (0::Word8)
+                      put n
+  --put (AEntityId id) = do put (1::Word8)
+                      --    put id
+  put (ACipherText ct) = do put(2::Word8)
+                            put ct
+  put (AEntityInfo einfo) = 
+    do 
+      put(3::Word8)
+      put einfo
+  put (AAEvidenceDescriptor e) = 
+    do 
+      put (4::Word8)
+      put e
+  put(ATPM_PCR_SELECTION s) = 
+    do
+      put(5::Word8)
+      put s
+  put(ATPM_PUBKEY p) = 
+    do
+      put(6::Word8)
+      put p
+  put(ASignedData s) = 
+    do
+      put(7::Word8)
+      put s
+  put(ASignature a) = 
+    do
+      put(8::Word8)
+      put a
+  put(ATPM_PCR_COMPOSITE p) = 
+    do
+      put(9::Word8)
+      put p
+  put(ATPM_IDENTITY_CONTENTS i) = 
+    do
+      put(10::Word8)
+      put i 
+  put(AEvidence e) = 
+    do
+      put(11::Word8)
+      put e
+
+  get = do t <- get :: Get Word8
+           case t of
+             0 -> do n <- get
+                     return $ ANonce n
+            -- 1 -> do id <- get
+                 --    return $ AEntityId id
+             2 -> do ct <- get
+                     return $ ACipherText ct
+             3 -> do einfo <- get
+                     return $ AEntityInfo einfo
+             
+             4 -> do e <- get
+                     return $ AAEvidenceDescriptor e
+             5 -> do s <- get
+                     return $ ATPM_PCR_SELECTION s
+             6 -> do s <- get
+                     return $ ATPM_PUBKEY s
+             7 -> do s <- get
+                     return $ ASignedData s
+             8 -> do s <- get
+                     return $ ASignature s
+             9 -> do s <- get
+                     return $ ATPM_PCR_COMPOSITE s
+             10 -> do s <- get
+                      return $ ATPM_IDENTITY_CONTENTS s 
+             11 -> do s <- get
+                      return $ AEvidence s
+             
+
+type Message = [ArmoredData]
+  
+
+--This shoud contain the concrete info that is necessary to communicate with an entity
+data EntityInfo = EntityInfo {
+  eName :: String,
+  eIp :: Int,
+  chan :: Channel
+} deriving (Eq, Show)
+
+instance Binary EntityInfo where
+  put (EntityInfo name ip vchan) = 
+    do 
+      put name
+      put ip
+
+  get = do name <- get
+           ip <- get
+           let vchan = undefined --vchan <- get  --IS THIS OK??
+           return $ EntityInfo name ip vchan
+  
+  
+type PrivateKey = Codec.Crypto.RSA.PrivateKey --ByteString;
+type PublicKey = Codec.Crypto.RSA.PublicKey --ByteString;
+
+type SymmKey = TPM_SYMMETRIC_KEY 
+--Encrypted text
+type CipherText = ByteString;
+
+type EvidenceDescriptor = [Int]
+type Evidence = [Int]
+
+type Signature = ByteString;
+data SignedData a = SignedData {
+  dat :: a,
+  sig :: Signature
+} deriving (Eq, Show)
+
+instance (ToJSON a) => ToJSON (SignedData a) where
+  toJSON (s) = object
+    ["dat" .= toJSON (dat s)
+    , "sig" .= encodeToText (toStrict (sig s))
+    ]
+instance (FromJSON a) => FromJSON (SignedData a) where
+  parseJSON (DA.Object o) = SignedData <$> o .: "dat"
+                                       <*> ((o .: "sig") >>= decodeFromTextL)
+
+
+instance (Binary a) => Binary (SignedData a) where
+  put (SignedData a b) = 
+    do 
+      put a
+      put b
+      
+  get = do a <- get
+           b <- get
+           return $ SignedData a b 
+
+type AikContents = SignedData TPM_IDENTITY_CONTENTS

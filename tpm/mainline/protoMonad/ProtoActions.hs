@@ -1,9 +1,9 @@
 module ProtoActions where
 
-import ProtoTypesA
+import ProtoTypes
 import ProtoMonad
 import VChanUtil
-import CommTools(sendG', receiveG')
+--import CommTools (sendG', receiveG') 
 --import ProtoTypes(Channel)
 
 import Data.ByteString.Lazy hiding (pack, map, putStrLn)
@@ -17,6 +17,12 @@ import Control.Monad.IO.Class
 import Control.Monad.Error
 
 import TPM --TODO:  Find a way to eliminate this import(abstract it away)
+
+sendG' :: Channel -> Message -> IO ()
+sendG' = undefined
+
+receiveG' :: Channel -> IO Message
+receiveG' = undefined
 
 generateNonce :: Proto Nonce
 generateNonce = do

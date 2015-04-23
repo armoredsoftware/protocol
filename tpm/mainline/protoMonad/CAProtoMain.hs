@@ -2,7 +2,7 @@
 
 module CAProtoMain where
 
-import ProtoTypesA
+import ProtoTypes
 import ProtoMonad
 import ProtoActions
 import Keys
@@ -30,7 +30,7 @@ caEntity_Att = do
   
   case pId of
     1 -> do 
-      req@ [AEvidenceDescriptor dList, 
+      req@ [AAEvidenceDescriptor dList, 
             reqNonce@(ANonce nApp), 
             ATPM_PCR_SELECTION pcrSelect] <- receive 1 
       
@@ -115,7 +115,7 @@ caEntity_App d pcrSelect = do
   pId <- protoIs
   
   let request = case pId of 
-        1 -> [AEvidenceDescriptor d, ANonce nonceA, ATPM_PCR_SELECTION pcrSelect]
+        1 -> [AAEvidenceDescriptor d, ANonce nonceA, ATPM_PCR_SELECTION pcrSelect]
         2 -> [ANonce nonceA, ATPM_PCR_SELECTION pcrSelect]
 
   send 1 request

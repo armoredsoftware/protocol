@@ -2,12 +2,15 @@
 
 module ProtoTypesA where
 
+
+
 import Data.ByteString.Lazy
 import Data.Binary
 import VChanUtil
 import Codec.Crypto.RSA hiding (sign, verify)
 import TPM.Types
 import qualified TPM.Types as TPM
+import ProtoTypes(Channel)
 
 import Data.Aeson (toJSON, parseJSON, ToJSON,FromJSON, object , (.=), (.:) )
 import Demo3Shared hiding (dat,Signature, EvidenceDescriptor,Evidence,sig)
@@ -28,23 +31,6 @@ data TPM_DATA =
               
               
               deriving (Show)
-
- 
---Common data that is sent or received by an armored entity.
-data ArmoredData =
-  ANonce Nonce
-  | AEntityInfo EntityInfo
-  | ACipherText CipherText 
- -- | ATPM_DATA TPM_DATA 
-  | ATPM_PCR_SELECTION TPM_PCR_SELECTION
-  | ATPM_PCR_COMPOSITE TPM_PCR_COMPOSITE
-  | ATPM_IDENTITY_CONTENTS TPM_IDENTITY_CONTENTS
-  | ATPM_PUBKEY TPM_PUBKEY
-  | ASignedData (SignedData ArmoredData)
-  | ASignature Signature
-  | AEvidenceDescriptor EvidenceDescriptor 
-  | AEvidence Evidence
-  | AFailure String deriving (Eq,Show)
 
 
 instance ToJSON ArmoredData where
@@ -85,6 +71,21 @@ instance FromJSON ArmoredData where
                           | HM.member "AFailure" o = AFailure <$> o .: "AFailure"
 
 --TODO:  Should the following "Command" items be message items(ArmoredData) that must be evaluated in the monad prior to sending?  For now, they are implemented as seperate explicit monadic function calls.
+--Common data that is sent or received by an armored entity.
+data ArmoredData =
+  ANonce Nonce
+  | AEntityInfo EntityInfo
+  | ACipherText CipherText 
+ -- | ATPM_DATA TPM_DATA 
+  | ATPM_PCR_SELECTION TPM_PCR_SELECTION
+  | ATPM_PCR_COMPOSITE TPM_PCR_COMPOSITE
+  | ATPM_IDENTITY_CONTENTS TPM_IDENTITY_CONTENTS
+  | ATPM_PUBKEY TPM_PUBKEY
+  | ASignedData (SignedData ArmoredData)
+  | ASignature Signature
+  | AEvidenceDescriptor EvidenceDescriptor 
+  | AEvidence Evidence
+  | AFailure String deriving (Eq,Show)
 {-| GenNonce
   | Encrypt [ArmoredData]
   | Decrypt CipherText -} 
@@ -170,7 +171,7 @@ type Message = [ArmoredData]
 data EntityInfo = EntityInfo {
   entityName :: String,
   entityIp :: Int,
-  vChan :: LibXenVChan
+  chan :: Channel
 } deriving (Eq, Show)
 
 instance Binary EntityInfo where
