@@ -39,14 +39,14 @@ import Demo3Shared
 import InterpreterTypes
 import ProtoMain
 import CAProtoMain
---import AttesterMain
---import AppMain
+import AttesterMain
+import AppMain
 
 --import Protocol
 
 --import AppraiserProtocol
 --import AttesterProtocol
---import CAMain
+import CAMain
 --import AttMain
 --import AMain
 --import BMain

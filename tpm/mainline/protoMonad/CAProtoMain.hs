@@ -26,41 +26,73 @@ oPass = tpm_digest_pass ownerPass
 
 caEntity_Att :: Proto ()
 caEntity_Att = do
-  req@
-    [AEvidenceDescriptor dList, 
-     reqNonce@(ANonce nApp), 
-     ATPM_PCR_SELECTION pcrSelect] <- receive 1
-  (iKeyHandle, aikContents) <- tpmMk_Id
+  pId <- protoIs
   
-  
-  (ekEncBlob, kEncBlob) <- caAtt_CA aikContents
+  case pId of
+    1 -> do 
+      req@ [AEvidenceDescriptor dList, 
+            reqNonce@(ANonce nApp), 
+            ATPM_PCR_SELECTION pcrSelect] <- receive 1 
+      
+      (iKeyHandle, aikContents) <- tpmMk_Id
+      (ekEncBlob, kEncBlob) <- caAtt_CA aikContents
  {- (ekEncBlob, kEncBlob) <- runWithLinks 
                            [(1, 2)] 
                            (caAtt_CA aikContents) -}
                            
-  sessKey <- tpmAct_Id iKeyHandle ekEncBlob
+      sessKey <- tpmAct_Id iKeyHandle ekEncBlob
 
-  let caCert :: (SignedData TPM_PUBKEY) 
-      caCert = decrypt' sessKey kEncBlob 
+      let caCert :: (SignedData TPM_PUBKEY) 
+          caCert = decrypt' sessKey kEncBlob 
       
-  evidence <- caAtt_Mea dList
+      evidence <- caAtt_Mea dList
   
-  let quoteExData = 
-        [AEvidence evidence, 
-         ANonce nApp, 
-         ASignedData $ SignedData (ATPM_PUBKEY (dat caCert)) (sig caCert)]
-  (pcrComp, qSig) <- tpmQuote iKeyHandle pcrSelect quoteExData
+      let quoteExData = 
+            [AEvidence evidence, 
+             ANonce nApp, 
+             ASignedData $ SignedData (ATPM_PUBKEY (dat caCert)) (sig caCert)]
+      (pcrComp, qSig) <- tpmQuote iKeyHandle pcrSelect quoteExData
 
-  let response = 
-        [(quoteExData !! 0), 
-         ((req !! 1)), 
-         ATPM_PCR_COMPOSITE pcrComp, 
-         (quoteExData !! 2), 
-         ASignature qSig]
-  send 1 response
+      let response = 
+            [(quoteExData !! 0), 
+             reqNonce, 
+             ATPM_PCR_COMPOSITE pcrComp, 
+             (quoteExData !! 2), 
+             ASignature qSig]
+      send 1 response
+      return ()
+    
+    2 -> do 
+      [reqNonce@(ANonce nApp), 
+       ATPM_PCR_SELECTION pcrSelect] <- receive 1 
+      
+      (iKeyHandle, aikContents) <- tpmMk_Id
+      (ekEncBlob, kEncBlob) <- caAtt_CA aikContents
+ {- (ekEncBlob, kEncBlob) <- runWithLinks 
+                           [(1, 2)] 
+                           (caAtt_CA aikContents) -}
+                           
+      sessKey <- tpmAct_Id iKeyHandle ekEncBlob
+
+      let caCert :: (SignedData TPM_PUBKEY) 
+          caCert = decrypt' sessKey kEncBlob 
+      
+      --evidence <- caAtt_Mea dList
   
-  return ()
+      let quoteExData = 
+            [ANonce nApp, 
+             ASignedData $ SignedData (ATPM_PUBKEY (dat caCert)) (sig caCert)]
+      (pcrComp, qSig) <- tpmQuote iKeyHandle pcrSelect quoteExData
 
+      let response = 
+            [reqNonce, 
+             ATPM_PCR_COMPOSITE pcrComp, 
+             (quoteExData !! 1), 
+             ASignature qSig]
+      send 1 response
+      return ()
+      
+      
 caAtt_CA :: AikContents -> Proto (CipherText, CipherText)
 caAtt_CA signedContents = do
   myInfo <- getEntityInfo 0
@@ -80,11 +112,31 @@ caEntity_App :: EvidenceDescriptor -> TPM_PCR_SELECTION ->
                        (SignedData TPM_PUBKEY), Signature)
 caEntity_App d pcrSelect = do
   let nonceA = 34
-  send 1 [AEvidenceDescriptor d, ANonce nonceA, ATPM_PCR_SELECTION pcrSelect]
-  [AEvidence e, ANonce nA, ATPM_PCR_COMPOSITE pComp, ASignedData (SignedData (ATPM_PUBKEY aikPub) aikSig), ASignature sig] <- receive 1
+  pId <- protoIs
+  
+  let request = case pId of 
+        1 -> [AEvidenceDescriptor d, ANonce nonceA, ATPM_PCR_SELECTION pcrSelect]
+        2 -> [ANonce nonceA, ATPM_PCR_SELECTION pcrSelect]
+
+  send 1 request
+                                  
+  case pId of
+        1 -> do 
+          [AEvidence e, ANonce nA, ATPM_PCR_COMPOSITE pComp, 
+           ASignedData (SignedData (ATPM_PUBKEY aikPub) aikSig), 
+           ASignature sig] <- receive 1
+          return (e, nA, pComp, SignedData aikPub aikSig, sig)
+  
+        2 -> do 
+          [ANonce nA, ATPM_PCR_COMPOSITE pComp, 
+           ASignedData (SignedData (ATPM_PUBKEY aikPub) aikSig), 
+           ASignature sig] <- receive 1
+          return ([], nA, pComp, SignedData aikPub aikSig, sig)
+                                             
+  
   
   --do checks here...
-  return (e, nA, pComp, SignedData aikPub aikSig, sig)
+  --return (e, nA, pComp, SignedData aikPub aikSig, sig)
     
 caEntity_CA :: Proto ()
 caEntity_CA = do

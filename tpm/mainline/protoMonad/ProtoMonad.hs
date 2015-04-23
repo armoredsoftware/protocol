@@ -3,6 +3,7 @@
 module ProtoMonad where
 
 import ProtoTypesA
+import ProtoTypes(Channel)
 import VChanUtil
 
 import Prelude hiding (lookup)
@@ -29,13 +30,19 @@ data ProtoEnv = ProtoEnv {
   --privateKeys :: Map Int PrivateKey,
   packScheme :: Int,
   encScheme :: Int,
-  signScheme :: Int
+  signScheme :: Int,
+  protoId :: Int
 }
 
-getEntityChannel :: EntityId -> Proto LibXenVChan
+protoIs :: Proto Int
+protoIs = do
+  id <- T.asks protoId
+  return id
+  
+getEntityChannel :: EntityId -> Proto Channel
 getEntityChannel id = do
   eInfo <- getEntityInfo id
-  return $ vChan eInfo
+  return $ chan eInfo
   
 getEntityInfo :: EntityId -> Proto EntityInfo
 getEntityInfo i = do
