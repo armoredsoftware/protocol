@@ -67,7 +67,7 @@ execute (CreateChannel achan ent1 proc) = do
           mVChannel <- maybeCreateVChannelWith ent1'' chanName
           case mVChannel of 
             Nothing -> do
-              let str = "vchan failed. Here is where Http channel set up should be."
+              let str = "vchan establishment unsuccessful. Trying Http.."
               liftIO $ putStrLn $ str
               logf' str
               mHttpChannel <- tryCreateHttpChannel ent1'' chanName 

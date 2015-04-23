@@ -1,4 +1,4 @@
-{-# LANGUAGE TypeSynonymInstances #-}
+{-# LANGUAGE TypeSynonymInstances, OverloadedStrings #-}
 
 module ProtoTypesA where
 
@@ -7,6 +7,15 @@ import Data.Binary
 import VChanUtil
 import Codec.Crypto.RSA hiding (sign, verify)
 import TPM.Types
+import qualified TPM.Types as TPM
+
+import Data.Aeson (toJSON, parseJSON, ToJSON,FromJSON, object , (.=), (.:) )
+import Demo3Shared hiding (dat,Signature, EvidenceDescriptor,Evidence,sig)
+import qualified Data.Aeson as DA (Value(..), encode, decode, eitherDecode) --for JSON stuff
+import Control.Applicative ( (<$>), (<*>), pure )                           --for JSON stuff
+import qualified Data.HashMap.Strict as HM (member, lookup)                 --for JSON stuff
+import Data.Aeson (toJSON, parseJSON, ToJSON,FromJSON, object , (.=), (.:) )--for JSON stuff
+import Data.ByteString.Lazy(ByteString, empty, append, pack, toStrict, fromStrict) --for JSON stuff
 
 --Abstract entity identifier.  The id assignments are LOCAL to the particular protocol being represented.
 type EntityId = Int
@@ -19,7 +28,8 @@ data TPM_DATA =
               
               
               deriving (Show)
-  
+
+ 
 --Common data that is sent or received by an armored entity.
 data ArmoredData =
   ANonce Nonce
@@ -33,7 +43,47 @@ data ArmoredData =
   | ASignedData (SignedData ArmoredData)
   | ASignature Signature
   | AEvidenceDescriptor EvidenceDescriptor 
-  | AEvidence Evidence deriving (Show)
+  | AEvidence Evidence
+  | AFailure String deriving (Eq,Show)
+
+
+instance ToJSON ArmoredData where
+  toJSON (ANonce n) = object
+    ["ANonce" .= n]
+  toJSON(ACipherText ct) = object
+    ["ACipherText" .= encodeToText (toStrict ct)]
+  toJSON (ATPM_PCR_SELECTION pcrSel) = object
+    ["ATPM_PCR_SELECTION" .= toJSON pcrSel]
+  toJSON (ATPM_PCR_COMPOSITE pcrC) = object 
+    ["ATPM_PCR_COMPOSITE" .= toJSON pcrC]
+  toJSON (ATPM_IDENTITY_CONTENTS c) = object
+    ["ATPM_IDENTITY_CONTENTS" .= toJSON c]
+  toJSON (ATPM_PUBKEY k) = object
+    ["ATPM_PUBKEY" .= toJSON k]
+  toJSON (ASignedData sd) = object
+    ["ASignedData" .= toJSON sd]
+  toJSON (ASignature s) = object
+    ["ASignature" .= encodeToText (toStrict s)]
+  toJSON (AEvidenceDescriptor ed) = object
+    ["AEvidenceDescriptor" .= toJSON ed]
+  toJSON (AEvidence e) = object
+    ["AEvidence" .= toJSON e]
+  toJSON (AFailure s) = object 
+    ["AFailure" .= s]
+
+instance FromJSON ArmoredData where
+  parseJSON (DA.Object o)  | HM.member "ANonce" o = ANonce <$> o .: "ANonce"
+                          | HM.member "ACipherText" o = ACipherText <$> ((o .: "ACipherText") >>= decodeFromTextL)
+                          | HM.member "ATPM_PCR_SELECTION"o  = ATPM_PCR_SELECTION <$> o .: "ATPM_PCR_SELECTION" 
+                          | HM.member "ATPM_PCR_COMPOSITE" o = ATPM_PCR_COMPOSITE <$> o .: "ATPM_PCR_COMPOSITE"
+                          | HM.member "ATPM_IDENTITY_CONTENTS" o = ATPM_IDENTITY_CONTENTS <$> o .: "ATPM_IDENTITY_CONTENTS"
+                          | HM.member "ATPM_PUBKEY" o = ATPM_PUBKEY <$> o .: "ATPM_PUBKEY"
+                          | HM.member "ASignedData" o = ASignedData <$> o .: "ASignedData"
+                          | HM.member "ASignature" o = ASignature <$> ((o .: "ASignature" ) >>= decodeFromTextL)
+                          | HM.member "AEvidenceDescriptor" o = AEvidenceDescriptor <$> o .: "AEvidenceDescriptor"
+                          | HM.member "AEvidence" o = AEvidence <$> o .: "AEvidence"
+                          | HM.member "AFailure" o = AFailure <$> o .: "AFailure"
+
 --TODO:  Should the following "Command" items be message items(ArmoredData) that must be evaluated in the monad prior to sending?  For now, they are implemented as seperate explicit monadic function calls.
 {-| GenNonce
   | Encrypt [ArmoredData]
@@ -149,7 +199,17 @@ type Signature = ByteString;
 data SignedData a = SignedData {
   dat :: a,
   sig :: Signature
-} deriving (Show)
+} deriving (Eq, Show)
+
+instance (ToJSON a) => ToJSON (SignedData a) where
+  toJSON (s) = object
+    ["dat" .= toJSON (dat s)
+    , "sig" .= encodeToText (toStrict (sig s))
+    ]
+instance (FromJSON a) => FromJSON (SignedData a) where
+  parseJSON (DA.Object o) = SignedData <$> o .: "dat"
+                                       <*> ((o .: "sig") >>= decodeFromTextL)
+
 
 instance (Binary a) => Binary (SignedData a) where
   put (SignedData a b) = 

@@ -20,6 +20,7 @@ import Data.Aeson (toJSON, parseJSON, ToJSON,FromJSON, object , (.=), (.:) )--fo
 import Data.ByteString.Lazy(ByteString, empty, append, pack, toStrict, fromStrict) --for JSON stuff
 import Control.Concurrent (ThreadId)
 
+import qualified ProtoTypesA as Ad
 data FormalRequest = FormalRequest Entity NRequest deriving (Show)
 
 data NRequest = ProtoNum Int
@@ -149,6 +150,7 @@ data Armored = Var String
 	     | AAppraiser
 	     | AMeasurer
 	     | APrivacyCA
+             | ArmoredAdam Ad.ArmoredData
 	     | AFailure String deriving (Show, Eq)
 data ChannelEntry = ChannelEntry {
 		channelEntryName    :: String,
@@ -241,8 +243,8 @@ data InternalState = AppState {
                      }                       
 app = Entity {
 	        entityName = "Appraiser",
-	        entityIp   = (Just "10.100.0.225"),
-	        entityId   = Just 3,
+	        entityIp   = (Just "10.100.0.214"),
+	        entityId   = Just 4,
 	        entityRole = Appraiser,
 	        entityNote = (Just "Just a lonely Appraiser")
 	      }
