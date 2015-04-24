@@ -124,6 +124,9 @@ realDecrypt priKey cipherText = --Concrete implementation here
 realSign :: PrivateKey -> ByteString -> Signature --paramaterize over hash?
 realSign priKey bytes = C.sign priKey bytes --Concrete implementation plugs in here
 
+realVerify :: PublicKey -> ByteString -> Signature -> Bool
+realVerify pubKey m s = C.verify pubKey m s
+
 --Concrete packing(well-defined strategy for combining elements in preparation for encryption/signing) implementation
 packImpl :: (Binary a) => [a] -> ByteString
 packImpl as = encode as --mconcat bslist

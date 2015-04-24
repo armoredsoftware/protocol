@@ -107,11 +107,11 @@ caAtt_CA signedContents = do
 caAtt_Mea :: EvidenceDescriptor -> Proto Evidence
 caAtt_Mea eds = return [0,1,2]
 
-caEntity_App :: EvidenceDescriptor -> TPM_PCR_SELECTION -> 
+caEntity_App :: EvidenceDescriptor -> Nonce -> TPM_PCR_SELECTION -> 
                 Proto (Evidence, Nonce, TPM_PCR_COMPOSITE, 
                        (SignedData TPM_PUBKEY), Signature)
-caEntity_App d pcrSelect = do
-  let nonceA = 34
+caEntity_App d nonceA pcrSelect = do
+ -- let nonceA = 34
   pId <- protoIs
   
   let request = case pId of 

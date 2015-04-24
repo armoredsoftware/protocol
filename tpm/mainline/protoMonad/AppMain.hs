@@ -7,7 +7,9 @@ import ProtoActions
 import VChanUtil
 import TPMUtil
 import Keys
-import ProtoTypes(Channel)
+import TPM.Types
+import Provisioning(readComp)
+--import ProtoTypes(Channel)
 
 import Prelude 
 import Data.ByteString.Lazy hiding (putStrLn)
@@ -15,6 +17,8 @@ import qualified Data.Map as M
 import System.IO
 import Codec.Crypto.RSA
 import System.Random
+import Data.Digest.Pure.SHA (bytestringDigest, sha1)
+import Data.Binary
 
 appCommInit :: Channel -> Int -> IO ProtoEnv
 appCommInit attChan pId = do
@@ -54,11 +58,14 @@ appmain chan pId = do
   putStrLn "Main of entity Appraiser"
   env <- appCommInit chan pId -- [appId, caId] --TODO: Need Channel form Paul
   let pcrSelect = mkTPMRequest [0..23]
-  --TODO:  Choose protocol based on protoId
-  eitherResult <- runProto (caEntity_App [0,1,2] pcrSelect) env
+      nonce = 34
+  eitherResult <- runProto (caEntity_App [0,1,2] nonce pcrSelect) env
   case eitherResult of
     Left s -> putStrLn $ "Error occured: " ++ s
-    Right resp -> putStrLn $ "Response received: " ++ (show resp)
+    Right  resp@(ev, n, comp, cert@(SignedData aikPub aikSig), qSig) -> do 
+      putStrLn "Response received" 
+      print resp
+                                           
   
   
   {-let as = [ANonce empty, ANonce empty, ACipherText empty]
@@ -66,3 +73,33 @@ appmain chan pId = do
       as' = genDecrypt (snd generateAKeyPair) asCipher
   putStrLn $ show $ as' -}
   return () 
+  
+evaluate :: (EvidenceDescriptor, Nonce, TPM_PCR_SELECTION) -> 
+            (Evidence, Nonce, TPM_PCR_COMPOSITE, 
+             (SignedData TPM_PUBKEY), Signature) -> IO ()
+evaluate (d, nonceReq, pcrSelect) 
+  (ev, nonceResp, pcrComp, cert@(SignedData aikPub aikSig), qSig) = do 
+  let caPublicKey = fst generateCAKeyPair
+      blobEvidence :: ByteString
+      blobEvidence = packImpl [AEvidence ev, ANonce nonceResp,
+                               ASignedData $ SignedData ( ATPM_PUBKEY (dat cert)) (sig cert)] --pubKey
+      evBlobSha1 =  bytestringDigest $ sha1 blobEvidence
+      
+      quoteInfo :: TPM_QUOTE_INFO
+      quoteInfo = TPM_QUOTE_INFO (tpm_pcr_composite_hash $ pcrComp)                                                        (TPM_NONCE evBlobSha1) 
+      
+      aikPublicKey = tpm_get_rsa_PublicKey aikPub
+      
+      r1 = realVerify caPublicKey (encode aikPub) aikSig
+      r2 = realVerify aikPublicKey (encode quoteInfo) qSig
+      r3 = nonceReq == nonceResp
+  goldenPcrComposite <- readComp
+  let r4 = pcrComp == goldenPcrComposite
+      r5 = ev == [0,1,2]
+      
+  putStrLn $ "CACert Signature: " ++ (show r1)
+  putStrLn $  "Quote Package Signature: " ++ (show r2)  
+  putStrLn $ "Nonce: " ++ (show r3)
+  putStrLn $ "PCR Values: " ++ (show r4)
+  putStrLn $ "Evidence: " ++ (show r5)
+  return ()
