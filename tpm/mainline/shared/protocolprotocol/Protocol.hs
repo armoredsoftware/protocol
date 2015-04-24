@@ -120,7 +120,7 @@ execute (Send mess chan proc) = do
          liftIO $ atomically $ putTMVar chanEntryTMVar chanEntryLS
        Just chanEntry -> do 
          let chan = channelEntryChannel chanEntry 
-         let str =  "About to send: " ++ (show mess') ++ " which converted to shared is: " ++ (show (armoredToShared mess'))
+         let str =  "About to send: " ++ (show mess') -- ++ " which converted to shared is: " ++ (show (armoredToShared mess'))
          liftIO $ putStrLn str
          logf' str
          liftIO $ atomically $ putTMVar chanEntryTMVar chanEntryLS
@@ -184,7 +184,7 @@ execute (Stop) = do
                    return Stop
 execute (Try ls) = do 
                     case ls of 
-                      [] -> return (Stuck "Nothing left in the Try!!")
+                      [] -> execute (Stuck "Nothing left in the Try!!")
                       (x:xs) -> do 
                         final <- execute x
                         case final of 
@@ -208,7 +208,7 @@ execute (ComputeCounterOffer storeVar armReq proc) = do
       let str = "Error: tried to compute counter offer with: " ++ (show armReq') ++ "\n but expected an NRequest" 
       liftIO $ putStrLn str 
       logf' str
-      return $ Stuck str 
+      execute $ Stuck str 
 execute (CalculateFinalRequest storeVar myOriginalRequest counterOffer proc) = do 
 --TODO measurement deadlock resolution here
   counterOffer' <- subIfVar counterOffer
@@ -231,7 +231,7 @@ execute (CalculateFinalRequest storeVar myOriginalRequest counterOffer proc) = d
       let str = "Error: tried to compute final request expected counteroffer but found: " ++ (show counterOffer') 
       liftIO $ putStrLn str 
       logf' str
-      return $ Stuck str 
+      execute $ Stuck str 
 execute (CheckFinalChoice storeVar anreq proc) = do 
   anreq' <- subIfVar anreq 
   case anreq' of 
@@ -256,21 +256,27 @@ execute (HandleFinalChoice storeVar finalNReq  proc) = do
            let str = "SUCCESS. Here is where the appraiser would do its thing. Here's the final req: " ++ (show nreq)
            liftIO $ putStrLn str 
            logf' str
-           return $ Stuck str 
+           execute $ Stuck str 
 
          Attester  -> do 
            let str = "SUCCESS. Here is where the attester would do its thing. Here's the final req: " ++ (show nreq)
            liftIO $ putStrLn str 
            logf' str
-           return $ Stuck str 
+           execute $ Stuck str 
     a@_                 -> do 
           let str = "Error: in HandleFinalChoice. Expected to be NResponse, but instead found: " ++ (show a)
           liftIO $ putStrLn str 
           logf' str 
-          return $ Stuck str                      
+          execute $ Stuck str                      
 --execute (PrivacyPolicyInsertion proc) = do 
   --      ArmoredState {..} <- get 
-             
+execute (Stuck str) = do 
+  let str' = "Stuck: " ++ str 
+  liftIO $ putStrLn str' 
+  logf' str'
+  killChannels
+  return (Stuck str)
+              
 addVariable :: Armored -> Armored -> ArmoredStateTMonad ()
 addVariable var val = do
 		    ArmoredState {..} <- get
