@@ -151,8 +151,9 @@ data Armored = Var String
 	     | AAppraiser
 	     | AMeasurer
 	     | APrivacyCA
-             | ArmoredAdam ArmoredData
-	     | AFailure String deriving (Show, Eq)
+             | ArmoredAdamList [ArmoredData]
+	     | AFailure String 
+             | AString String deriving (Show, Eq)
 data ChannelEntry = ChannelEntry {
 		channelEntryName    :: String,
 		channelEntryChannel :: Channel		
@@ -230,7 +231,7 @@ data ArmoredState = ArmoredState {
                             getExecutor :: Entity,
                             getKnownentities  :: [Entity],
                             getPrivacyPolicy :: PrivacyPolicy,
-                            getmStateChanel :: Maybe ChannelEntry,
+                            getmStateChannel :: Maybe Channel,
                             getInternalStateMVar       :: MVar InternalState,
                             getChannelEntriesTMVar :: TMVar [ChannelEntry]                         
                           }                                                     

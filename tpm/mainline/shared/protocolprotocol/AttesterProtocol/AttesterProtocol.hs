@@ -1,4 +1,4 @@
-{-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE OverloadedStrings, RecordWildCards #-}
 
 module AttesterProtocol where
 
@@ -17,15 +17,16 @@ import CommunicationNegotiator
 import Control.Concurrent
 import Data.List
 import Control.Concurrent.STM
-  
+import CommTools (whoAmI)
 attest = do
             clearLogf
 	    putStrLn "Appraise be to Attester"
 	    let knownguys = [att,pCA]
 	    let emptyvars = []
 	    emptychans <- newTMVarIO []
-            t <- newEmptyMVar
-	    let me = att
+            t <- newEmptyMVar 
+
+            me <- whoAmI Attester 
 	    let s0 = ArmoredState emptyvars me knownguys [] Nothing t emptychans
 	    forkIO ( do
 	    	runStateT negotiator s0
@@ -52,7 +53,7 @@ newChannelTrigger chanETMVar handled = do
 	    
             let me = att
             atomically $ tryPutTMVar chanETMVar chanELS
-	    let s0 = ArmoredState emptyvars me knownguys privacyPol (Just chanE) t chanETMVar  
+	    let s0 = ArmoredState emptyvars me knownguys privacyPol (Just (channelEntryChannel chanE)) t chanETMVar  
             runExecute' myProto s0
             return ())) unhandled 
   let handled' = unhandled ++ handled

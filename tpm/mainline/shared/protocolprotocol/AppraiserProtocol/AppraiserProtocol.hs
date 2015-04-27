@@ -20,6 +20,7 @@ import qualified Web.Scotty as Scotty
 import qualified Demo3Shared as AD
 import qualified Data.Text.Lazy as LazyText
 import qualified Data.Text.Lazy.Encoding as LazyEncoding
+import CommTools (whoAmI)
 appraiseReqPort = 55555	      
 appraise = do
             clearLogf
@@ -28,7 +29,9 @@ appraise = do
 	    let emptyvars = []
 	    emptyTMVarChans <- newTMVarIO []
             t <- newEmptyMVar
-	    let me = app
+	    me <- whoAmI Appraiser -- app
+            --putStrLn $ "This is who I am!!: " ++ (show me)
+            --putStrLn $ "This is who I used to be: " ++ (show app)
 	    let s0 = ArmoredState emptyvars me knownguys [] Nothing t emptyTMVarChans
 	    forkIO ( do 
 	    		runStateT negotiator s0

@@ -178,7 +178,7 @@ executable              Provisioning
 
 
 executable              AMain
-  hs-source-dirs:       api, shell, src, shared, protoMonad
+  hs-source-dirs:       api, shell, src, shared, protoMonad, shared/protocolprotocol
   build-depends:        base >= 4,
                         shell >= 1.0,
                         mtl,
@@ -199,7 +199,7 @@ executable              AMain
   ghc-options: -O
 
 executable              BMain
-  hs-source-dirs:       api, shell, src, shared, protoMonad
+  hs-source-dirs:       api, shell, src, shared, protoMonad, shared/protocolprotocol
   build-depends:        base >= 4,
                         shell >= 1.0,
                         mtl,
@@ -221,7 +221,7 @@ executable              BMain
 
 
 executable              AttesterMain
-  hs-source-dirs:       api, shell, src, shared, protoMonad
+  hs-source-dirs:       api, shell, src, shared, protoMonad, shared/protocolprotocol
   build-depends:        base >= 4,
                         shell >= 1.0,
                         mtl,
@@ -242,7 +242,7 @@ executable              AttesterMain
   ghc-options: -O
 
 executable              AppMain
-  hs-source-dirs:       api, shell, src, shared, protoMonad
+  hs-source-dirs:       api, shell, src, shared, protoMonad, shared/protocolprotocol
   build-depends:        base >= 4,
                         shell >= 1.0,
                         mtl,
@@ -263,7 +263,7 @@ executable              AppMain
   ghc-options: -O
 
 executable              CAMain
-  hs-source-dirs:       api, shell, src, shared, protoMonad
+  hs-source-dirs:       api, shell, src, shared, protoMonad, shared/protocolprotocol
   build-depends:        base >= 4,
                         shell >= 1.0,
                         mtl,
@@ -300,7 +300,8 @@ executable              AttesterProtocol
   build-depends:        base >= 4,
                         shell >= 1.0,
                         network < 2.6, 
-                        network-uri < 2.6
+                        network-uri < 2.6,
+                        network-info
 
                        
   Main-is: AttesterProtocolMain.hs
@@ -311,8 +312,21 @@ executable              AppraiserProtocol
   build-depends:        base >= 4,
                         shell >= 1.0,
                         network < 2.6, 
-                        network-uri < 2.6
+                        network-uri < 2.6,
+                        network-info
 
                        
   Main-is: AppraiserProtocolMain.hs
+  ghc-options: -O -threaded
+
+executable              TestIP
+  hs-source-dirs:       shared/protocolprotocol
+  build-depends:        base >= 4,
+                        shell >= 1.0,
+                        network < 2.6, 
+                        network-uri < 2.6,
+                        network-info
+
+                       
+  Main-is: TestIPMain.hs
   ghc-options: -O -threaded

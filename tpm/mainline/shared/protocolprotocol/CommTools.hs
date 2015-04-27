@@ -24,6 +24,11 @@ import Control.Concurrent.STM.TMVar
 import Control.Monad.STM
 import TPM.Types (TPM_PCR_SELECTION, TPM_PCR_COMPOSITE, TPM_IDENTITY_CONTENTS, TPM_PUBKEY)
 import qualified ProtoTypes as Ad 
+import Data.Bits (shiftR)
+import Network.Info 
+
+import qualified Data.ByteString as B 
+import qualified Data.ByteString.Char8 as Char8
 --foreign export converseWithScottyCA :: AD.CARequest -> IO (Either String AD.CAResponse)
 
 --import qualified System.IO.Streams.Internal as StreamsI
@@ -42,15 +47,15 @@ armoredToShared (ACARequest careq)          = WCARequest careq
 armoredToShared (ACAResponse caresp)	    = WCAResponse caresp
 armoredToShared (ANRequestV nreq)           = WNRequest nreq 
 armoredToShared (ANResponse nres)           = WNResponse nres
-armoredToShared (ArmoredAdam x)             = WAdamData x 
+armoredToShared (ArmoredAdamList x)         = WAdamDataList x 
 armoredToShared _			    = Result False
 
-armoredToAdam :: Armored -> Ad.ArmoredData
-armoredToAdam (ArmoredAdam x) = x 
-armoredToAdam x@_             = Ad.AAFailure $ "Error: Wrong Armored type converted to ArmoredData: " ++ (show x)
+armoredToAdam :: Armored -> [Ad.ArmoredData]
+armoredToAdam (ArmoredAdamList x) = x 
+armoredToAdam x@_             = [Ad.AAFailure $ "Error: Wrong Armored type converted to ArmoredData: " ++ (show x)]
 
-adamToShared :: Ad.ArmoredData -> Shared
-adamToShared ad = WAdamData ad 
+adamToShared :: [Ad.ArmoredData] -> Shared
+adamToShared adls = WAdamDataList adls 
 {-
 adamToShared (Ad.ANonce n) = WANonce n
 adamToShared (Ad.AEntityInfo ei) = WAEntityInfo ei --EntityInfo
@@ -74,12 +79,13 @@ sharedToArmored (WCARequest careq)          = ACARequest careq
 sharedToArmored (WCAResponse caresp)	    = ACAResponse caresp
 sharedToArmored (WNRequest nreq)            = ANRequestV nreq
 sharedToArmored (WNResponse nres)           = ANResponse nres
-sharedToArmored (WAdamData ad)              = ArmoredAdam ad 
+sharedToArmored (WAdamDataList adls)        = ArmoredAdamList adls 
 sharedToArmored x@_			    = AFailure ("attempted to convert to non-supported armored type: " ++ (show x))        
 
-sharedToAdam :: Shared -> Ad.ArmoredData
-sharedToAdam (WAdamData d) = d 
-sharedToAdam x@_           = Ad.AAFailure ("attempted to convert to non-supported ArmoredData type in method sharedToAdam: " ++ (show x))
+sharedToAdam :: Shared -> [Ad.ArmoredData]
+--sharedToAdam (WAdamData d) = [d]
+sharedToAdam (WAdamDataList ls) = ls  
+sharedToAdam x@_           = [Ad.AAFailure ("attempted to convert to non-supported ArmoredData type in method sharedToAdam: " ++ (show x))]
 
 {-
 sharedToAdam (WANonce n) = Ad.ANonce n
@@ -112,7 +118,8 @@ data Shared   = WRequest AD.Request
               | WNRequest NRequest
               | WNResponse NResponse
 ------------------------------------ADAM DATA
-              | WAdamData Ad.ArmoredData
+            --  | WAdamData Ad.ArmoredData
+              | WAdamDataList [Ad.ArmoredData]
 {-
               | WANonce Ad.Nonce
               | WAEntityInfo Ad.EntityInfo
@@ -162,7 +169,8 @@ instance ToJSON Shared where
         toJSON (WNRequest nreq)       = object ["WNRequest" .= toJSON nreq]
         toJSON (WNResponse nres)      = object ["WNResponse" .= toJSON nres]
         -------------------------------adam stuff
-        toJSON (WAdamData ad)         = object [ "WAdamData" .= toJSON ad]
+        --toJSON (WAdamData ad)         = object [ "WAdamData" .= toJSON ad]
+        toJSON (WAdamDataList ls)     = object [ "WAdamDataList" .= toJSON ls]
 {-
         toJSON (WANonce n)            = object ["WANonce" .= toJSON n]
        -- toJSON (WAEntityInfo e)       = object ["WAEntityInfo" .= toJSON e]
@@ -192,7 +200,8 @@ instance FromJSON Shared where
                                 | HM.member "WNRequest" o = WNRequest <$> o .: "WNRequest"
                                 | HM.member "WNResponse" o = WNResponse <$> o .: "WNResponse"
 ------------------------------------------------------adam stuff
-                                | HM.member "WAdamData" o = WAdamData <$> o .: "WAdamData"
+                              --  | HM.member "WAdamData" o = WAdamData <$> o .: "WAdamData"
+                                | HM.member "WAdamDataList" o = WAdamDataList <$> o .: "WAdamDataList"
 {-
                                 | HM.member "WANonce" o = WANonce <$> o .: "WANonce"
 --                                | HM.member "WAEntityInfo"
@@ -241,20 +250,20 @@ receiveG chan = do
                        putTMVar tmvUnit ()
                        putTMVar tmvMsgs as
                        return a
-receiveG' :: Channel -> IO Ad.ArmoredData
+receiveG' :: Channel -> IO [Ad.ArmoredData]
 receiveG' chan = do
  case chan of
   (Channel ent (VChanInfo maybeChan))      -> case maybeChan of
      Nothing -> do
        let str = "ERROR: no vchannel stored!! I can't receive on nothing!"
        putStrLn str
-       return (Ad.AAFailure str)
+       return [(Ad.AAFailure str)]
      Just c  -> do
        eitherShared <- receiveShared c
        case eitherShared of
         Left err -> do
           putStrLn ("ERROR: " ++ err)
-          return (Ad.AAFailure ("RECEIVE MESSAGE FAIL: " ++ err))
+          return [(Ad.AAFailure ("RECEIVE MESSAGE FAIL: " ++ err))]
         Right shared -> return (sharedToAdam shared)
   (Channel ent (HttpInfo _ _ _ _ maybeConn1 tmvMsgs tmvUnit)) -> do
     putStrLn "Waiting to receive message..."
@@ -265,7 +274,7 @@ receiveG' chan = do
         let str = "Error in receive. Was able to take unitTMVar but msglist was empty"
         putStrLn str
         atomically $ putTMVar tmvMsgs msgls
-        return (Ad.AAFailure str)
+        return [(Ad.AAFailure str)]
       (a:[]) -> do 
         --don't put unitTMVar back because list is empty
         --release tmvMsgs
@@ -296,7 +305,7 @@ sendG chan armored = do
                               curConn <- sendHttp (armoredToShared armored) theirIP theirPort 
                               putStrLn "Tried to send http!!" -- "HTTPINFO??? I don't know what to do with that yet."
 
-sendG' :: Channel -> Ad.ArmoredData -> IO ()
+sendG' :: Channel -> [Ad.ArmoredData] -> IO ()
 sendG' chan adam = do
                      case chan of
                        (Channel ent (VChanInfo maybeChan))      -> case maybeChan of
@@ -404,4 +413,36 @@ readComp' = do
   return comp
 
 
+getMyIP :: IO IPv4
+getMyIP = do 
+  ls <- getNetworkInterfaces 
+  let ls' = Prelude.filter (\x -> (name x) == "eth0") ls 
+  let ni = Prelude.head ls'
+  --putStrLn $ "IP returned from networkInterface call: " ++ (show (ipv4 ni)) 
+  return (ipv4 ni)
 
+getMyDomId :: IO Int
+getMyDomId = getDomId 
+
+octets :: Word32 -> [Word8]
+octets w = 
+    [ fromIntegral (w `shiftR` 24)
+    , fromIntegral (w `shiftR` 16)
+    , fromIntegral (w `shiftR` 8)
+    , fromIntegral w
+    ]
+word32ToBS :: Word32 -> B.ByteString
+word32ToBS = (B.pack . octets)
+
+
+whoAmI :: Role -> IO Entity 
+whoAmI r = do 
+  i@(IPv4 myIP) <- getMyIP
+  myID <- getMyDomId
+  return $ Entity {
+       entityName =show r --  "Attester the Magnificent"
+     , entityIp = Just (Char8.pack (show i))      
+     , entityId = Just myID 
+     , entityRole = r 
+     , entityNote = Nothing
+     } 
