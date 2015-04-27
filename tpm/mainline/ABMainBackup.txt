@@ -1,0 +1,63 @@
+executable              AMain
+  hs-source-dirs:       api, shell, src, shared, protoMonad, shared/protocolprotocol
+  build-depends:        base >= 4,
+                        shell >= 1.0,
+                        mtl,
+                        directory,
+                        containers,
+                        bytestring,
+                        binary,
+                        network < 2.6,
+                        random,
+                        --network-bytestring,
+                        HsOpenSSL,
+                        SHA,
+                        RSA,
+                        parsec >= 3,
+                        filepath,
+                        VChanUtil
+  Main-is: AMain.hs
+  ghc-options: -O
+
+executable              BMain
+  hs-source-dirs:       api, shell, src, shared, protoMonad, shared/protocolprotocol
+  build-depends:        base >= 4,
+                        shell >= 1.0,
+                        mtl,
+                        directory,
+                        containers,
+                        bytestring,
+                        binary,
+                        network < 2.6,
+                        random,
+                        --network-bytestring,
+                        HsOpenSSL,
+                        SHA,
+                        RSA,
+                        parsec >= 3,
+                        filepath,
+                        VChanUtil
+  Main-is: BMain.hs
+  ghc-options: -O
+
+
+executable tpmi
+  hs-source-dirs:       api, shell, src, shared
+  build-depends:        base >= 4,
+                        shell >= 1.0,
+                        mtl,
+                        directory,
+                        containers,
+                        bytestring,
+                        binary,
+                        network < 2.6,
+                        random,
+                        --network-bytestring,
+                        HsOpenSSL,
+                        SHA,
+                        RSA,
+                        parsec >= 3,
+                        filepath,
+                        VChanUtil
+  Main-is: TpmiMain.hs
+  ghc-options: -O

@@ -66,7 +66,10 @@ appmain chan pId = do
       putStrLn "Response received" 
       print resp
                                            
-  
+{-main :: IO ()  
+main = do 
+  putStrLn "main of Appraiser"
+  return () -}
   
   {-let as = [ANonce empty, ANonce empty, ACipherText empty]
       asCipher = genEncrypt (fst generateAKeyPair) as

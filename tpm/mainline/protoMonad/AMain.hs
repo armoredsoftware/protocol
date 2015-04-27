@@ -2,7 +2,7 @@ module Main where
 
 import ProtoMain (nsEntityA)
 import ProtoMonad
-import ProtoTypesA
+--import ProtoTypesA
 import ProtoActions
 import VChanUtil
 

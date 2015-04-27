@@ -39,28 +39,6 @@ executable              Project
   Main-is:              Main.hs
   ghc-options:          -O -threaded
 
-executable tpmi
-  hs-source-dirs:       api, shell, src, shared
-  build-depends:        base >= 4,
-                        shell >= 1.0,
-                        mtl,
-                        directory,
-                        containers,
-                        bytestring,
-                        binary,
-                        network < 2.6,
-                        random,
-                        --network-bytestring,
-                        HsOpenSSL,
-                        SHA,
-                        RSA,
-                        parsec >= 3,
-                        filepath,
-                        VChanUtil
-  Main-is: TpmiMain.hs
-  ghc-options: -O
-
-
 executable              Attestation
   hs-source-dirs:       api, shell, src, shared, attestation, shared/protocolprotocol
   build-depends:        base >= 4,
@@ -176,50 +154,6 @@ executable              Provisioning
   Main-is: ProvisioningMain.hs
   ghc-options: -O
 
-
-executable              AMain
-  hs-source-dirs:       api, shell, src, shared, protoMonad, shared/protocolprotocol
-  build-depends:        base >= 4,
-                        shell >= 1.0,
-                        mtl,
-                        directory,
-                        containers,
-                        bytestring,
-                        binary,
-                        network < 2.6,
-                        random,
-                        --network-bytestring,
-                        HsOpenSSL,
-                        SHA,
-                        RSA,
-                        parsec >= 3,
-                        filepath,
-                        VChanUtil
-  Main-is: AMain.hs
-  ghc-options: -O
-
-executable              BMain
-  hs-source-dirs:       api, shell, src, shared, protoMonad, shared/protocolprotocol
-  build-depends:        base >= 4,
-                        shell >= 1.0,
-                        mtl,
-                        directory,
-                        containers,
-                        bytestring,
-                        binary,
-                        network < 2.6,
-                        random,
-                        --network-bytestring,
-                        HsOpenSSL,
-                        SHA,
-                        RSA,
-                        parsec >= 3,
-                        filepath,
-                        VChanUtil
-  Main-is: BMain.hs
-  ghc-options: -O
-
-
 executable              AttesterMain
   hs-source-dirs:       api, shell, src, shared, protoMonad, shared/protocolprotocol
   build-depends:        base >= 4,
@@ -242,7 +176,7 @@ executable              AttesterMain
   ghc-options: -O
 
 executable              AppMain
-  hs-source-dirs:       api, shell, src, shared, protoMonad, shared/protocolprotocol
+  hs-source-dirs:       api, shell, src, provisioning, shared, protoMonad, shared/protocolprotocol
   build-depends:        base >= 4,
                         shell >= 1.0,
                         mtl,
@@ -317,16 +251,4 @@ executable              AppraiserProtocol
 
                        
   Main-is: AppraiserProtocolMain.hs
-  ghc-options: -O -threaded
-
-executable              TestIP
-  hs-source-dirs:       shared/protocolprotocol
-  build-depends:        base >= 4,
-                        shell >= 1.0,
-                        network < 2.6, 
-                        network-uri < 2.6,
-                        network-info
-
-                       
-  Main-is: TestIPMain.hs
   ghc-options: -O -threaded
