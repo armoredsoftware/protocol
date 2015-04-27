@@ -22,7 +22,10 @@ import Control.Concurrent
 import Data.Tuple
 import ExampleArmoredConfig
 import Data.Maybe
-import System.IO                          	      
+import System.IO                 
+
+--import qualified AttesterMain as AttSubProto (attMain)
+--import qualified AppMain as AppSubProto (appMain)  	      
 runExecute :: Process -> Entity ->IO (Process, ArmoredState)
 runExecute proto executor = do
    let emptyvars = []
@@ -82,9 +85,22 @@ execute (CreateChannel achan ent1 proc) = do
                   let str3 = "successfully created httpChannel"
                   liftIO $ putStrLn $ str3
                   logf' str3
-                  --http chan added to state in tryCreateHttpChannel
+                  --http chan added to state in tryCreateHttpChannel                  
+                  s <- get 
+                  case getmStateChannel s of 
+                    Just _ -> return () 
+                    Nothing -> do 
+                      ArmoredState {..} <- get 
+                      put $ ArmoredState { getmStateChannel = Just hChan, ..}
+                      
                   execute proc 
             Just vchan -> do --could be because channel existed, or because I just made it. 
+              s <- get 
+              case getmStateChannel s of 
+                Just _ -> return () 
+                Nothing -> do 
+                  ArmoredState {..} <- get 
+                  put $ ArmoredState { getmStateChannel = Just vchan, ..}
               execute proc  
         (_)              -> do
           let str = "not an entity in create channel!!! stopping now."
@@ -251,18 +267,27 @@ execute (HandleFinalChoice storeVar finalNReq  proc) = do
   case finalNReq' of 
     (ANRequestV nreq) -> do 
        ArmoredState {..} <- get 
-       case (entityRole getExecutor) of 
-         Appraiser -> do 
-           let str = "SUCCESS. Here is where the appraiser would do its thing. Here's the final req: " ++ (show nreq)
-           liftIO $ putStrLn str 
-           logf' str
-           execute $ Stuck str 
-
-         Attester  -> do 
-           let str = "SUCCESS. Here is where the attester would do its thing. Here's the final req: " ++ (show nreq)
-           liftIO $ putStrLn str 
-           logf' str
-           execute $ Stuck str 
+       case getmStateChannel of 
+         Nothing -> execute $ Stuck $ "Error: NO channel in the state!! Did you call CreateChannel?"
+         Just chan -> do 
+           case nreq of 
+             ReqLS [] -> do 
+               let str = "Could not come to an agreement. No attestation to take place."
+               liftIO $ putStrLn str 
+               logf' str 
+               addVariable storeVar (AString str)
+               execute proc 
+             (RequestItem ProtocolItem (IntProperty i)) -> do
+               let (who,f) = case (entityRole getExecutor) of 
+                              Appraiser -> ("Appraiser",()) --AppSubProto.appMain)
+                              Attester  -> ("Attester",()) --AttSubProto.attMain)
+               let str = "SUCCESS. About to perform " ++ who ++ " sub protocol for: " ++ (show nreq)
+               liftIO $ putStrLn str 
+               logf' str
+              -- subResult <- liftIO $ f chan i
+               addVariable storeVar (AString str)
+               execute proc 
+                        
     a@_                 -> do 
           let str = "Error: in HandleFinalChoice. Expected to be NResponse, but instead found: " ++ (show a)
           liftIO $ putStrLn str 
@@ -270,6 +295,13 @@ execute (HandleFinalChoice storeVar finalNReq  proc) = do
           execute $ Stuck str                      
 --execute (PrivacyPolicyInsertion proc) = do 
   --      ArmoredState {..} <- get 
+execute (StopM str) = do 
+  let str' = "StopM: " ++ str
+  liftIO $ putStrLn str'
+  logf' str' 
+  killChannels
+  return (StopM str)
+
 execute (Stuck str) = do 
   let str' = "Stuck: " ++ str 
   liftIO $ putStrLn str' 

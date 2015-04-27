@@ -42,10 +42,10 @@ import CAProtoMain
 import AttesterMain
 import AppMain
 
---import Protocol
+import Protocol
 
---import AppraiserProtocol
---import AttesterProtocol
+import AppraiserProtocol
+import AttesterProtocol
 import CAMain
 --import AttMain
 --import AMain
