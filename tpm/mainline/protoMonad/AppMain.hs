@@ -74,10 +74,10 @@ appmain chan pId = do
   putStrLn $ show $ as' -}
   return () 
   
-evaluate :: (EvidenceDescriptor, Nonce, TPM_PCR_SELECTION) -> 
+evaluate :: Int -> (EvidenceDescriptor, Nonce, TPM_PCR_SELECTION) -> 
             (Evidence, Nonce, TPM_PCR_COMPOSITE, 
              (SignedData TPM_PUBKEY), Signature) -> IO ()
-evaluate (d, nonceReq, pcrSelect) 
+evaluate pId (d, nonceReq, pcrSelect) 
   (ev, nonceResp, pcrComp, cert@(SignedData aikPub aikSig), qSig) = do 
   let caPublicKey = fst generateCAKeyPair
       blobEvidence :: ByteString
@@ -101,5 +101,5 @@ evaluate (d, nonceReq, pcrSelect)
   putStrLn $  "Quote Package Signature: " ++ (show r2)  
   putStrLn $ "Nonce: " ++ (show r3)
   putStrLn $ "PCR Values: " ++ (show r4)
-  putStrLn $ "Evidence: " ++ (show r5)
+  if (pId == 1) then putStrLn $ "Evidence: " ++ (show r5) else return ()
   return ()
