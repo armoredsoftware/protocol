@@ -8,6 +8,7 @@ import ProtoActions
 import Keys
 import TPM
 import TPMUtil
+import VChanUtil hiding (send, receive)
 
 import System.IO
 import System.Random
@@ -99,8 +100,11 @@ caAtt_CA signedContents = do
   let val = SignedData 
             (ATPM_IDENTITY_CONTENTS  (dat signedContents)) 
             (sig signedContents)
-  send 2 {-1-} [AEntityInfo myInfo, ASignedData val]
-  [ACipherText ekEncBlob, ACipherText kEncBlob] <- receive 2 --1
+  attChan <- liftIO $ server_init 0
+  send' attChan [AEntityInfo myInfo, ASignedData val]          
+  --send 2 {-1-} [AEntityInfo myInfo, ASignedData val]
+  [ACipherText ekEncBlob, ACipherText kEncBlob] <- receive' attChan
+  --[ACipherText ekEncBlob, ACipherText kEncBlob] <- receive 2 --1
 
   return (ekEncBlob, kEncBlob)
 
@@ -141,10 +145,13 @@ caEntity_App d nonceA pcrSelect = do
 caEntity_CA :: Proto ()
 caEntity_CA = do
 
+  attChan <- liftIO $ client_init 0
+  {-[AEntityInfo eInfo, 
+   ASignedData (SignedData (ATPM_IDENTITY_CONTENTS pubKey) sig)] 
+                                                                 <- receive 1 -}
   [AEntityInfo eInfo, 
    ASignedData (SignedData (ATPM_IDENTITY_CONTENTS pubKey) sig)] 
-                                                                 <- receive 1
-  
+                                                                 <- receive' attChan
 
   ekPubKey <- liftIO readPubEK
 
@@ -162,7 +169,8 @@ caEntity_CA = do
       encryptedCert = encryptCTR aes ctr strictCert
       enc = fromStrict encryptedCert
 
-  send 1 [ACipherText encBlob, ACipherText enc]
+  send' attChan [ACipherText encBlob, ACipherText enc]
+  --send 1 [ACipherText encBlob, ACipherText enc]
  where 
    symKey = 
      TPM_SYMMETRIC_KEY 

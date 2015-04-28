@@ -53,7 +53,7 @@ caCommInit domid = do
 camain :: Channel -> Int -> IO ()
 camain chan pId = do 
   putStrLn "Main of entity CA"
-  env <- caCommInit chan pId -- [appId, caId]   --TODO: Need Channel form Paul
+  env <- caCommInit undefined undefined -- [appId, caId]   --TODO: Need Channel form Paul
   --TODO:  choose protocol based on protoId
   eitherResult <- runProto caEntity_CA env
   case eitherResult of
