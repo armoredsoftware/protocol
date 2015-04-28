@@ -228,6 +228,7 @@ execute (ComputeCounterOffer storeVar armReq proc) = do
       execute $ Stuck str 
 execute (CalculateFinalRequest storeVar myOriginalRequest counterOffer proc) = do 
 --TODO measurement deadlock resolution here
+--TODO make sure counterOffer is subset of offer
   counterOffer' <- subIfVar counterOffer
   myOriginalRequest' <- subIfVar myOriginalRequest
   case counterOffer' of
@@ -241,6 +242,7 @@ execute (CalculateFinalRequest storeVar myOriginalRequest counterOffer proc) = d
           finalReq = pairsToN1Req finalItemPropPairs
       let str = "calculated final Request: " ++ (show finalReq)
       liftIO $ putStrLn str 
+      liftIO $ putStrLn $ "By the way, this is my privacy policy: " ++ (show getPrivacyPolicy)
       logf' str 
       addVariable storeVar (ANRequestV finalReq)
       execute proc 
@@ -275,7 +277,7 @@ execute (HandleFinalChoice storeVar finalNReq  proc) = do
              ReqLS [] -> do 
                let str = "Could not come to an agreement. No attestation to take place."
                liftIO $ putStrLn str 
-               logf' str 
+               --logf' str 
                addVariable storeVar (AString str)
                execute proc 
              (RequestItem ProtocolItem (IntProperty i)) -> do

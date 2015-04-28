@@ -73,9 +73,11 @@ myProto =    (CreateChannel (AChannel "chan") Requester
 	     (Result (Var "result"))
 	      ))))))))
 
-privacyPol = [Reveal [(ProtocolItem, [IntProperty 1])] FREE 
+privacyPol = [Reveal [(ProtocolItem, [IntProperty 1])] condOS -- FREE 
              ]
-	      
+
+condFree = FREE
+condOS = Equals OS Name (ValString "McAffee")
 --	      -}
 
 data T1 = T1 T2 deriving (Show)
