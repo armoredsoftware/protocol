@@ -70,6 +70,16 @@ send toId ds = do
   liftIO $ putStrLn $ "Sent message! " ++ (show ds)
   return ()
   
+send' :: LibXenVChan -> Message -> Proto ()
+send' chan ds = do
+  --chan <- getEntityChannel toId
+  logger <- liftIO createLogger
+  liftIO $ sendChunkedMessageByteString logger chan (toStrict $ encode ds)
+  liftIO $ putStrLn $ "Sending: " ++ (show ds)
+ -- liftIO $ sendG' chan ds
+  liftIO $ putStrLn $ "Sent message! " ++ (show ds)
+  return ()
+  
 receive :: EntityId -> Proto Message
 receive fromId = do
   liftIO $ putStrLn $ "In receive"
@@ -84,6 +94,20 @@ receive fromId = do
  -- liftIO $ putStrLn $ "Received: " ++ (show result)
   return $ result
 
+receive' :: LibXenVChan -> Proto Message
+receive' chan = do
+  liftIO $ putStrLn $ "In receive"
+  --chan <- getEntityChannel fromId
+ -- liftIO $ putStrLn $ "Got Chan"
+  logger <- liftIO createLogger
+  bytes <- liftIO $ readChunkedMessageByteString logger chan
+ -- liftIO $ putStrLn $ "Got bytes"
+  let result = decode $ fromStrict bytes
+  --result <- liftIO $ receiveG' chan
+  liftIO $ putStrLn $ "Received message!"   -- ++ (show result)
+ -- liftIO $ putStrLn $ "Received: " ++ (show result)
+  return $ result
+  
 --TODO:  Should this be in the Proto monad?(i.e. to choose packImpl).
 genEncrypt :: Binary a => PublicKey -> [a] -> CipherText
 genEncrypt pubKey inData = realEncrypt pubKey clearText
