@@ -23,9 +23,10 @@ import Data.Tuple
 import ExampleArmoredConfig
 import Data.Maybe
 import System.IO                 
-
---import qualified AttesterMain as AttSubProto (attMain)
---import qualified AppMain as AppSubProto (appMain)  	      
+import System.Timeout
+import qualified AttesterMain as AttSubProto (attmain)
+import qualified AppMain as AppSubProto (appmain)  
+	      
 runExecute :: Process -> Entity ->IO (Process, ArmoredState)
 runExecute proto executor = do
    let emptyvars = []
@@ -120,7 +121,7 @@ execute (CreateChannel achan ent1 proc) = do
 execute (Send mess chan proc) = do
   let str = "sending on channel"
   liftIO $ putStrLn str 
-  logf' str 
+  --logf' str 
   chan' <- subIfVar chan
   mess' <- subIfVar mess 
   case chan' of
@@ -136,7 +137,7 @@ execute (Send mess chan proc) = do
          liftIO $ atomically $ putTMVar chanEntryTMVar chanEntryLS
        Just chanEntry -> do 
          let chan = channelEntryChannel chanEntry 
-         let str =  "About to send: " ++ (show mess') -- ++ " which converted to shared is: " ++ (show (armoredToShared mess'))
+         let str =  "sending:  " ++ (show mess') -- ++ " which converted to shared is: " ++ (show (armoredToShared mess'))
          liftIO $ putStrLn str
          logf' str
          liftIO $ atomically $ putTMVar chanEntryTMVar chanEntryLS
@@ -147,7 +148,7 @@ execute (Send mess chan proc) = do
                           return (Stuck "attempt to send on non-channel")
   
 execute (Receive var chan proc) = do
-  let str =  "receiving on channel"
+  let str =  "receiving.."
   liftIO $ putStrLn str
   logf' str
   chan' <- subIfVar chan
@@ -171,7 +172,7 @@ execute (Receive var chan proc) = do
          liftIO $ atomically $ putTMVar chanEntryTMVar chanEntryLS
          case armoredGift of
            AFailure str -> do 
-             let str =  ("Crap. failed in recieved: " ++ str )
+             let str =  ("Crap. failed in receive: " ++ str )
              liftIO $ putStrLn str 
              logf' str 
              killChannels
@@ -181,7 +182,7 @@ execute (Receive var chan proc) = do
              execute proc 
    _		      -> do
                            killChannels
-                           return (Stuck "attempt to send on non-channel")
+                           return (Stuck "attempt to receive on non-channel")
 execute (Case v1 ls procSucceed procFail) = do 
   v1' <- subIfVar v1
   ls' <- sequence $ map subIfVar ls 
@@ -279,13 +280,13 @@ execute (HandleFinalChoice storeVar finalNReq  proc) = do
                execute proc 
              (RequestItem ProtocolItem (IntProperty i)) -> do
                let (who,f) = case (entityRole getExecutor) of 
-                              Appraiser -> ("Appraiser",()) --AppSubProto.appMain)
-                              Attester  -> ("Attester",()) --AttSubProto.attMain)
-               let str = "SUCCESS. About to perform " ++ who ++ " sub protocol for: " ++ (show nreq)
+                              Appraiser -> ("Appraiser",AppSubProto.appmain )
+                              Attester  -> ("Attester",AttSubProto.attmain )
+               let str = "Negotiation complete. About to perform " ++ who ++ " sub protocol for: " ++ (show nreq)
                liftIO $ putStrLn str 
                logf' str
-              -- subResult <- liftIO $ f chan i
-               addVariable storeVar (AString str)
+               subResult <- liftIO $ f chan i
+               addVariable storeVar (AString subResult)
                execute proc 
                         
     a@_                 -> do 

@@ -27,6 +27,7 @@ import qualified ProtoTypes as Ad
 import Data.Bits (shiftR)
 import Network.Info 
 
+import System.Timeout
 import qualified Data.ByteString as B 
 import qualified Data.ByteString.Char8 as Char8
 --foreign export converseWithScottyCA :: AD.CARequest -> IO (Either String AD.CAResponse)
@@ -214,8 +215,17 @@ instance FromJSON Shared where
                                 | HM.member "WAEvidenceDescriptor" o = WAEvidenceDescriptor <$> o .: "WAEvidenceDescriptor"
                                 | HM.member "WAEvidence" o = WAEvidence <$> o .: "WAEvidence"
   -}  
+
+maxTime = 10000000
 receiveG :: Channel -> IO Armored
 receiveG chan = do
+  mArmored <- timeout maxTime $ receiveGHelper chan
+  case mArmored of 
+    Nothing -> return $ AFailure "Receive Failed: timed out."
+    Just a  -> return a  
+  
+receiveGHelper :: Channel -> IO Armored 
+receiveGHelper chan = do 
  case chan of
   (Channel ent (VChanInfo maybeChan))      -> case maybeChan of
      Nothing -> do
@@ -250,8 +260,16 @@ receiveG chan = do
                        putTMVar tmvUnit ()
                        putTMVar tmvMsgs as
                        return a
+
 receiveG' :: Channel -> IO [Ad.ArmoredData]
 receiveG' chan = do
+  mArmored <- timeout maxTime $ receiveGHelper' chan
+  case mArmored of 
+    Nothing -> return $ [Ad.AAFailure "Receive Failed: timed out."]
+    Just a  -> return a  
+
+receiveGHelper' :: Channel -> IO [Ad.ArmoredData]
+receiveGHelper' chan = do 
  case chan of
   (Channel ent (VChanInfo maybeChan))      -> case maybeChan of
      Nothing -> do
@@ -288,7 +306,7 @@ receiveG' chan = do
                        return (armoredToAdam a)
    -- let str = "HTTPINFO??? I don't know what to do with that yet."   
    -- putStrLn str
-   -- return (AFailure str)
+   -- return (AFailure str) 
 
 sendG :: Channel -> Armored -> IO ()
 sendG chan armored = do
@@ -381,7 +399,7 @@ mylift x = return x
 logf ::String -> IO ()
 logf m = do 
   h <- openFile "log.1" AppendMode
-  hPutStrLn h m 
+  hPutStrLn h (m ++ "\n") 
   hClose h
 
 logf' :: String -> ArmoredStateTMonad ()
