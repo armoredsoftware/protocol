@@ -16,15 +16,15 @@ import System.IO
 import Codec.Crypto.RSA
 import System.Random
 
-attCommInit :: [Channel] -> Int -> IO ProtoEnv
-attCommInit domidS pId = do
+attCommInit :: Channel -> Int -> IO ProtoEnv
+attCommInit chan {- domidS -} pId = do
   ekPub <- takeInit --Taking ownership of TPM
   --exportEK exportEKFileName ekPub
   
   --appChan <- server_init (domidS !! 0)
   --caChan <- client_init (domidS !! 1) 
-  let appChan = (domidS !! 0)
-      caChan = (domidS !! 1)
+  let appChan = chan -- (domidS !! 0)
+      caChan = chan -- (domidS !! 1)
   let myInfo = EntityInfo "Attester" 11 appChan
       appInfo = EntityInfo "Appraiser" 22 appChan
       caInfo = EntityInfo "Certificate Authority" 33 caChan
@@ -57,15 +57,15 @@ attCommInit domidS = do
   
   return $ ProtoEnv 0 myPri ents pubs 0 0 0  -}
 
-attmain :: [Channel] -> Int -> IO ()
+attmain :: Channel -> Int -> IO String
 attmain chans pId = do 
   putStrLn "Main of entity Attestation"
   env <- attCommInit chans pId --[1, 4]--[appId, caId]--TODO:Need Channels form Paul
   --TODO:  choose protocol based on protoId
   eitherResult <- runProto caEntity_Att env
-  case eitherResult of
-    Left s -> putStrLn $ "Error occured: " ++ s
-    Right _ -> putStrLn $ "End of Attestation"
-  
-  return () 
+  let str = case eitherResult of
+             Left s -> "Error occured: " ++ s
+             Right _ ->"End of Attestation"
+  putStrLn str 
+  return str
   

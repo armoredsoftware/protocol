@@ -53,19 +53,19 @@ appCommInit domid = do
 
 --main = attCommInit [1,2]
 
-appmain :: Channel -> Int -> IO ()
+appmain :: Channel -> Int -> IO String
 appmain chan pId = do 
   putStrLn "Main of entity Appraiser"
   env <- appCommInit chan pId -- [appId, caId] --TODO: Need Channel form Paul
   let pcrSelect = mkTPMRequest [0..23]
       nonce = 34
   eitherResult <- runProto (caEntity_App [0,1,2] nonce pcrSelect) env
-  case eitherResult of
-    Left s -> putStrLn $ "Error occured: " ++ s
-    Right  resp@(ev, n, comp, cert@(SignedData aikPub aikSig), qSig) -> do 
-      putStrLn "Response received" 
-      print resp
-                                           
+  let str = case eitherResult of 
+              Left s -> "Error occured: " ++ s
+              Right  resp@(ev, n, comp, cert@(SignedData aikPub aikSig), qSig) -> 
+               "Response received:\n" ++ (show resp)
+  putStrLn str 
+  return str                                          
 {-main :: IO ()  
 main = do 
   putStrLn "main of Appraiser"
@@ -75,7 +75,7 @@ main = do
       asCipher = genEncrypt (fst generateAKeyPair) as
       as' = genDecrypt (snd generateAKeyPair) asCipher
   putStrLn $ show $ as' -}
-  return () 
+ 
   
 evaluate :: Int -> (EvidenceDescriptor, Nonce, TPM_PCR_SELECTION) -> 
             (Evidence, Nonce, TPM_PCR_COMPOSITE, 
