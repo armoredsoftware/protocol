@@ -73,7 +73,7 @@ myProto =    (CreateChannel (AChannel "chan") Requester
 	     (Result (Var "result"))
 	      ))))))))
 
-privacyPol = [Reveal [(ProtocolItem, [IntProperty 1])] condOS -- FREE 
+privacyPol = [Reveal [(ProtocolItem, [IntProperty 1])] FREE 
              ]
 
 condFree = FREE
