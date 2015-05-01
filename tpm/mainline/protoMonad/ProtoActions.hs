@@ -99,6 +99,7 @@ receive' chan = do
   liftIO $ putStrLn $ "In receive"
   --chan <- getEntityChannel fromId
  -- liftIO $ putStrLn $ "Got Chan"
+  liftIO $ ctrlWait chan
   logger <- liftIO createLogger
   bytes <- liftIO $ readChunkedMessageByteString logger chan
  -- liftIO $ putStrLn $ "Got bytes"

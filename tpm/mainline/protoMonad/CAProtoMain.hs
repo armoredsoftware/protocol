@@ -28,9 +28,12 @@ oPass = tpm_digest_pass ownerPass
 caEntity_Att :: Proto ()
 caEntity_Att = do
   pId <- protoIs
+  liftIO $ pcrReset
+  liftIO $ pcrModify "a"
   
   case pId of
     1 -> do 
+      
       req@ [AAEvidenceDescriptor dList, 
             reqNonce@(ANonce nApp), 
             ATPM_PCR_SELECTION pcrSelect] <- receive 1 
@@ -47,6 +50,7 @@ caEntity_Att = do
           caCert = decrypt' sessKey kEncBlob 
       
       evidence <- caAtt_Mea dList
+      
   
       let quoteExData = 
             [AEvidence evidence, 
@@ -79,16 +83,17 @@ caEntity_Att = do
           caCert = decrypt' sessKey kEncBlob 
       
       --evidence <- caAtt_Mea dList
-  
+      
+      evidence <- return []
       let quoteExData = 
-            [ANonce nApp, 
+            [AEvidence evidence, ANonce nApp, 
              ASignedData $ SignedData (ATPM_PUBKEY (dat caCert)) (sig caCert)]
       (pcrComp, qSig) <- tpmQuote iKeyHandle pcrSelect quoteExData
 
       let response = 
             [reqNonce, 
              ATPM_PCR_COMPOSITE pcrComp, 
-             (quoteExData !! 1), 
+             (quoteExData !! 2), 
              ASignature qSig]
       send 1 response
       return ()

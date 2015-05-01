@@ -215,7 +215,7 @@ executable              CAMain
                         filepath,
                         VChanUtil
   Main-is: CAMain.hs
-  ghc-options: -O
+  ghc-options: -O -threaded
 executable              Protocol
   hs-source-dirs:       api, shell, src, shared, provisioning, attestation, shared/protocolprotocol, protoMonad
   build-depends:        base >= 4,

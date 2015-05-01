@@ -17,6 +17,7 @@ readComp = do
   compString <- hGetLine handle
   let comp :: TPM_PCR_COMPOSITE
       comp = read compString
+  putStrLn $ show comp
   hClose handle
   return comp
   

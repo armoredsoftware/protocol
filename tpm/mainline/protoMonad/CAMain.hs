@@ -10,13 +10,14 @@ import Keys
 import ProtoTypes(Channel)
 
 import Prelude 
-import Data.ByteString.Lazy hiding (putStrLn)
+import Data.ByteString.Lazy hiding (putStrLn, head, tail, map)
 import qualified Data.Map as M
 import System.IO
 import Codec.Crypto.RSA
 import System.Random
 import Control.Monad.IO.Class
 import Control.Monad
+import Control.Concurrent
 
 caCommInit :: Channel -> Int -> IO ProtoEnv
 caCommInit attChan pId = do
@@ -50,9 +51,10 @@ caCommInit domid = do
   
   --return ()
 
-caProcess :: ProtoEnv -> IO ()
-caProcess env = do
-  attChan <- liftIO $ server_init 3
+caProcess :: ProtoEnv -> Int -> IO ()
+caProcess env chanId = do
+ -- yield
+  attChan <- liftIO $ server_init chanId
   eitherResult <- runProto (caEntity_CA attChan) env
   case eitherResult of
     Left s -> putStrLn $ "Error occured: " ++ s
@@ -65,7 +67,14 @@ main = do
   env <- caCommInit undefined undefined -- [appId, caId]   --TODO: Need Channel form Paul
   --TODO:  choose protocol based on protoId
 
-  forever $ caProcess env
+  
+  let vChannels :: [Int] 
+      vChannels = [3, 5]
+ -- mapM (forkIO . forever . (caProcess env)) (tail vChannels)
+  forever$ do 
+    caProcess env 3
+    --caProcess env 5
+  --caProcess env (head vChannels)
   
   {-eitherResult <- runProto (caEntity_CA attChan) env
   case eitherResult of
@@ -77,7 +86,7 @@ main = do
       asCipher = genEncrypt (fst generateAKeyPair) as
       as' = genDecrypt (snd generateAKeyPair) asCipher
   putStrLn $ show $ as' -}
-  main
+  --main
   return () 
   
   

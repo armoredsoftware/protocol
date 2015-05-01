@@ -7,6 +7,7 @@
 #scp dist/build/BMain/BMain root@10.100.0.222: ; #B
 
 scp dist/build/AttesterMain/AttesterMain root@10.100.0.222: ;
+scp dist/build/AttesterMain/AttesterMain root@10.100.0.203: ;
 scp dist/build/AppMain/AppMain root@10.100.0.234: ;
 scp dist/build/CAMain/CAMain root@10.100.0.221: ;
 

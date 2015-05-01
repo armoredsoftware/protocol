@@ -75,7 +75,7 @@ mkQuote :: TPM_KEY_HANDLE -> TPM_DIGEST -> TPM_PCR_SELECTION
                   -> ByteString -> IO (TPM_PCR_COMPOSITE, ByteString)
 mkQuote qKeyHandle qKeyPass pcrSelect exData = do 
    quoteShn <- tpm_session_oiap tpm
-   putStrLn "Before quote packed and generated"
+   putStrLn "Before quote packed and generatedddddddddddddddddddddd"
    (pcrComp, sig) <- tpm_quote tpm quoteShn qKeyHandle 
                              (TPM_NONCE exData) pcrSelect qKeyPass
    tpm_session_close tpm quoteShn    
@@ -91,3 +91,16 @@ tpm_get_rsa_PublicKey key = PublicKey size modl expn
   where size = fromIntegral $ (tpm_key_pubsize key) `div` 8
         expn = bs2int $ tpm_key_pubexp key
         modl = bs2int $ tpm_key_pubmod key
+        
+pcrModify :: String -> IO TPM_PCRVALUE
+pcrModify val = tpm_pcr_extend_with tpm (fromIntegral pcrNum) val  
+
+pcrReset :: IO TPM_PCRVALUE
+pcrReset = do
+  tot <- tpm_getcap_pcrs tpm
+  tpm_pcr_reset tpm (fromIntegral tot) [fromIntegral pcrNum]
+  val <- tpm_pcr_read tpm (fromIntegral 23)
+  --putStrLn $ show val
+  return val
+  
+pcrNum = 23

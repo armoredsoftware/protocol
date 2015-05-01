@@ -73,9 +73,12 @@ myProto =    (CreateChannel (AChannel "chan") Requester
 	     (Result (Var "result"))
 	      ))))))))
 
-privacyPol = [Reveal [(ProtocolItem, [IntProperty 1])] FREE 
-             ]
+{-privacyPol = [Reveal [(ProtocolItem, [IntProperty 1])] condOS
+                   , Reveal [(ProtocolItem, [IntProperty 2])] FREE
+                                                                ] --condOS --FREE  -}
 
+privacyPol = [Reveal [(ProtocolItem, [IntProperty 1])] FREE
+                                                                ] --condOS
 condFree = FREE
 condOS = Equals OS Name (ValString "McAffee")
 --	      -}
