@@ -62,16 +62,16 @@ newChannelTrigger chanETMVar handled = do
   threadDelay 1000000 -- 1 second delay
   newChannelTrigger chanETMVar handled'
   
-myProto =    (CreateChannel (AChannel "chan") Requester
-	     (Receive (Var "request") (AChannel "chan")
-             (ComputeCounterOffer (Var "counterOffer") (Var "request")	      
- 	     (Send (Var "counterOffer") (AChannel "chan")
-             (Receive (Var "theirFinalChoice") (AChannel "chan")
-             (CheckFinalChoice (Var "finalAgreement") (Var "theirFinalChoice")
-             (Send (Var "finalAgreement") (AChannel "chan")
-             (HandleFinalChoice (Var "result") (Var "finalAgreement") 
-	     (Result (Var "result"))
-	      ))))))))
+myProto =    CreateChannel (AChannel "chan") Requester
+	   $ Receive (Var "request") (AChannel "chan")
+	   $ ComputeCounterOffer (Var "counterOffer") (Var "request")	      
+	   $ Send (Var "counterOffer") (AChannel "chan")
+           $ Receive (Var "theirFinalChoice") (AChannel "chan")
+           $ CheckFinalChoice (Var "finalAgreement") (Var "theirFinalChoice")
+           $ Send (Var "finalAgreement") (AChannel "chan")
+           $ HandleFinalChoice (Var "result") (Var "finalAgreement") 
+	   $ Result (Var "result")
+	     
 
 {-privacyPol = [Reveal [(ProtocolItem, [IntProperty 1])] condOS
                    , Reveal [(ProtocolItem, [IntProperty 2])] FREE
