@@ -363,6 +363,8 @@ start_event_loop (void)
     BE_get_request(bec);
     BE_do_continuous(bec);
   }
+
+  //delete context!!!
   
   while (1)
     {

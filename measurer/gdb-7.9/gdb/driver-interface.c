@@ -22,6 +22,7 @@
 
 typedef struct BE_Context
 {
+  bool attached;
   char * PID;
   int driverfd;
   bool CG_tracking;
@@ -45,6 +46,7 @@ void BE_start_session(struct BE_Context * bec)
 BE_Context* BE_context_create(void)
 {
   BE_Context* bec = (BE_Context*)malloc(sizeof(BE_Context));
+  bec->attached = false;
   bec->PID = NULL;
   bec->driverfd = -1;
   bec->CG_tracking = false;
@@ -158,12 +160,18 @@ void BE_get_request(struct BE_Context * bec)
 
 void BE_update_callgraph(BE_Context * bec)
 {
+  
   printf("\nUpdate Call Graph!\n");
-  attach_command(bec->PID,1);
-  gdb_do_one_event ();
+  //attach_command(bec->PID,1);
+  //gdb_do_one_event ();
   //execute_command("bt",1);
+  execute_command("interrupt");
+  wait_for_inferior(); 
+  normal_stop();
   struct ME_CG * stack;
   BE_get_call_stack_as_CG(NULL, 0, 0, 1, &stack, bec->FT);
+  continue_command_JG();
+  
   if (!bec->CG)
   {
     bec->CG = stack;
@@ -174,13 +182,17 @@ void BE_update_callgraph(BE_Context * bec)
     ME_CG_delete(stack);
   }
   ME_CG_print(bec->CG,bec->FT);
-  execute_command("detach",1);
- 
+  //execute_command("detach",1);
+
 }
 
 
 void BE_do_continuous(BE_Context * bec)
 {
+  if (!bec->attached) {
+    return;
+  }
+  
   clock_t t = clock();
 
   //Update Call Graph
@@ -223,20 +235,30 @@ void BE_rhandler_dispatch(struct BE_Context * bec, const char * request)
   else {
     printf("\nUnrecognized request! request=%s\n",request);
   }
+
+  free_str_split(args);
 }
 
 void BE_rhandler_CG_begin(BE_Context * bec)
-{
+{  
   bec->CG_tracking = true;
 }
 
 void BE_rhandler_CG_end(BE_Context * bec)
-{
+{  
   bec->CG_tracking = false;
 }
 
 void BE_rhandler_CG_get(BE_Context * bec)
 {
+  if (!bec->CG||!bec->FT) return;
+  
+  //Send Type
+  char response_type[1];
+  response_type[0] = 1; 
+  ME_sock_send_dynamic(bec->driverfd, 1, response_type);
+  
+  //Send CallGraph & FT
   char * encoded_cg;
   int n;  
   ME_CG_encode(bec->CG, &n, &encoded_cg);
@@ -248,20 +270,38 @@ void BE_rhandler_CG_get(BE_Context * bec)
   int encoded_ft_count;
   ME_FT_encode(bec->FT, &encoded_ft_count, &encoded_ft);
   ME_sock_send_dynamic(bec->driverfd, encoded_ft_count, encoded_ft);
+
+  free(encoded_cg);
+  free(encoded_ft);
 }
 
 void BE_rhandler_callstack_get(BE_Context * bec)
-{
+{  
+  if (!bec->attached) {
+    printf("Not attached to a process!\n");
+    return;
+  }
 
-  printf("\nUpdate Call Graph!\n");
-  attach_command(bec->PID,1);
-  gdb_do_one_event ();
-  //execute_command("bt",1);
+  //attach_command(bec->PID,1);
+  //gdb_do_one_event ();
+  execute_command("interrupt");
+  wait_for_inferior(); 
+  normal_stop();
+  
   struct ME_CG * stack;
   struct ME_FT * ft = ME_FT_create("root");
+  printf("before\n");
   BE_get_call_stack_as_CG(NULL, 0, 0, 1, &stack, ft);
-  execute_command("detach",1);
-   
+  printf("after\n");
+  //execute_command("continue&");
+  continue_command_JG();
+
+  //Send Type
+  char response_type[1];
+  response_type[0] = 1; 
+  ME_sock_send_dynamic(bec->driverfd, 1, response_type);
+  
+  //Send CallGraph & FT
   char * encoded_cg;
   int n;  
   ME_CG_encode(stack, &n, &encoded_cg);
@@ -274,6 +314,15 @@ void BE_rhandler_callstack_get(BE_Context * bec)
   ME_FT_encode(ft, &encoded_ft_count, &encoded_ft);
   ME_sock_send_dynamic(bec->driverfd, encoded_ft_count, encoded_ft);
 
+  printf("freeing encoded_cg\n");
+  free(encoded_cg);
+  printf("freeing encoded_ft\n");
+  free(encoded_ft);
+
+  printf("freeing ft\n");
+  ME_FT_delete(ft);
+  printf("freeing cg\n");
+  ME_CG_delete(stack);
 }
  
 void BE_rhandler_print(BE_Context * bec)
@@ -283,13 +332,30 @@ void BE_rhandler_print(BE_Context * bec)
 
 void BE_rhandler_set_target(BE_Context * bec, char * target_PID)
 {
-  free(bec->PID);
+  if (bec->attached) {
+    execute_command("detach",1);
+    bec->attached = false;
+    free(bec->PID);
+  }
   
   bec->PID = malloc(sizeof(char) * strlen(target_PID));
   strcpy(bec->PID, target_PID);
+
+  attach_command(bec->PID,1);
+  gdb_do_one_event ();
+
+  bec->attached = true;
+  
+  continue_command_JG();
 }
 
 void BE_rhandler_quit(BE_Context * bec)
 {
+  if (bec->attached) {  
+    execute_command("detach",1);
+    bec->attached = false;
+    free(bec->PID);
+  }
+    
   exit(-1);
 }

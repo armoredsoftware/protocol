@@ -34,7 +34,7 @@ int main(int arc, char **argv)  {
 
   DI_interactive_mode(sockfd);
   
-  DI_send_request(sockfd, "print\n");
+  /*DI_send_request(sockfd, "print\n");
   
   char target_req[32];
   snprintf(target_req, sizeof(target_req), "set_target %s\n", PID);
@@ -57,11 +57,12 @@ int main(int arc, char **argv)  {
   sleep(5);
   
   DI_send_request(sockfd, "CG_get\n");
+
   int encoded_cg_count;
   char * encoded_cg;
   int encoded_ft_count;
   char * encoded_ft;
-  
+
   ME_sock_recv_dynamic(sockfd, &encoded_cg_count, &encoded_cg);
   ME_sock_recv_dynamic(sockfd, &encoded_ft_count, &encoded_ft);
   
@@ -76,6 +77,6 @@ int main(int arc, char **argv)  {
   sleep(5);
   
   //DI_send_request(sockfd, "quit\n");
-  DI_interactive_mode(sockfd);
+  DI_interactive_mode(sockfd);*/
   
 }

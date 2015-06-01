@@ -773,7 +773,7 @@ continue_1 (int all_threads)
 }
 
 /* continue [-a] [proceed-count] [&]  */
-
+  
 static void
 continue_command (char *args, int from_tty)
 {
@@ -858,6 +858,12 @@ continue_command (char *args, int from_tty)
   continue_1 (all_threads);
 }
 
+
+void continue_command_JG()
+{
+  continue_command("&",1);
+}
+
 /* Record the starting point of a "step" or "next" command.  */
 
 static void

@@ -1142,18 +1142,16 @@ ME_CG_from_frame(struct frame_info *frame, struct ME_FT * ft)
   struct value_print_options opts;
   struct symbol *func;
   CORE_ADDR pc = 0;
-  //int pc_p;
   
-  //pc_p = get_frame_pc_if_available (frame, &pc);
-
   find_frame_funname (frame, &funname, &funlang, &func);
-  //make_cleanup (xfree, funname);
-
+  
   printf("LEVEL = %d, NAME = %s \n", frame_relative_level(frame), funname);
-
+ 
   struct ME_CG * cg = ME_CG_create(ME_FT_add(ft,funname));
+
+  make_cleanup (xfree, funname);
+
   return cg;
-  //return ME_funce_table_add(ft,funname));
 }
 
 static void

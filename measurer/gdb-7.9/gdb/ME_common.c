@@ -74,6 +74,15 @@ char** str_split(char* a_str_O, const char a_delim)
   return result;
 }
 
+void free_str_split(char **tokens) {
+  int i;
+  for (i = 0; *(tokens + i); i++)
+  {
+    free(*(tokens + i));
+  }
+  free(tokens);
+}
+
 /*====================================================
 SOCKET STUFF
 ======================================================*/
@@ -150,11 +159,17 @@ void ME_sock_recv_dynamic(int sockfd, int * n, char ** message)
 {
   int n1 = read(sockfd, n, sizeof(int));
 
+  if (!(n1>0&&n))
+  {
+    (*n)=0;
+    return;
+  }
+      
   (*message) = (char *)malloc(sizeof(char)*(*n));
 
   int n2 = read(sockfd, (*message), sizeof(char)*(*n));
 
-  //printf("Recieved %d bytes:\"%s\"\n",(*n),(*message));
+  printf("Recieved %d bytes:\"%s\"\n",(*n),(*message));
   
 }
 
@@ -165,7 +180,7 @@ void ME_sock_send_dynamic(int sockfd, int n, char * message)
   
   count = write(sockfd, message, sizeof(char)*n);
 
-  //printf("Sent %d bytes:\"%s\"\n",count,message);
+  printf("Sent %d bytes:\"%s\"\n",count,message);
 }
 
 
@@ -181,7 +196,7 @@ typedef struct ME_CG
 }
 ME_CG;
 
-ME_CG * ME_CG_create(int symbol)//char * name)
+ME_CG * ME_CG_create(int symbol)
 {
   ME_CG* cg = (ME_CG*)malloc(sizeof(ME_CG));
   cg->child = NULL;
@@ -258,26 +273,25 @@ void ME_CG_merge_stack(struct ME_CG * cg, struct ME_CG * stack)
   if (!stack) return;
 
   ME_CG * curr = cg;
-  while (curr->sibling)
-    {
-      if (curr->symbol == stack->symbol)
-	{
-	  if (curr->child==NULL) {
-	    curr->child = ME_CG_copy(stack->child);
-	    return;
-	  }
-	  return ME_CG_merge_stack(curr->child,stack->child);
-	}
-      curr = curr->sibling;
-    }
-  if (curr->symbol == stack->symbol)
-    {
+  while (curr->sibling) {
+    if (curr->symbol == stack->symbol) {
       if (curr->child==NULL) {
 	curr->child = ME_CG_copy(stack->child);
 	return;
       }
-      return ME_CG_merge_stack(curr->child,stack->child);
+      ME_CG_merge_stack(curr->child,stack->child);
+      return;
     }
+    curr = curr->sibling;
+  }
+  if (curr->symbol == stack->symbol) {
+    if (curr->child==NULL) {
+      curr->child = ME_CG_copy(stack->child);
+      return;
+    }
+    ME_CG_merge_stack(curr->child,stack->child);
+    return;
+  }
   curr->sibling = ME_CG_copy(stack);
 }
 
@@ -425,14 +439,25 @@ ME_FT* ME_FT_create(char * name)
 {
   ME_FT* ft = (ME_FT*)malloc(sizeof(ME_FT));
   ft->next = NULL;
-  ft->name = name;
+  
+  ft->name = malloc((strlen(name)+1)*sizeof(char));
+  memcpy(ft->name,name, (strlen(name)+1)*sizeof(char));
+  
   return ft;
 }
 
-int ME_FT_add(ME_FT * ft, char * name)
+void ME_FT_delete(struct ME_FT * ft)
 {
-  ME_FT * new_entry = ME_FT_create(name);
+  if (ft==NULL) return;
+  
+  ME_FT_delete(ft->next);
 
+  free(ft->name);
+  free(ft);
+}
+
+int ME_FT_add(ME_FT * ft, char * name)
+{  
   int i = 0;
 
   ME_FT * curr = ft;
@@ -442,6 +467,8 @@ int ME_FT_add(ME_FT * ft, char * name)
     if (strcmp(curr->name,name)==0) return i;
   }
   i++;
+
+  ME_FT * new_entry = ME_FT_create(name);
   curr->next = new_entry;
   return i;
 }
@@ -512,7 +539,7 @@ void ME_FT_encode(struct ME_FT * ft, int * count, char ** result)
     (*result)[next] = ' ';
     next++;
   }
-  (*result)[next]=0;
+  (*result)[next-1]=0;
 
   if (next!=(*count)) {
       printf("next != count !!!\n");
@@ -537,6 +564,8 @@ void ME_FT_decode(char * ft_encoded, ME_FT ** ft)
     ME_FT_add((*ft),names[i]);
   }
 
+  free_str_split(names);
+  
 }
   
 void ME_FT_print_encoded(char * ft_encoded)
