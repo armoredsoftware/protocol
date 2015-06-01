@@ -92,7 +92,7 @@ void DI_get_measurer_response(int sockfd)
 
     ME_FT * decoded_ft;
     ME_FT_decode(encoded_ft, &decoded_ft);
-    ME_CG * decoded_cg;
+    ME_CG * decobded_cg;
     ME_CG_decode(encoded_cg, &decoded_cg);
     printf("callgraph = ");
     ME_CG_print(decoded_cg,decoded_ft);

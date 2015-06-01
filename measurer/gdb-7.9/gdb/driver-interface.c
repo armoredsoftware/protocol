@@ -232,6 +232,8 @@ void BE_rhandler_dispatch(struct BE_Context * bec, const char * request)
     BE_rhandler_CG_get(bec);
   else if (strcmp("callstack_get",args[0])==0)
     BE_rhandler_callstack_get(bec);
+  else if (strcmp("callstack_get_at",args[0])==0)
+    BE_rhandler_callstack_get_at(bec, args[1]);
   else {
     printf("\nUnrecognized request! request=%s\n",request);
   }
@@ -324,7 +326,64 @@ void BE_rhandler_callstack_get(BE_Context * bec)
   printf("freeing cg\n");
   ME_CG_delete(stack);
 }
- 
+
+void BE_rhandler_callstack_get_at(BE_Context * bec, const char * location)
+{  
+  if (!bec->attached) {
+    printf("Not attached to a process!\n");
+    return;
+  }
+
+  //interrupt and insert breakpoint
+  execute_command("interrupt");
+  wait_for_inferior(); 
+  normal_stop();
+  break_command(location,0);
+
+  //continue to breakpoint and grab callstack
+  continue_command_JG();
+  wait_for_inferior(); 
+  normal_stop();
+  
+  struct ME_CG * stack;
+  struct ME_FT * ft = ME_FT_create("root");
+  printf("before\n");
+  BE_get_call_stack_as_CG(NULL, 0, 0, 1, &stack, ft);
+  printf("after\n");
+
+  //remove breakpoint and continue
+  delete_command(NULL, 0);
+  continue_command_JG();
+
+  //Send Type
+  char response_type[1];
+  response_type[0] = 1; 
+  ME_sock_send_dynamic(bec->driverfd, 1, response_type);
+  
+  //Send CallGraph & FT
+  char * encoded_cg;
+  int n;  
+  ME_CG_encode(stack, &n, &encoded_cg);
+  int encoded_cg_count = n * (sizeof(int)/sizeof(char));
+  
+  ME_sock_send_dynamic(bec->driverfd, encoded_cg_count, encoded_cg);
+
+  char * encoded_ft;
+  int encoded_ft_count;
+  ME_FT_encode(ft, &encoded_ft_count, &encoded_ft);
+  ME_sock_send_dynamic(bec->driverfd, encoded_ft_count, encoded_ft);
+
+  printf("freeing encoded_cg\n");
+  free(encoded_cg);
+  printf("freeing encoded_ft\n");
+  free(encoded_ft);
+
+  printf("freeing ft\n");
+  ME_FT_delete(ft);
+  printf("freeing cg\n");
+  ME_CG_delete(stack);
+}
+
 void BE_rhandler_print(BE_Context * bec)
 {
   BE_context_print(bec);
