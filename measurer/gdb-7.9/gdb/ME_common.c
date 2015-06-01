@@ -572,3 +572,152 @@ void ME_FT_print_encoded(char * ft_encoded)
 {
   printf("encoded-ft{%s}\n", ft_encoded);
 }
+
+/*====================================================
+MEASUREMENT STUFF
+======================================================*/
+
+typedef struct ME_measurement
+{
+  //reference to command???
+  //when
+  int measured; //measurement taken?
+  int type;//type
+  void* data;
+  void* data2;
+
+  struct ME_measurement * next;
+}
+ME_measurement;
+
+ME_measurement * ME_measurement_create(int type)
+{
+  ME_measurement* ms = (ME_measurement*)malloc(sizeof(ME_measurement));
+  ms->data = NULL;
+  ms->measured = 0;
+  ms->type = type;
+  ms->next = NULL;
+  return ms;
+}
+
+void ME_measurement_delete(struct ME_measurement * ms)
+{
+  if (!ms) return;
+
+  ME_measurement_delete(ms->next);
+
+  if (ms->type==0) {
+    ME_CG_delete((ME_CG *)ms->data);
+    ME_FT_delete((ME_FT *)ms->data2);
+  }  
+
+  free(ms);  
+}
+
+void ME_measurement_print(struct ME_measurement * ms)
+{
+  if (!ms) {
+    printf("NULL\n");
+    return;
+  }
+  
+  printf("M{");
+  printf("type=%d",ms->type);
+  printf(", measured=%d", ms->measured);
+
+  if (ms->type==0) //callgraph
+  {
+    printf(", data=");
+    ME_CG_print((ME_CG*)ms->data, (ME_FT*)ms->data2);
+
+    printf(", data2=");
+    ME_FT_print((ME_FT*)ms->data2);
+  }
+
+  printf(", next=");
+  ME_measurement_print(ms->next);
+  
+  printf("}\n");
+}
+
+void ME_measurement_send(int sockfd, struct ME_measurement * ms) {
+  if (!ms) {
+    int i = -1;
+    ME_sock_send_dynamic(sockfd, sizeof(int)/sizeof(char), &i);
+    return;
+  }     
+
+  //send type
+  ME_sock_send_dynamic(sockfd, sizeof(int)/sizeof(char), &(ms->type));  
+
+  if (ms->type == 0) {
+    //Send data 1 (callgraph)
+    char * encoded_cg;
+    int n;
+    ME_CG_encode((ME_CG*)ms->data, &n, &encoded_cg);
+    int encoded_cg_count = n * (sizeof(int)/sizeof(char));
+
+    ME_sock_send_dynamic(sockfd, encoded_cg_count, encoded_cg);
+
+    //send data 2 (ft)
+    char * encoded_ft;
+    int encoded_ft_count;
+    ME_FT_encode((ME_FT*)ms->data2, &encoded_ft_count, &encoded_ft);
+    ME_sock_send_dynamic(sockfd, encoded_ft_count, encoded_ft);
+
+    free(encoded_cg);
+    free(encoded_ft);
+  }
+  
+  ME_measurement_send(sockfd, ms->next);
+  
+}
+
+void ME_measurement_send_temp(int sockfd, struct ME_measurement * ms) {
+  char response_type[1];
+  response_type[0] = 2;
+  ME_sock_send_dynamic(sockfd, 1, response_type);
+  
+  ME_measurement_send(sockfd, ms);
+}
+
+ME_measurement * ME_measurement_recieve(int sockfd) {
+
+  int message_type_size;
+  char * message_type=NULL;   
+  ME_sock_recv_dynamic(sockfd, &message_type_size, &message_type);
+
+  int type = *((int*)(message_type));
+  
+  if (type==-1)
+    return NULL;
+    
+  ME_measurement * ms = ME_measurement_create(type);
+
+  if (type==0) {
+    int encoded_cg_count;
+    char * encoded_cg;
+    int encoded_ft_count;
+    char * encoded_ft;
+
+    ME_sock_recv_dynamic(sockfd, &encoded_cg_count, &encoded_cg);
+    ME_sock_recv_dynamic(sockfd, &encoded_ft_count, &encoded_ft);
+
+    ME_FT * decoded_ft;
+    ME_FT_decode(encoded_ft, &decoded_ft);
+    ME_CG * decoded_cg;
+    ME_CG_decode(encoded_cg, &decoded_cg);
+    printf("callgraph = ");
+    ME_CG_print(decoded_cg,decoded_ft);
+    printf("\n");
+
+    free(encoded_cg);
+    free(encoded_ft);
+
+    ms->data = decoded_cg;
+    ms->data2 = decoded_ft;
+  }
+
+  ms->next = ME_measurement_recieve(sockfd);
+
+}

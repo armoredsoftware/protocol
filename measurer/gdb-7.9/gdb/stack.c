@@ -150,6 +150,7 @@ frame_show_address (struct frame_info *frame,
    source line, the actual PC is printed at the beginning.  */
 
 void
+
 print_stack_frame (struct frame_info *frame, int print_level,
 		   enum print_what print_what,
 		   int set_current_sal)
@@ -1153,6 +1154,33 @@ ME_CG_from_frame(struct frame_info *frame, struct ME_FT * ft)
 
   return cg;
 }
+
+void
+BE_get_file_and_line (struct frame_info *frame, char ** filename, int * line)
+{
+  struct symtab_and_line sal;
+  find_frame_sal (frame, &sal);
+  
+  struct ui_out *uiout = current_uiout;
+
+  if (sal.symtab)
+    {
+      const char *filename_display;
+      
+      filename_display = symtab_to_filename_for_display (sal.symtab);
+      printf("filename=%s\n",filename_display);
+      printf("line=%d\n",sal.line);
+
+      (*filename) = (char*)malloc((strlen(filename_display)+1)*sizeof(char));
+      memcpy((*filename), filename_display, (strlen(filename_display)+1)*sizeof(char));
+      
+      (*line) = sal.line;
+      
+    }
+
+  //Clean up filename display and stuff??? 
+}
+
 
 static void
 print_frame (struct frame_info *frame, int print_level,

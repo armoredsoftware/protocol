@@ -34,3 +34,12 @@ extern char * ME_FT_get(struct ME_FT *, int);
 extern void ME_FT_encode(struct ME_FT *, int *, char **);
 extern void ME_FT_decode(char *, struct ME_FT **);
 extern void ME_FT_print_encoded(char *);
+
+struct ME_measurement;
+
+extern struct ME_measurement * ME_measurement_create(int);
+extern void ME_measurement_delete(struct ME_measurement *);
+extern void ME_measurement_print(struct ME_measurement *);
+extern void ME_measurement_send(int, struct ME_measurement *);
+extern void ME_measurement_send_temp(int, struct ME_measurement *);
+extern struct ME_measurement * ME_measurement_recieve(int);

@@ -3165,6 +3165,62 @@ wait_for_inferior (void)
   do_cleanups (old_cleanups);
 }
 
+void
+wait_for_inferior_JG (void)
+{
+  struct cleanup *old_cleanups;
+
+  if (debug_infrun)
+    fprintf_unfiltered
+      (gdb_stdlog, "infrun: wait_for_inferior ()\n");
+
+  old_cleanups
+    = make_cleanup (delete_just_stopped_threads_infrun_breakpoints_cleanup,
+		    NULL);
+
+  while (1)
+    {
+      struct execution_control_state ecss;
+      struct execution_control_state *ecs = &ecss;
+      struct cleanup *old_chain;
+      ptid_t waiton_ptid = minus_one_ptid;
+
+      memset (ecs, 0, sizeof (*ecs));
+
+      overlay_cache_invalid = 1;
+
+      /* Flush target cache before starting to handle each event.
+	 Target was running and cache could be stale.  This is just a
+	 heuristic.  Running threads may modify target memory, but we
+	 don't get any event.  */
+      target_dcache_invalidate ();
+
+      if (deprecated_target_wait_hook)
+	ecs->ptid = deprecated_target_wait_hook (waiton_ptid, &ecs->ws, TARGET_WNOHANG);
+      else
+	ecs->ptid = target_wait (waiton_ptid, &ecs->ws, TARGET_WNOHANG);
+
+      //if (debug_infrun)
+	print_target_wait_results (waiton_ptid, ecs->ptid, &ecs->ws);
+
+      /* If an error happens while handling the event, propagate GDB's
+	 knowledge of the executing state to the frontend/user running
+	 state.  */
+      old_chain = make_cleanup (finish_thread_state_cleanup, &minus_one_ptid);
+
+      /* Now figure out what to do with the result of the result.  */
+      handle_inferior_event (ecs);
+
+      /* No error, don't finish the state yet.  */
+      discard_cleanups (old_chain);
+
+      //if (!ecs->wait_some_more)
+	break;
+    }
+
+  do_cleanups (old_cleanups);
+}
+
 /* Cleanup that reinstalls the readline callback handler, if the
    target is running in the background.  If while handling the target
    event something triggered a secondary prompt, like e.g., a
@@ -3190,6 +3246,130 @@ reinstall_readline_callback_handler_cleanup (void *arg)
 
   if (async_command_editing_p && !sync_execution)
     gdb_rl_callback_handler_reinstall ();
+}
+
+int
+fetch_inferior_event_JG (char ** filename, int * line)
+{
+  int ret = 0;
+  
+  struct execution_control_state ecss;
+  struct execution_control_state *ecs = &ecss;
+  struct cleanup *old_chain = make_cleanup (null_cleanup, NULL);
+  struct cleanup *ts_old_chain;
+  int was_sync = sync_execution;
+  int cmd_done = 0;
+  ptid_t waiton_ptid = minus_one_ptid;
+
+  memset (ecs, 0, sizeof (*ecs));
+
+  /* End up with readline processing input, if necessary.  */
+  make_cleanup (reinstall_readline_callback_handler_cleanup, NULL);
+
+  /* We're handling a live event, so make sure we're doing live
+     debugging.  If we're looking at traceframes while the target is
+     running, we're going to need to get back to that mode after
+     handling the event.  */
+  if (non_stop)
+    {
+      make_cleanup_restore_current_traceframe ();
+      set_current_traceframe (-1);
+    }
+
+  if (non_stop)
+    /* In non-stop mode, the user/frontend should not notice a thread
+       switch due to internal events.  Make sure we reverse to the
+       user selected thread and frame after handling the event and
+       running any breakpoint commands.  */
+    make_cleanup_restore_current_thread ();
+
+  overlay_cache_invalid = 1;
+  /* Flush target cache before starting to handle each event.  Target
+     was running and cache could be stale.  This is just a heuristic.
+     Running threads may modify target memory, but we don't get any
+     event.  */
+  target_dcache_invalidate ();
+
+  make_cleanup_restore_integer (&execution_direction);
+  execution_direction = target_execution_direction ();
+
+  if (deprecated_target_wait_hook)
+    ecs->ptid =
+      deprecated_target_wait_hook (waiton_ptid, &ecs->ws, TARGET_WNOHANG);
+  else
+    ecs->ptid = target_wait (waiton_ptid, &ecs->ws, TARGET_WNOHANG);
+
+  if (debug_infrun)
+    print_target_wait_results (waiton_ptid, ecs->ptid, &ecs->ws);
+
+  /* If an error happens while handling the event, propagate GDB's
+     knowledge of the executing state to the frontend/user running
+     state.  */
+  if (!non_stop)
+    ts_old_chain = make_cleanup (finish_thread_state_cleanup, &minus_one_ptid);
+  else
+    ts_old_chain = make_cleanup (finish_thread_state_cleanup, &ecs->ptid);
+
+  /* Get executed before make_cleanup_restore_current_thread above to apply
+     still for the thread which has thrown the exception.  */
+  make_bpstat_clear_actions_cleanup ();
+
+  make_cleanup (delete_just_stopped_threads_infrun_breakpoints_cleanup, NULL);
+
+  /* Now figure out what to do with the result of the result.  */
+  handle_inferior_event (ecs);
+
+  if (!ecs->wait_some_more)
+    {
+      struct inferior *inf = find_inferior_ptid (ecs->ptid);
+
+      delete_just_stopped_threads_infrun_breakpoints ();
+
+      /* We may not find an inferior if this was a process exit.  */
+      if (inf == NULL || inf->control.stop_soon == NO_STOP_QUIETLY)
+	normal_stop ();
+
+      //struct thread_info *tp = inferior_thread ();
+      //bpstat_print (tp->control.stop_bpstat, ecs->ws.kind);  
+      //print_stack_frame (get_selected_frame (NULL), 0, SRC_AND_LOC, 1); 
+      //print_frame_JG(get_selected_frame(NULL));
+      BE_get_file_and_line(get_selected_frame(NULL), filename, line);
+      ret = 1;
+      
+      if (target_has_execution
+	  && ecs->ws.kind != TARGET_WAITKIND_NO_RESUMED
+	  && ecs->ws.kind != TARGET_WAITKIND_EXITED
+	  && ecs->ws.kind != TARGET_WAITKIND_SIGNALLED
+	  && ecs->event_thread->step_multi
+	  && ecs->event_thread->control.stop_step)
+	inferior_event_handler (INF_EXEC_CONTINUE, NULL);
+      else
+	{
+	  inferior_event_handler (INF_EXEC_COMPLETE, NULL);
+	  cmd_done = 1;
+	}
+    }
+
+  /* No error, don't finish the thread states yet.  */
+  discard_cleanups (ts_old_chain);
+
+  /* Revert thread and frame.  */
+  do_cleanups (old_chain);
+
+  /* If the inferior was in sync execution mode, and now isn't,
+     restore the prompt (a synchronous execution command has finished,
+     and we're ready for input).  */
+  if (interpreter_async && was_sync && !sync_execution)
+    observer_notify_sync_execution_done ();
+
+  if (cmd_done
+      && !was_sync
+      && exec_done_display_p
+      && (ptid_equal (inferior_ptid, null_ptid)
+	  || !is_running (inferior_ptid)))
+    printf_unfiltered (_("completed.\n"));
+
+  return ret;
 }
 
 /* Asynchronous version of wait_for_inferior.  It is called by the
@@ -6343,6 +6523,7 @@ print_stop_event (struct target_waitstatus *ws)
   struct thread_info *tp = inferior_thread ();
 
   bpstat_ret = bpstat_print (tp->control.stop_bpstat, ws->kind);
+
   switch (bpstat_ret)
     {
     case PRINT_UNKNOWN:
@@ -6386,7 +6567,7 @@ print_stop_event (struct target_waitstatus *ws)
      SRC_AND_LOC: Print location and source line.  */
   if (do_frame_printing)
     print_stack_frame (get_selected_frame (NULL), 0, source_flag, 1);
-
+  
   /* Display the auto-display expressions.  */
   do_displays ();
 }

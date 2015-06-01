@@ -92,7 +92,7 @@ void DI_get_measurer_response(int sockfd)
 
     ME_FT * decoded_ft;
     ME_FT_decode(encoded_ft, &decoded_ft);
-    ME_CG * decobded_cg;
+    ME_CG * decoded_cg;
     ME_CG_decode(encoded_cg, &decoded_cg);
     printf("callgraph = ");
     ME_CG_print(decoded_cg,decoded_ft);
@@ -103,6 +103,11 @@ void DI_get_measurer_response(int sockfd)
 
     ME_FT_delete(decoded_ft);
     ME_CG_delete(decoded_cg);
+  }
+  else if (message_type[0]==2) {
+    ME_measurement * ms = ME_measurement_recieve(sockfd);
+    ME_measurement_print(ms);
+    //DELETE measurement...
   }
   else
   {

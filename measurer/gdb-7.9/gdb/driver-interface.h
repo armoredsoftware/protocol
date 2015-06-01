@@ -1,5 +1,10 @@
 #include <stdbool.h>
 
+enum BE_event_type;
+struct BE_event_b;
+struct BE_event_t;
+union BE_event_union;
+struct BE_event;
 struct BE_Context;
 
 extern void BE_start_session(struct BE_Context *);
@@ -20,3 +25,12 @@ extern void BE_rhandler_callstack_get_at(struct BE_Context *, const char *);
 extern void BE_rhandler_print(struct BE_Context *);
 extern void BE_rhandler_set_target(struct BE_Context *, char *);
 extern void BE_rhandler_quit(struct BE_Context *);
+
+extern struct BE_event * BE_event_create_timed(int, int, int);
+//extern void BE_event_add_measurement(struct BE_event *, struct ME_measurement *);
+
+extern void BE_event_handle(struct BE_Context *, struct BE_event *);
+
+extern struct BE_event * BE_event_table_create();
+extern void BE_event_table_add(struct BE_event *, struct BE_event *);
+extern void BE_event_table_handle(struct BE_Context *, struct BE_event *, int, char *, int);
