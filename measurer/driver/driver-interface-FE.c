@@ -41,24 +41,11 @@ DI_init_measurer (void)
   if( connect(sockfd, (struct sockaddr *)&serv_addr, sizeof(serv_addr)) < 0)
   {
     printf("\n Error : Connect Failed \n");
-    return 1;
+    exit(-1);
+    //return 1;
   }
 
-  printf("Connected to server!\n");
-
-  /*while ( (n = read(sockfd, recvBuff, sizeof(recvBuff)-1)) > 0)
-    {
-      recvBuff[n] = 0;
-      if(fputs(recvBuff, stdout) == EOF)
-	{
-	  printf("\n Error : Fputs error\n");
-	}
-    }
-
-  if(n < 0)
-  {
-     printf("\n Read error \n");
-     }*/
+  printf("Connected to measurer!\n");
 
   return sockfd;
 }
@@ -66,18 +53,7 @@ DI_init_measurer (void)
 
 void DI_send_request(int sockfd, char * request)
 {
-  printf("Sending request to %d...\n", sockfd);
-  
-  char sendBuff[1025];
-
-  memset(sendBuff, 0 ,sizeof(sendBuff));
-  
-  snprintf(sendBuff, sizeof(sendBuff), request);
-  printf("Sending:%s\n", sendBuff);
-
-  write(sockfd, sendBuff, sizeof(sendBuff)-1); 
-
-  printf("Request sent!\n");
+  ME_sock_send(sockfd, request);
 }
 
 
@@ -85,68 +61,50 @@ void DI_get_response(int sockfd)
 {
   char response[1024];
   
-  DI_sock_recv(sockfd, response);
+  ME_sock_recv(sockfd, response);
 
   printf("response:%s\n", response);
   
 }
 
-
-int DI_sock_recv(int sockfd, char * message)
+void DI_interactive_mode(int sockfd)
 {
-  //char * recvBuff = (*result);
-  char recvBuff[1024];
-  int n;
-
-  memset(recvBuff, 0, sizeof(recvBuff));
-
-  n = read(sockfd, recvBuff, sizeof(recvBuff));
-
-  printf("recieved %d\n", n);
+  char* line=0;
+  size_t line_buf_len=0;
+  ssize_t curr_line_len;
   
-  if (n < 0)
-    {
-      printf("\n Error: Read error!\n");
-      return n;
-    }
-
-  recvBuff[strlen(recvBuff)-1] = 0;
-
-  strcpy(message,recvBuff);
-
-  return n;
-}
-
-int BE_sock_recv_dynamic(int sockfd, int * n, char ** message)
-{
-  int n1 = read(sockfd, n, sizeof(int));
-
-  printf("Expecting %d bytes!",(*n));
-
-  (*message) = (char *)malloc(sizeof(char)*(*n));
-
-  int n2 = read(sockfd, (*message), sizeof(char)*(*n));
-
-  int * as_int = (int *)(*message);
-  int as_int_n = (*n) / (sizeof(int) / sizeof(char));
-  printf("n -> n = %d -> %d\n", (*n), as_int_n);
-  int i;
-  for (i=0; i<as_int_n; i+=3)
+  //while ((curr_line_len=getline(&line, &line_buf_len, stdin))>0)
+  while (true)
   {
-    printf("[%d]%d,%d,%d\n",i,as_int[i],as_int[i+1],as_int[i+2]);
-  }
-  
-  if (n < 0)
+    printf("Enter command to send to measurer:");
+
+    curr_line_len=getline(&line, &line_buf_len, stdin);
+
+    DI_send_request(sockfd, line);
+    if (strcmp(line,"CG_get\n")==0
+	|| strcmp(line,"callstack_get\n")==0 )
     {
-      //printf("\n Error: Read error!\n");
-      return n;
+      int encoded_cg_count;
+      char * encoded_cg;
+      int encoded_ft_count;
+      char * encoded_ft;
+
+      ME_sock_recv_dynamic(sockfd, &encoded_cg_count, &encoded_cg);
+      ME_sock_recv_dynamic(sockfd, &encoded_ft_count, &encoded_ft);
+
+      ME_FT * decoded_ft;
+      ME_FT_decode(encoded_ft, &decoded_ft);
+      ME_CG * decoded_cg;
+      ME_CG_decode(encoded_cg, &decoded_cg);
+      printf("callgraph = ");
+      ME_CG_print(decoded_cg,decoded_ft);
+      printf("\n"); 
     }
-  /*
-  recvBuff[strlen(recvBuff)-1] = 0;
-
-  strcpy(message,recvBuff);
-  
-  return n;*/
-  return 0;
+    else if (strcmp(line,"quit\n")==0)
+    {
+      close(sockfd);
+      exit(0);
+    }
+    
+  }
 }
-
