@@ -355,7 +355,14 @@ start_event_loop (void)
     //execute_command("p c",1);
 
     //}
+
+  struct BE_Context * bec = BE_context_create();
+  BE_start_session(bec);
   
+  while(1) {
+    BE_get_request(bec);
+    BE_do_continuous(bec);
+  }
   
   while (1)
     {
@@ -372,16 +379,10 @@ start_event_loop (void)
 	  } else if (c==1) {
 	    result = gdb_do_one_event ();
 	  } else if (c==2) {
-	    //execute_command("bt",1);
-
 	    break_command("test1.c:10",1);
-
 	    while (1) {
 	      printf("================\n");
 	      execute_command("c",1);
-	      //continue_command(NULL,1);
-	      //sleep(100);
-	      //gdb_wait_for_event(1);
 
 	      wait_for_inferior();
 	      normal_stop();
@@ -394,21 +395,6 @@ start_event_loop (void)
 	    
 	    }
 
-	    //result = gdb_do_one_event ();
-	    //result = gdb_do_one_event ();
-	    
-	    //execute_command("p c",1);
-	    //} else if (c==3) {
-	    //result = gdb_do_one_event ();
-	    //} else if (c==4) {
-	    //execute_command("b test1.c:10",1);
-	    //execute_command("c",1);
-	    //execute_command("bt",1);
-	    
-	    //detach_command(NULL,1);
-	    //quit_command(NULL,1);
-	    //} else if (c==3) {
-	    //execute_command("p c",1);
 	  } else {
 	    result = gdb_do_one_event ();
 	  } 

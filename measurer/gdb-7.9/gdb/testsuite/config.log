@@ -179,17 +179,8 @@ configure:3424: checking for stdint.h
 configure:3424: result: yes
 configure:3424: checking for unistd.h
 configure:3424: result: yes
-configure:3439: checking pthread.h usability
-configure:3439: gcc -c -g -O2  conftest.c >&5
-configure:3439: $? = 0
-configure:3439: result: yes
-configure:3439: checking pthread.h presence
-configure:3439: gcc -E  conftest.c
-configure:3439: $? = 0
-configure:3439: result: yes
 configure:3439: checking for pthread.h
 configure:3439: result: yes
-configure:3528: updating cache .././config.cache
 configure:3605: creating ./config.status
 
 ## ---------------------- ##
@@ -287,6 +278,7 @@ ac_cv_env_target_alias_value=x86_64-unknown-linux-gnu
 ac_cv_func__mcleanup=yes
 ac_cv_func_alloca_works=yes
 ac_cv_func_btowc=yes
+ac_cv_func_dladdr=yes
 ac_cv_func_fdwalk=no
 ac_cv_func_fork=yes
 ac_cv_func_fork_works=yes
@@ -332,18 +324,24 @@ ac_cv_func_wresize=yes
 ac_cv_have_decl_ADDR_NO_RANDOMIZE=yes
 ac_cv_have_decl_free=yes
 ac_cv_have_decl_malloc=yes
+ac_cv_have_decl_perror=yes
 ac_cv_have_decl_ptrace=yes
 ac_cv_have_decl_realloc=yes
 ac_cv_have_decl_snprintf=yes
 ac_cv_have_decl_strerror=yes
 ac_cv_have_decl_strstr=yes
+ac_cv_have_decl_vasprintf=yes
+ac_cv_have_decl_vsnprintf=yes
 ac_cv_have_x=have_x=no
+ac_cv_header_arpa_inet_h=yes
 ac_cv_header_cursesX_h=no
 ac_cv_header_curses_h=yes
 ac_cv_header_dlfcn_h=yes
 ac_cv_header_elf_hp_h=no
+ac_cv_header_fcntl_h=yes
 ac_cv_header_inttypes_h=yes
 ac_cv_header_libunwind_ia64_h=no
+ac_cv_header_linux_elf_h=yes
 ac_cv_header_linux_perf_event_h=yes
 ac_cv_header_locale_h=yes
 ac_cv_header_machine_reg_h=no
@@ -352,6 +350,9 @@ ac_cv_header_minix_config_h=no
 ac_cv_header_ncurses_h=yes
 ac_cv_header_ncurses_ncurses_h=yes
 ac_cv_header_ncurses_term_h=yes
+ac_cv_header_netdb_h=yes
+ac_cv_header_netinet_in_h=yes
+ac_cv_header_netinet_tcp_h=yes
 ac_cv_header_nlist_h=yes
 ac_cv_header_poll_h=yes
 ac_cv_header_proc_service_h=no
@@ -393,6 +394,7 @@ ac_cv_header_vfork_h=no
 ac_cv_header_wait_h=yes
 ac_cv_header_windows_h=no
 ac_cv_host=x86_64-unknown-linux-gnu
+ac_cv_lib_dl_dlopen=yes
 ac_cv_lib_m_main=yes
 ac_cv_libbabeltrace=no
 ac_cv_libexpat=no
@@ -435,6 +437,8 @@ ac_cv_sizeof_unsigned_long_long=8
 ac_cv_sys_file_offset_bits=no
 ac_cv_sys_largefile_CC=no
 ac_cv_target=x86_64-unknown-linux-gnu
+ac_cv_type_Elf32_auxv_t=yes
+ac_cv_type_Elf64_auxv_t=yes
 ac_cv_type_pid_t=yes
 ac_cv_type_signal=void
 ac_cv_type_socklen_t=yes
@@ -461,6 +465,7 @@ am_cv_proto_iconv='extern size_t iconv (iconv_t cd, char * *inbuf, size_t *inbyt
 am_cv_proto_iconv_arg1=
 am_cv_use_build_libiconv=no
 am_cv_val_LC_MESSAGES=yes
+bfd_cv_have_sys_procfs_type_elf_fpregset_t=yes
 bfd_cv_have_sys_procfs_type_fpregset_t=no
 bfd_cv_have_sys_procfs_type_gregset_t=no
 bfd_cv_have_sys_procfs_type_lwpid_t=yes
@@ -498,6 +503,12 @@ gdb_cv_thread_db_h_has_td_version=yes
 gdb_cv_var_elf=yes
 gdb_cv_var_macho=no
 gdb_cv_var_som=no
+gdbsrv_cv_have_personality=true
+gdbsrv_cv_have_ptrace_getfpxregs=yes
+gdbsrv_cv_have_ptrace_getregs=yes
+gdbsrv_cv_have_sync_builtins=yes
+gdbsrv_cv_have_td_version=yes
+gdbsrv_cv_have_visibility_hidden=yes
 
 ## ----------------- ##
 ## Output variables. ##

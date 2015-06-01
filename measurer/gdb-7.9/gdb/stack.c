@@ -1126,6 +1126,36 @@ find_frame_funname (struct frame_info *frame, char **funname,
     }
 }
 
+struct BE_CG * 
+BE_CG_from_frame(struct frame_info *frame, struct BE_func_table * ft)
+{
+  if (get_frame_type (frame) == DUMMY_FRAME
+      || get_frame_type (frame) == SIGTRAMP_FRAME
+      || get_frame_type (frame) == ARCH_FRAME)
+    {
+      printf("SPECIAL FRAME UNHANLDED!");
+      exit(-1);
+    }
+  
+  char *funname = NULL;
+  enum language funlang = language_unknown;
+  struct value_print_options opts;
+  struct symbol *func;
+  CORE_ADDR pc = 0;
+  //int pc_p;
+  
+  //pc_p = get_frame_pc_if_available (frame, &pc);
+
+  find_frame_funname (frame, &funname, &funlang, &func);
+  //make_cleanup (xfree, funname);
+
+  printf("LEVEL = %d, NAME = %s \n", frame_relative_level(frame), funname);
+
+  struct BE_CG * cg = BE_CG_create(BE_func_table_add(ft,funname));
+  return cg;
+  //return BE_func_table_add(ft,funname));
+}
+
 static void
 print_frame (struct frame_info *frame, int print_level,
 	     enum print_what print_what, int print_args,
@@ -1697,6 +1727,133 @@ frame_info (char *addr_exp, int from_tty)
   do_cleanups (back_to);
 }
 
+void
+BE_get_call_stack_as_CG (char *count_exp, int show_locals, int no_filters,
+		      int from_tty, struct BC_CG ** cg, struct BC_func_table * ft)
+{
+  struct frame_info *fi;
+  int count;
+  int i;
+  struct frame_info *trailing;
+  int trailing_level, py_start = 0, py_end = 0;
+  enum ext_lang_bt_status result = EXT_LANG_BT_ERROR;
+
+  if (!target_has_stack)
+    error (_("No stack."));
+
+  /* The following code must do two things.  First, it must set the
+     variable TRAILING to the frame from which we should start
+     printing.  Second, it must set the variable count to the number
+     of frames which we should print, or -1 if all of them.  */
+  trailing = get_current_frame ();
+
+  trailing_level = 0;
+  if (count_exp)
+    {
+      count = parse_and_eval_long (count_exp);
+      if (count < 0)
+	{
+	  struct frame_info *current;
+
+	  py_start = count;
+	  count = -count;
+
+	  current = trailing;
+	  while (current && count--)
+	    {
+	      QUIT;
+	      current = get_prev_frame (current);
+	    }
+
+	  /* Will stop when CURRENT reaches the top of the stack.
+	     TRAILING will be COUNT below it.  */
+	  while (current)
+	    {
+	      QUIT;
+	      trailing = get_prev_frame (trailing);
+	      current = get_prev_frame (current);
+	      trailing_level++;
+	    }
+
+	  count = -1;
+	}
+      else
+	{
+	  py_start = 0;
+	  py_end = count;
+	}
+    }
+  else
+    {
+      py_end = -1;
+      count = -1;
+    }
+  
+  if (! no_filters)
+    {
+      int flags = PRINT_LEVEL | PRINT_FRAME_INFO | PRINT_ARGS;
+      enum ext_lang_frame_args arg_type;
+
+      if (show_locals)
+	flags |= PRINT_LOCALS;
+
+      if (!strcmp (print_frame_arguments, "scalars"))
+	arg_type = CLI_SCALAR_VALUES;
+      else if (!strcmp (print_frame_arguments, "all"))
+	arg_type = CLI_ALL_VALUES;
+      else
+	arg_type = NO_VALUES;
+
+      result = apply_ext_lang_frame_filter (get_current_frame (), flags,
+					    arg_type, current_uiout,
+					    py_start, py_end);
+    }
+
+  /* Run the inbuilt backtrace if there are no filters registered, or
+     "no-filters" has been specified from the command.  */
+  if (no_filters ||  result == EXT_LANG_BT_NO_FILTERS)
+    {
+
+      struct BE_CG * last_cg = NULL;
+      
+      for (i = 0, fi = trailing; fi && count--; i++, fi = get_prev_frame (fi))
+	{
+	  QUIT;
+
+	  /* Don't use print_stack_frame; if an error() occurs it probably
+	     means further attempts to backtrace would fail (on the other
+	     hand, perhaps the code does or could be fixed to make sure
+	     the frame->prev field gets set to NULL in that case).  */
+
+	  struct BE_CG * cg_frame = BE_CG_from_frame (fi, ft);
+	  BE_CG_add_child(cg_frame, last_cg);
+	  
+	  /* Save the last frame to check for error conditions.  */
+	  trailing = fi;
+	  last_cg = cg_frame;
+	}
+
+      (*cg) = last_cg;
+            
+      /* If we've stopped before the end, mention that.  */
+      if (fi && from_tty)
+	printf_filtered (_("(More stack frames follow...)\n"));
+
+      /* If we've run out of frames, and the reason appears to be an error
+	 condition, print it.  */
+      if (fi == NULL && trailing != NULL)
+	{
+	  enum unwind_stop_reason reason;
+
+	  reason = get_frame_unwind_stop_reason (trailing);
+	  if (reason >= UNWIND_FIRST_ERROR)
+	    printf_filtered (_("Backtrace stopped: %s\n"),
+			     frame_stop_reason_string (trailing));
+	}
+    }
+}
+
+
 /* Print briefly all stack frames or just the innermost COUNT_EXP
    frames.  */
 
@@ -1853,6 +2010,7 @@ backtrace_command_1 (char *count_exp, int show_locals, int no_filters,
 }
 
 static void
+
 backtrace_command (char *arg, int from_tty)
 {
   struct cleanup *old_chain = make_cleanup (null_cleanup, NULL);

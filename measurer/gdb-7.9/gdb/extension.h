@@ -87,6 +87,7 @@ enum frame_filter_flags
     PRINT_LEVEL = 1,
 
     /* Set this flag if frame information is to be printed.  */
+
     PRINT_FRAME_INFO = 2,
 
     /* Set this flag if frame arguments are to be printed.  */

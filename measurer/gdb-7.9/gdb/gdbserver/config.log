@@ -217,23 +217,7 @@ configure:4737: checking for proc_service.h
 configure:4737: result: no
 configure:4737: checking for sys/procfs.h
 configure:4737: result: yes
-configure:4737: checking linux/elf.h usability
-configure:4737: gcc -c -g -O2  conftest.c >&5
-configure:4737: $? = 0
-configure:4737: result: yes
-configure:4737: checking linux/elf.h presence
-configure:4737: gcc -E  conftest.c
-configure:4737: $? = 0
-configure:4737: result: yes
 configure:4737: checking for linux/elf.h
-configure:4737: result: yes
-configure:4737: checking fcntl.h usability
-configure:4737: gcc -c -g -O2  conftest.c >&5
-configure:4737: $? = 0
-configure:4737: result: yes
-configure:4737: checking fcntl.h presence
-configure:4737: gcc -E  conftest.c
-configure:4737: $? = 0
 configure:4737: result: yes
 configure:4737: checking for fcntl.h
 configure:4737: result: yes
@@ -243,45 +227,13 @@ configure:4737: checking for sys/file.h
 configure:4737: result: yes
 configure:4737: checking for sys/ioctl.h
 configure:4737: result: yes
-configure:4737: checking netinet/in.h usability
-configure:4737: gcc -c -g -O2  conftest.c >&5
-configure:4737: $? = 0
-configure:4737: result: yes
-configure:4737: checking netinet/in.h presence
-configure:4737: gcc -E  conftest.c
-configure:4737: $? = 0
-configure:4737: result: yes
 configure:4737: checking for netinet/in.h
 configure:4737: result: yes
 configure:4737: checking for sys/socket.h
 configure:4737: result: yes
-configure:4737: checking netdb.h usability
-configure:4737: gcc -c -g -O2  conftest.c >&5
-configure:4737: $? = 0
-configure:4737: result: yes
-configure:4737: checking netdb.h presence
-configure:4737: gcc -E  conftest.c
-configure:4737: $? = 0
-configure:4737: result: yes
 configure:4737: checking for netdb.h
 configure:4737: result: yes
-configure:4737: checking netinet/tcp.h usability
-configure:4737: gcc -c -g -O2  conftest.c >&5
-configure:4737: $? = 0
-configure:4737: result: yes
-configure:4737: checking netinet/tcp.h presence
-configure:4737: gcc -E  conftest.c
-configure:4737: $? = 0
-configure:4737: result: yes
 configure:4737: checking for netinet/tcp.h
-configure:4737: result: yes
-configure:4737: checking arpa/inet.h usability
-configure:4737: gcc -c -g -O2  conftest.c >&5
-configure:4737: $? = 0
-configure:4737: result: yes
-configure:4737: checking arpa/inet.h presence
-configure:4737: gcc -E  conftest.c
-configure:4737: $? = 0
 configure:4737: result: yes
 configure:4737: checking for arpa/inet.h
 configure:4737: result: yes
@@ -438,219 +390,24 @@ configure:5313: gcc -c -g -O2 -Wempty-body  conftest.c >&5
 configure:5313: $? = 0
 configure:5320: result:  -Wall -Wdeclaration-after-statement -Wpointer-arith -Wformat-nonliteral -Wno-char-subscripts -Wempty-body 
 configure:5330: checking for dladdr
-configure:5330: gcc -o conftest -g -O2    conftest.c  -ldl >&5
-configure:5330: $? = 0
 configure:5330: result: yes
 configure:5341: checking whether strerror is declared
 configure:5341: result: yes
 configure:5351: checking whether perror is declared
-configure:5351: gcc -c -g -O2  conftest.c >&5
-configure:5351: $? = 0
 configure:5351: result: yes
 configure:5361: checking whether vasprintf is declared
-configure:5361: gcc -c -g -O2  conftest.c >&5
-configure:5361: $? = 0
 configure:5361: result: yes
 configure:5371: checking whether vsnprintf is declared
-configure:5371: gcc -c -g -O2  conftest.c >&5
-configure:5371: $? = 0
 configure:5371: result: yes
 configure:5383: checking for socklen_t
 configure:5383: result: yes
 configure:5397: checking for Elf32_auxv_t
-configure:5397: gcc -c -g -O2  conftest.c >&5
-configure:5397: $? = 0
-configure:5397: gcc -c -g -O2  conftest.c >&5
-conftest.c: In function 'main':
-conftest.c:78:27: error: expected expression before ')' token
- if (sizeof ((Elf32_auxv_t)))
-                           ^
-configure:5397: $? = 1
-configure: failed program was:
-| /* confdefs.h */
-| #define PACKAGE_NAME ""
-| #define PACKAGE_TARNAME ""
-| #define PACKAGE_VERSION ""
-| #define PACKAGE_STRING ""
-| #define PACKAGE_BUGREPORT ""
-| #define PACKAGE_URL ""
-| #define STDC_HEADERS 1
-| #define HAVE_SYS_TYPES_H 1
-| #define HAVE_SYS_STAT_H 1
-| #define HAVE_STDLIB_H 1
-| #define HAVE_STRING_H 1
-| #define HAVE_MEMORY_H 1
-| #define HAVE_STRINGS_H 1
-| #define HAVE_INTTYPES_H 1
-| #define HAVE_STDINT_H 1
-| #define HAVE_UNISTD_H 1
-| #define __EXTENSIONS__ 1
-| #define _ALL_SOURCE 1
-| #define _GNU_SOURCE 1
-| #define _POSIX_PTHREAD_SEMANTICS 1
-| #define _TANDEM_SOURCE 1
-| #define STDC_HEADERS 1
-| #define HAVE_SGTTY_H 1
-| #define HAVE_TERMIO_H 1
-| #define HAVE_TERMIOS_H 1
-| #define HAVE_SYS_REG_H 1
-| #define HAVE_STRING_H 1
-| #define HAVE_SYS_PROCFS_H 1
-| #define HAVE_LINUX_ELF_H 1
-| #define HAVE_FCNTL_H 1
-| #define HAVE_SIGNAL_H 1
-| #define HAVE_SYS_FILE_H 1
-| #define HAVE_SYS_IOCTL_H 1
-| #define HAVE_NETINET_IN_H 1
-| #define HAVE_SYS_SOCKET_H 1
-| #define HAVE_NETDB_H 1
-| #define HAVE_NETINET_TCP_H 1
-| #define HAVE_ARPA_INET_H 1
-| #define HAVE_PREAD 1
-| #define HAVE_PWRITE 1
-| #define HAVE_PREAD64 1
-| #define STDC_HEADERS 1
-| #define HAVE_ALLOCA_H 1
-| #define HAVE_ALLOCA 1
-| #define HAVE_LANGINFO_CODESET 1
-| #define HAVE_LINUX_PERF_EVENT_H 1
-| #define HAVE_LOCALE_H 1
-| #define HAVE_MEMORY_H 1
-| #define HAVE_SIGNAL_H 1
-| #define HAVE_SYS_RESOURCE_H 1
-| #define HAVE_SYS_SOCKET_H 1
-| #define HAVE_SYS_SYSCALL_H 1
-| #define HAVE_SYS_UN_H 1
-| #define HAVE_SYS_WAIT_H 1
-| #define HAVE_THREAD_DB_H 1
-| #define HAVE_WAIT_H 1
-| #define HAVE_GETRLIMIT 1
-| #define HAVE_PIPE 1
-| #define HAVE_PIPE2 1
-| #define HAVE_SOCKETPAIR 1
-| #define HAVE_DECL_STRERROR 1
-| #define HAVE_DECL_STRSTR 1
-| #define HAVE_SIGSETJMP 1
-| #define HAVE_DLADDR 1
-| #define HAVE_DECL_STRERROR 1
-| #define HAVE_DECL_PERROR 1
-| #define HAVE_DECL_VASPRINTF 1
-| #define HAVE_DECL_VSNPRINTF 1
-| #define HAVE_SOCKLEN_T 1
-| /* end confdefs.h.  */
-| #include <elf.h>
-| 
-| 
-| int
-| main ()
-| {
-| if (sizeof ((Elf32_auxv_t)))
-| 	    return 0;
-|   ;
-|   return 0;
-| }
 configure:5397: result: yes
 configure:5408: checking for Elf64_auxv_t
-configure:5408: gcc -c -g -O2  conftest.c >&5
-configure:5408: $? = 0
-configure:5408: gcc -c -g -O2  conftest.c >&5
-conftest.c: In function 'main':
-conftest.c:79:27: error: expected expression before ')' token
- if (sizeof ((Elf64_auxv_t)))
-                           ^
-configure:5408: $? = 1
-configure: failed program was:
-| /* confdefs.h */
-| #define PACKAGE_NAME ""
-| #define PACKAGE_TARNAME ""
-| #define PACKAGE_VERSION ""
-| #define PACKAGE_STRING ""
-| #define PACKAGE_BUGREPORT ""
-| #define PACKAGE_URL ""
-| #define STDC_HEADERS 1
-| #define HAVE_SYS_TYPES_H 1
-| #define HAVE_SYS_STAT_H 1
-| #define HAVE_STDLIB_H 1
-| #define HAVE_STRING_H 1
-| #define HAVE_MEMORY_H 1
-| #define HAVE_STRINGS_H 1
-| #define HAVE_INTTYPES_H 1
-| #define HAVE_STDINT_H 1
-| #define HAVE_UNISTD_H 1
-| #define __EXTENSIONS__ 1
-| #define _ALL_SOURCE 1
-| #define _GNU_SOURCE 1
-| #define _POSIX_PTHREAD_SEMANTICS 1
-| #define _TANDEM_SOURCE 1
-| #define STDC_HEADERS 1
-| #define HAVE_SGTTY_H 1
-| #define HAVE_TERMIO_H 1
-| #define HAVE_TERMIOS_H 1
-| #define HAVE_SYS_REG_H 1
-| #define HAVE_STRING_H 1
-| #define HAVE_SYS_PROCFS_H 1
-| #define HAVE_LINUX_ELF_H 1
-| #define HAVE_FCNTL_H 1
-| #define HAVE_SIGNAL_H 1
-| #define HAVE_SYS_FILE_H 1
-| #define HAVE_SYS_IOCTL_H 1
-| #define HAVE_NETINET_IN_H 1
-| #define HAVE_SYS_SOCKET_H 1
-| #define HAVE_NETDB_H 1
-| #define HAVE_NETINET_TCP_H 1
-| #define HAVE_ARPA_INET_H 1
-| #define HAVE_PREAD 1
-| #define HAVE_PWRITE 1
-| #define HAVE_PREAD64 1
-| #define STDC_HEADERS 1
-| #define HAVE_ALLOCA_H 1
-| #define HAVE_ALLOCA 1
-| #define HAVE_LANGINFO_CODESET 1
-| #define HAVE_LINUX_PERF_EVENT_H 1
-| #define HAVE_LOCALE_H 1
-| #define HAVE_MEMORY_H 1
-| #define HAVE_SIGNAL_H 1
-| #define HAVE_SYS_RESOURCE_H 1
-| #define HAVE_SYS_SOCKET_H 1
-| #define HAVE_SYS_SYSCALL_H 1
-| #define HAVE_SYS_UN_H 1
-| #define HAVE_SYS_WAIT_H 1
-| #define HAVE_THREAD_DB_H 1
-| #define HAVE_WAIT_H 1
-| #define HAVE_GETRLIMIT 1
-| #define HAVE_PIPE 1
-| #define HAVE_PIPE2 1
-| #define HAVE_SOCKETPAIR 1
-| #define HAVE_DECL_STRERROR 1
-| #define HAVE_DECL_STRSTR 1
-| #define HAVE_SIGSETJMP 1
-| #define HAVE_DLADDR 1
-| #define HAVE_DECL_STRERROR 1
-| #define HAVE_DECL_PERROR 1
-| #define HAVE_DECL_VASPRINTF 1
-| #define HAVE_DECL_VSNPRINTF 1
-| #define HAVE_SOCKLEN_T 1
-| #define HAVE_ELF32_AUXV_T 1
-| /* end confdefs.h.  */
-| #include <elf.h>
-| 
-| 
-| int
-| main ()
-| {
-| if (sizeof ((Elf64_auxv_t)))
-| 	    return 0;
-|   ;
-|   return 0;
-| }
 configure:5408: result: yes
 configure:5569: checking for PTRACE_GETREGS
-configure:5585: gcc -c -g -O2  conftest.c >&5
-configure:5585: $? = 0
 configure:5593: result: yes
 configure:5601: checking for PTRACE_GETFPXREGS
-configure:5617: gcc -c -g -O2  conftest.c >&5
-configure:5617: $? = 0
 configure:5625: result: yes
 configure:5641: checking for lwpid_t in sys/procfs.h
 configure:5675: result: yes
@@ -659,24 +416,16 @@ configure:5712: result: yes
 configure:5715: checking for prgregset_t in sys/procfs.h
 configure:5749: result: yes
 configure:5752: checking for elf_fpregset_t in sys/procfs.h
-configure:5772: gcc -c -g -O2  conftest.c >&5
-configure:5772: $? = 0
 configure:5786: result: yes
 configure:5866: checking for dlopen in -ldl
-configure:5891: gcc -o conftest -g -O2    conftest.c -ldl   >&5
-configure:5891: $? = 0
 configure:5900: result: yes
 configure:5919: checking for the dynamic export flag
 configure:5937: gcc -o conftest -g -O2    -Wl,--dynamic-list=./proc-service.list conftest.c  >&5
 configure:5937: $? = 0
 configure:5967: result: -Wl,--dynamic-list
 configure:5977: checking for TD_VERSION
-configure:5993: gcc -c -g -O2  conftest.c >&5
-configure:5993: $? = 0
 configure:6000: result: yes
 configure:6040: checking whether the target supports __sync_*_compare_and_swap
-configure:6057: gcc -o conftest -g -O2    conftest.c  >&5
-configure:6057: $? = 0
 configure:6065: result: yes
 configure:6086: gcc -c -g -O2 -fvisibility=hidden  conftest.c >&5
 configure:6086: $? = 0
@@ -686,7 +435,6 @@ configure:6152: gcc -o conftest -g -O2    conftest.c  >&5
 configure:6152: $? = 0
 configure:6152: ./conftest
 configure:6152: $? = 0
-configure:6286: updating cache .././config.cache
 configure:6331: creating ./config.status
 
 ## ---------------------- ##
@@ -706,6 +454,7 @@ on frosting.ittc.ku.edu
 
 config.status:934: creating Makefile
 config.status:934: creating config.h
+config.status:1100: config.h is unchanged
 config.status:1114: executing depdir commands
 config.status:1114: executing default commands
 

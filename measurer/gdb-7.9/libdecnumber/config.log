@@ -73,7 +73,7 @@ configure:2129: loading site script /usr/share/config.site
 |         fi
 |     done
 | fi
-configure:2148: creating cache ./config.cache
+configure:2140: loading cache ./config.cache
 configure:2251: checking whether make sets $(MAKE)
 configure:2273: result: yes
 configure:2290: checking for x86_64-unknown-linux-gnu-gcc
@@ -120,94 +120,40 @@ configure:2752: gcc -o conftest -g -O2    conftest.c  >&5
 configure:2756: $? = 0
 configure:2778: result: 
 configure:2784: checking for suffix of object files
-configure:2806: gcc -c -g -O2  conftest.c >&5
-configure:2810: $? = 0
 configure:2831: result: o
 configure:2835: checking whether we are using the GNU C compiler
-configure:2854: gcc -c -g -O2  conftest.c >&5
-configure:2854: $? = 0
 configure:2863: result: yes
 configure:2872: checking whether gcc accepts -g
-configure:2892: gcc -c -g  conftest.c >&5
-configure:2892: $? = 0
 configure:2933: result: yes
 configure:2950: checking for gcc option to accept ISO C89
-configure:3014: gcc  -c -g -O2  conftest.c >&5
-configure:3014: $? = 0
 configure:3027: result: none needed
 configure:3050: checking for x86_64-unknown-linux-gnu-ranlib
 configure:3077: result: ranlib
 configure:3145: checking for aclocal
-configure:3161: found /bin/aclocal
 configure:3172: result: aclocal
 configure:3188: checking for autoconf
-configure:3204: found /bin/autoconf
 configure:3215: result: autoconf
 configure:3231: checking for autoheader
-configure:3247: found /bin/autoheader
 configure:3258: result: autoheader
 configure:3288: checking whether gcc supports -W
-configure:3305: gcc -c -W  conftest.c >&5
-configure:3305: $? = 0
 configure:3314: result: yes
 configure:3288: checking whether gcc supports -Wall
-configure:3305: gcc -c -Wall  conftest.c >&5
-configure:3305: $? = 0
 configure:3314: result: yes
 configure:3288: checking whether gcc supports -Wwrite-strings
-configure:3305: gcc -c -Wwrite-strings  conftest.c >&5
-configure:3305: $? = 0
 configure:3314: result: yes
 configure:3288: checking whether gcc supports -Wstrict-prototypes
-configure:3305: gcc -c -Wstrict-prototypes  conftest.c >&5
-conftest.c:11:1: warning: function declaration isn't a prototype [-Wstrict-prototypes]
- main ()
- ^
-configure:3305: $? = 0
 configure:3314: result: yes
 configure:3288: checking whether gcc supports -Wmissing-prototypes
-configure:3305: gcc -c -Wmissing-prototypes  conftest.c >&5
-configure:3305: $? = 0
 configure:3314: result: yes
 configure:3288: checking whether gcc supports -Wold-style-definition
-configure:3305: gcc -c -Wold-style-definition  conftest.c >&5
-conftest.c: In function 'main':
-conftest.c:11:1: warning: old-style function definition [-Wold-style-definition]
- main ()
- ^
-configure:3305: $? = 0
 configure:3314: result: yes
 configure:3288: checking whether gcc supports -Wmissing-format-attribute
-configure:3305: gcc -c -Wmissing-format-attribute  conftest.c >&5
-configure:3305: $? = 0
 configure:3314: result: yes
 configure:3288: checking whether gcc supports -Wcast-qual
-configure:3305: gcc -c -Wcast-qual  conftest.c >&5
-configure:3305: $? = 0
 configure:3314: result: yes
 configure:3326: checking whether gcc supports -pedantic -Wlong-long
-configure:3344: gcc -c -pedantic -Wlong-long  conftest.c >&5
-configure:3344: $? = 0
 configure:3352: result: yes
 configure:3383: checking how to run the C preprocessor
-configure:3414: gcc -E  conftest.c
-configure:3414: $? = 0
-configure:3428: gcc -E  conftest.c
-conftest.c:9:28: fatal error: ac_nonexistent.h: No such file or directory
- #include <ac_nonexistent.h>
-                            ^
-compilation terminated.
-configure:3428: $? = 1
-configure: failed program was:
-| /* confdefs.h */
-| #define PACKAGE_NAME "libdecnumber"
-| #define PACKAGE_TARNAME "libdecnumber"
-| #define PACKAGE_VERSION " "
-| #define PACKAGE_STRING "libdecnumber  "
-| #define PACKAGE_BUGREPORT "gcc-bugs@gcc.gnu.org"
-| #define PACKAGE_URL ""
-| /* end confdefs.h.  */
-| #include <ac_nonexistent.h>
 configure:3453: result: gcc -E
 configure:3473: gcc -E  conftest.c
 configure:3473: $? = 0
@@ -232,78 +178,30 @@ configure:3574: result: /bin/grep
 configure:3579: checking for egrep
 configure:3641: result: /bin/grep -E
 configure:3646: checking for ANSI C header files
-configure:3666: gcc -c -g -O2  conftest.c >&5
-configure:3666: $? = 0
-configure:3739: gcc -o conftest -g -O2    conftest.c  >&5
-configure:3739: $? = 0
-configure:3739: ./conftest
-configure:3739: $? = 0
 configure:3750: result: yes
 configure:3763: checking for sys/types.h
-configure:3763: gcc -c -g -O2  conftest.c >&5
-configure:3763: $? = 0
 configure:3763: result: yes
 configure:3763: checking for sys/stat.h
-configure:3763: gcc -c -g -O2  conftest.c >&5
-configure:3763: $? = 0
 configure:3763: result: yes
 configure:3763: checking for stdlib.h
-configure:3763: gcc -c -g -O2  conftest.c >&5
-configure:3763: $? = 0
 configure:3763: result: yes
 configure:3763: checking for string.h
-configure:3763: gcc -c -g -O2  conftest.c >&5
-configure:3763: $? = 0
 configure:3763: result: yes
 configure:3763: checking for memory.h
-configure:3763: gcc -c -g -O2  conftest.c >&5
-configure:3763: $? = 0
 configure:3763: result: yes
 configure:3763: checking for strings.h
-configure:3763: gcc -c -g -O2  conftest.c >&5
-configure:3763: $? = 0
 configure:3763: result: yes
 configure:3763: checking for inttypes.h
-configure:3763: gcc -c -g -O2  conftest.c >&5
-configure:3763: $? = 0
 configure:3763: result: yes
 configure:3763: checking for stdint.h
-configure:3763: gcc -c -g -O2  conftest.c >&5
-configure:3763: $? = 0
 configure:3763: result: yes
 configure:3763: checking for unistd.h
-configure:3763: gcc -c -g -O2  conftest.c >&5
-configure:3763: $? = 0
 configure:3763: result: yes
-configure:3779: checking ctype.h usability
-configure:3779: gcc -c -g -O2  conftest.c >&5
-configure:3779: $? = 0
-configure:3779: result: yes
-configure:3779: checking ctype.h presence
-configure:3779: gcc -E  conftest.c
-configure:3779: $? = 0
-configure:3779: result: yes
 configure:3779: checking for ctype.h
-configure:3779: result: yes
-configure:3779: checking stddef.h usability
-configure:3779: gcc -c -g -O2  conftest.c >&5
-configure:3779: $? = 0
-configure:3779: result: yes
-configure:3779: checking stddef.h presence
-configure:3779: gcc -E  conftest.c
-configure:3779: $? = 0
 configure:3779: result: yes
 configure:3779: checking for stddef.h
 configure:3779: result: yes
 configure:3779: checking for string.h
-configure:3779: result: yes
-configure:3779: checking stdio.h usability
-configure:3779: gcc -c -g -O2  conftest.c >&5
-configure:3779: $? = 0
-configure:3779: result: yes
-configure:3779: checking stdio.h presence
-configure:3779: gcc -E  conftest.c
-configure:3779: $? = 0
 configure:3779: result: yes
 configure:3779: checking for stdio.h
 configure:3779: result: yes
@@ -530,94 +428,12 @@ configure:3839: result: yes
 configure:3920: checking what to include in gstdint.h
 configure:3948: result: stdint.h (already complete)
 configure:4198: checking for an ANSI C-conforming const
-configure:4263: gcc -c -g -O2  conftest.c >&5
-configure:4263: $? = 0
 configure:4270: result: yes
 configure:4278: checking for off_t
-configure:4278: gcc -c -g -O2  conftest.c >&5
-configure:4278: $? = 0
-configure:4278: gcc -c -g -O2  conftest.c >&5
-conftest.c: In function 'main':
-conftest.c:59:20: error: expected expression before ')' token
- if (sizeof ((off_t)))
-                    ^
-configure:4278: $? = 1
-configure: failed program was:
-| /* confdefs.h */
-| #define PACKAGE_NAME "libdecnumber"
-| #define PACKAGE_TARNAME "libdecnumber"
-| #define PACKAGE_VERSION " "
-| #define PACKAGE_STRING "libdecnumber  "
-| #define PACKAGE_BUGREPORT "gcc-bugs@gcc.gnu.org"
-| #define PACKAGE_URL ""
-| #define STDC_HEADERS 1
-| #define HAVE_SYS_TYPES_H 1
-| #define HAVE_SYS_STAT_H 1
-| #define HAVE_STDLIB_H 1
-| #define HAVE_STRING_H 1
-| #define HAVE_MEMORY_H 1
-| #define HAVE_STRINGS_H 1
-| #define HAVE_INTTYPES_H 1
-| #define HAVE_STDINT_H 1
-| #define HAVE_UNISTD_H 1
-| #define HAVE_CTYPE_H 1
-| #define HAVE_STDDEF_H 1
-| #define HAVE_STRING_H 1
-| #define HAVE_STDIO_H 1
-| /* end confdefs.h.  */
-| #include <stdio.h>
-| #ifdef HAVE_SYS_TYPES_H
-| # include <sys/types.h>
-| #endif
-| #ifdef HAVE_SYS_STAT_H
-| # include <sys/stat.h>
-| #endif
-| #ifdef STDC_HEADERS
-| # include <stdlib.h>
-| # include <stddef.h>
-| #else
-| # ifdef HAVE_STDLIB_H
-| #  include <stdlib.h>
-| # endif
-| #endif
-| #ifdef HAVE_STRING_H
-| # if !defined STDC_HEADERS && defined HAVE_MEMORY_H
-| #  include <memory.h>
-| # endif
-| # include <string.h>
-| #endif
-| #ifdef HAVE_STRINGS_H
-| # include <strings.h>
-| #endif
-| #ifdef HAVE_INTTYPES_H
-| # include <inttypes.h>
-| #endif
-| #ifdef HAVE_STDINT_H
-| # include <stdint.h>
-| #endif
-| #ifdef HAVE_UNISTD_H
-| # include <unistd.h>
-| #endif
-| int
-| main ()
-| {
-| if (sizeof ((off_t)))
-| 	    return 0;
-|   ;
-|   return 0;
-| }
 configure:4278: result: yes
 configure:4293: checking size of int
-configure:4298: gcc -o conftest -g -O2    conftest.c  >&5
-configure:4298: $? = 0
-configure:4298: ./conftest
-configure:4298: $? = 0
 configure:4313: result: 4
 configure:4327: checking size of long
-configure:4332: gcc -o conftest -g -O2    conftest.c  >&5
-configure:4332: $? = 0
-configure:4332: ./conftest
-configure:4332: $? = 0
 configure:4347: result: 8
 configure:4359: checking for ANSI C header files
 configure:4463: result: yes
@@ -630,98 +446,7 @@ configure:4571: result: x86_64-unknown-linux-gnu
 configure:4600: checking for decimal floating point
 configure:4665: result: bid
 configure:4670: checking whether byte ordering is bigendian
-configure:4685: gcc -c -g -O2  conftest.c >&5
-conftest.c:27:9: error: unknown type name 'not'
-         not a universal capable compiler
-         ^
-conftest.c:27:15: error: expected '=', ',', ';', 'asm' or '__attribute__' before 'universal'
-         not a universal capable compiler
-               ^
-conftest.c:27:15: error: unknown type name 'universal'
-configure:4685: $? = 1
-configure: failed program was:
-| /* confdefs.h */
-| #define PACKAGE_NAME "libdecnumber"
-| #define PACKAGE_TARNAME "libdecnumber"
-| #define PACKAGE_VERSION " "
-| #define PACKAGE_STRING "libdecnumber  "
-| #define PACKAGE_BUGREPORT "gcc-bugs@gcc.gnu.org"
-| #define PACKAGE_URL ""
-| #define STDC_HEADERS 1
-| #define HAVE_SYS_TYPES_H 1
-| #define HAVE_SYS_STAT_H 1
-| #define HAVE_STDLIB_H 1
-| #define HAVE_STRING_H 1
-| #define HAVE_MEMORY_H 1
-| #define HAVE_STRINGS_H 1
-| #define HAVE_INTTYPES_H 1
-| #define HAVE_STDINT_H 1
-| #define HAVE_UNISTD_H 1
-| #define HAVE_CTYPE_H 1
-| #define HAVE_STDDEF_H 1
-| #define HAVE_STRING_H 1
-| #define HAVE_STDIO_H 1
-| #define SIZEOF_INT 4
-| #define SIZEOF_LONG 8
-| #define STDC_HEADERS 1
-| /* end confdefs.h.  */
-| #ifndef __APPLE_CC__
-| 	       not a universal capable compiler
-| 	     #endif
-| 	     typedef int dummy;
-| 
-configure:4730: gcc -c -g -O2  conftest.c >&5
-configure:4730: $? = 0
-configure:4748: gcc -c -g -O2  conftest.c >&5
-conftest.c: In function 'main':
-conftest.c:33:4: error: unknown type name 'not'
-    not big endian
-    ^
-conftest.c:33:12: error: expected '=', ',', ';', 'asm' or '__attribute__' before 'endian'
-    not big endian
-            ^
-configure:4748: $? = 1
-configure: failed program was:
-| /* confdefs.h */
-| #define PACKAGE_NAME "libdecnumber"
-| #define PACKAGE_TARNAME "libdecnumber"
-| #define PACKAGE_VERSION " "
-| #define PACKAGE_STRING "libdecnumber  "
-| #define PACKAGE_BUGREPORT "gcc-bugs@gcc.gnu.org"
-| #define PACKAGE_URL ""
-| #define STDC_HEADERS 1
-| #define HAVE_SYS_TYPES_H 1
-| #define HAVE_SYS_STAT_H 1
-| #define HAVE_STDLIB_H 1
-| #define HAVE_STRING_H 1
-| #define HAVE_MEMORY_H 1
-| #define HAVE_STRINGS_H 1
-| #define HAVE_INTTYPES_H 1
-| #define HAVE_STDINT_H 1
-| #define HAVE_UNISTD_H 1
-| #define HAVE_CTYPE_H 1
-| #define HAVE_STDDEF_H 1
-| #define HAVE_STRING_H 1
-| #define HAVE_STDIO_H 1
-| #define SIZEOF_INT 4
-| #define SIZEOF_LONG 8
-| #define STDC_HEADERS 1
-| /* end confdefs.h.  */
-| #include <sys/types.h>
-| 		#include <sys/param.h>
-| 
-| int
-| main ()
-| {
-| #if BYTE_ORDER != BIG_ENDIAN
-| 		 not big endian
-| 		#endif
-| 
-|   ;
-|   return 0;
-| }
 configure:4876: result: no
-configure:4976: updating cache ./config.cache
 configure:5014: creating ./config.status
 
 ## ---------------------- ##
@@ -741,6 +466,7 @@ on frosting.ittc.ku.edu
 
 config.status:855: creating Makefile
 config.status:855: creating config.h
+config.status:1016: config.h is unchanged
 config.status:1030: executing gstdint.h commands
 
 ## ---------------- ##

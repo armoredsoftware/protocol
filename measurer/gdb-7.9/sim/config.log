@@ -73,7 +73,7 @@ configure:1670: loading site script /usr/share/config.site
 |         fi
 |     done
 | fi
-configure:1689: creating cache ./config.cache
+configure:1681: loading cache ./config.cache
 configure:1774: checking for x86_64-unknown-linux-gnu-gcc
 configure:1801: result: gcc
 configure:2070: checking for C compiler version
@@ -118,20 +118,12 @@ configure:2236: gcc -o conftest -g -O2    conftest.c  >&5
 configure:2240: $? = 0
 configure:2262: result: 
 configure:2268: checking for suffix of object files
-configure:2290: gcc -c -g -O2  conftest.c >&5
-configure:2294: $? = 0
 configure:2315: result: o
 configure:2319: checking whether we are using the GNU C compiler
-configure:2338: gcc -c -g -O2  conftest.c >&5
-configure:2338: $? = 0
 configure:2347: result: yes
 configure:2356: checking whether gcc accepts -g
-configure:2376: gcc -c -g  conftest.c >&5
-configure:2376: $? = 0
 configure:2417: result: yes
 configure:2434: checking for gcc option to accept ISO C89
-configure:2498: gcc  -c -g -O2  conftest.c >&5
-configure:2498: $? = 0
 configure:2511: result: none needed
 configure:2568: checking for a BSD-compatible install
 configure:2636: result: /bin/install -c
@@ -182,7 +174,6 @@ configure:3396: checking for gcc option to accept ISO C89
 configure:3473: result: none needed
 configure:3500: checking for x86_64-unknown-linux-gnu-ranlib
 configure:3527: result: ranlib
-configure:3922: updating cache ./config.cache
 configure:3995: creating ./config.status
 
 ## ---------------------- ##

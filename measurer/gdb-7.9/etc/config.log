@@ -73,10 +73,9 @@ configure:1553: loading site script /usr/share/config.site
 |         fi
 |     done
 | fi
-configure:1572: creating cache ./config.cache
+configure:1564: loading cache ./config.cache
 configure:1683: checking for a BSD-compatible install
 configure:1751: result: /bin/install -c
-configure:1850: updating cache ./config.cache
 configure:1923: creating ./config.status
 
 ## ---------------------- ##
