@@ -1,10 +1,8 @@
 #include <stdio.h>
 #include <unistd.h>
 
-void foo()
+void printz()
 {
-  sleep(1);
-  bar();
   sleep(1);
 }
 
@@ -15,8 +13,10 @@ void bar()
   sleep(1);
 }
 
-void printz()
+void foo()
 {
+  sleep(1);
+  bar();
   sleep(1);
 }
 
