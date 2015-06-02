@@ -2,8 +2,15 @@ current_dir = $(shell pwd)
 
 all: build-measurer build-test build-driver
 
+configure-measurer:
+	cd gdb-7.9; make clean; ./configure
+	cp gdb-7.9/patch/Makefile gdb-7.9/gdb/
+
 build-measurer:
 	cd gdb-7.9; make
+
+test2:
+	cd gdb-7.9; pwd > test
 
 build-driver:
 	cd driver; make
