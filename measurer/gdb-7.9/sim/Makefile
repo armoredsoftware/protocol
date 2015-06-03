@@ -20,7 +20,7 @@
 
 srcdir = .
 
-prefix = /usr
+prefix = /usr/local
 exec_prefix = ${prefix}
 
 host_alias = x86_64-unknown-linux-gnu

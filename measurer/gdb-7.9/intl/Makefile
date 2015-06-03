@@ -26,7 +26,7 @@ SHELL = /bin/sh
 srcdir = .
 
 
-prefix = /usr
+prefix = /usr/local
 exec_prefix = ${prefix}
 transform = s,y,y,
 libdir = ${exec_prefix}/lib

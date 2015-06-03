@@ -18,7 +18,7 @@ top_srcdir = ..
 
 top_builddir = ..
 
-prefix = /usr
+prefix = /usr/local
 exec_prefix = ${prefix}
 datadir = $(prefix)/share
 localedir = $(datadir)/locale

@@ -47,10 +47,10 @@ objext = o
 
 datarootdir = ${prefix}/share
 datadir = ${datarootdir}
-exec_prefix = /usr
+exec_prefix = /usr/local
 libdir = ${exec_prefix}/lib
 localedir = $(datadir)/locale
-prefix = /usr
+prefix = /usr/local
 
 ADDITIONAL_OBJS =  $(bid_OBJS)
 

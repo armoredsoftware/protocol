@@ -68,8 +68,8 @@ POSTCOMPILE = @true
 # Directory containing source files.  Don't clean up the spacing,
 # this exact string is matched for by the "configure" script.
 srcdir = .
-abs_top_srcdir=/nfs/projects/zephyr/deadzone/ArmoredSoftware/llvm/gdb/mod1/gdb-7.9/gdb/gdbserver
-abs_srcdir=/nfs/projects/zephyr/deadzone/ArmoredSoftware/llvm/gdb/mod1/gdb-7.9/gdb/gdbserver
+abs_top_srcdir=/nfs/projects/zephyr/deadzone/ArmoredSoftware/ws/protocol/measurer/gdb-7.9/gdb/gdbserver
+abs_srcdir=/nfs/projects/zephyr/deadzone/ArmoredSoftware/ws/protocol/measurer/gdb-7.9/gdb/gdbserver
 
 
 # It is also possible that you will need to add -I/usr/include/sys to the

@@ -446,7 +446,7 @@ Copyright (C) 2009 Free Software Foundation, Inc.
 This config.status script is free software; the Free Software Foundation
 gives unlimited permission to copy, distribute and modify it."
 
-ac_pwd='/nfs/projects/zephyr/deadzone/ArmoredSoftware/llvm/gdb/mod1/gdb-7.9/gdb/build-gnulib'
+ac_pwd='/nfs/projects/zephyr/deadzone/ArmoredSoftware/ws/protocol/measurer/gdb-7.9/gdb/build-gnulib'
 srcdir='.././gnulib'
 INSTALL='/bin/install -c'
 MKDIR_P='/bin/mkdir -p'
@@ -635,19 +635,19 @@ S["am__include"]="include"
 S["DEPDIR"]=".deps"
 S["am__untar"]="${AMTAR} xf -"
 S["am__tar"]="${AMTAR} chof - \"$$tardir\""
-S["AMTAR"]="${SHELL} /nfs/projects/zephyr/deadzone/ArmoredSoftware/llvm/gdb/mod1/gdb-7.9/missing --run tar"
+S["AMTAR"]="${SHELL} /nfs/projects/zephyr/deadzone/ArmoredSoftware/ws/protocol/measurer/gdb-7.9/missing --run tar"
 S["am__leading_dot"]="."
 S["SET_MAKE"]=""
 S["AWK"]="gawk"
 S["mkdir_p"]="/bin/mkdir -p"
 S["INSTALL_STRIP_PROGRAM"]="$(install_sh) -c -s"
 S["STRIP"]=""
-S["install_sh"]="${SHELL} /nfs/projects/zephyr/deadzone/ArmoredSoftware/llvm/gdb/mod1/gdb-7.9/install-sh"
+S["install_sh"]="${SHELL} /nfs/projects/zephyr/deadzone/ArmoredSoftware/ws/protocol/measurer/gdb-7.9/install-sh"
 S["MAKEINFO"]="/nfs/projects/zephyr/deadzone/ArmoredSoftware/llvm/gdb/mod1/gdb-7.9/missing makeinfo --split-size=5000000"
-S["AUTOHEADER"]="${SHELL} /nfs/projects/zephyr/deadzone/ArmoredSoftware/llvm/gdb/mod1/gdb-7.9/missing --run autoheader"
-S["AUTOMAKE"]="${SHELL} /nfs/projects/zephyr/deadzone/ArmoredSoftware/llvm/gdb/mod1/gdb-7.9/missing --run automake-1.11"
-S["AUTOCONF"]="${SHELL} /nfs/projects/zephyr/deadzone/ArmoredSoftware/llvm/gdb/mod1/gdb-7.9/missing --run autoconf"
-S["ACLOCAL"]="${SHELL} /nfs/projects/zephyr/deadzone/ArmoredSoftware/llvm/gdb/mod1/gdb-7.9/missing --run aclocal-1.11"
+S["AUTOHEADER"]="${SHELL} /nfs/projects/zephyr/deadzone/ArmoredSoftware/ws/protocol/measurer/gdb-7.9/missing --run autoheader"
+S["AUTOMAKE"]="${SHELL} /nfs/projects/zephyr/deadzone/ArmoredSoftware/ws/protocol/measurer/gdb-7.9/missing --run automake-1.11"
+S["AUTOCONF"]="${SHELL} /nfs/projects/zephyr/deadzone/ArmoredSoftware/ws/protocol/measurer/gdb-7.9/missing --run autoconf"
+S["ACLOCAL"]="${SHELL} /nfs/projects/zephyr/deadzone/ArmoredSoftware/ws/protocol/measurer/gdb-7.9/missing --run aclocal-1.11"
 S["VERSION"]="UNUSED-VERSION"
 S["PACKAGE"]="libgnu"
 S["CYGPATH_W"]="echo"

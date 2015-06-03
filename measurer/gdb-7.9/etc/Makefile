@@ -4,7 +4,7 @@
 
 DESTDIR		=
 
-prefix 		= /usr
+prefix 		= /usr/local
 exec_prefix 	= ${prefix}
 
 srcdir  = .

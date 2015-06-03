@@ -450,7 +450,7 @@ Copyright (C) 2009 Free Software Foundation, Inc.
 This config.status script is free software; the Free Software Foundation
 gives unlimited permission to copy, distribute and modify it."
 
-ac_pwd='/nfs/projects/zephyr/deadzone/ArmoredSoftware/llvm/gdb/mod1/gdb-7.9/gdb'
+ac_pwd='/nfs/projects/zephyr/deadzone/ArmoredSoftware/ws/protocol/measurer/gdb-7.9/gdb'
 srcdir='.'
 INSTALL='/bin/install -c'
 AWK='gawk'
@@ -783,7 +783,7 @@ S["DEPDIR"]=".deps"
 S["am__leading_dot"]="."
 S["INSTALL_STRIP_PROGRAM"]="$(install_sh) -c -s"
 S["STRIP"]=""
-S["install_sh"]="${SHELL} /nfs/projects/zephyr/deadzone/ArmoredSoftware/llvm/gdb/mod1/gdb-7.9/install-sh"
+S["install_sh"]="${SHELL} /nfs/projects/zephyr/deadzone/ArmoredSoftware/ws/protocol/measurer/gdb-7.9/install-sh"
 S["target_os"]="linux-gnu"
 S["target_vendor"]="unknown"
 S["target_cpu"]="x86_64"

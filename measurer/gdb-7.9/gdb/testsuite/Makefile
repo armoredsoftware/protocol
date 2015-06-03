@@ -20,7 +20,7 @@
 srcdir = .
 prefix = /usr
 exec_prefix = ${prefix}
-abs_builddir = /nfs/projects/zephyr/deadzone/ArmoredSoftware/llvm/gdb/mod1/gdb-7.9/gdb/testsuite
+abs_builddir = /nfs/projects/zephyr/deadzone/ArmoredSoftware/ws/protocol/measurer/gdb-7.9/gdb/testsuite
 
 target_alias = x86_64-unknown-linux-gnu
 program_transform_name = s,y,y,

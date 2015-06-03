@@ -21,7 +21,7 @@ RL_LIBRARY_VERSION = 6.2
 SHELL = /bin/sh
 RM = rm -f
 
-prefix = /usr
+prefix = /usr/local
 exec_prefix = ${prefix}
 
 datarootdir = ${prefix}/share
@@ -32,7 +32,7 @@ datadir = ${datarootdir}
 
 top_srcdir = ..
 #BUILD_DIR = .
-BUILD_DIR = /nfs/projects/zephyr/deadzone/ArmoredSoftware/llvm/gdb/mod1/gdb-7.9/readline
+BUILD_DIR = /nfs/projects/zephyr/deadzone/ArmoredSoftware/ws/protocol/measurer/gdb-7.9/readline
 installdir = $(datadir)/readline
 
 INSTALL = /bin/install -c

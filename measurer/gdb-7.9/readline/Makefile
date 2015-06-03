@@ -29,7 +29,7 @@ PACKAGE_VERSION = 6.2
 srcdir = .
 
 top_srcdir = .
-BUILD_DIR = /nfs/projects/zephyr/deadzone/ArmoredSoftware/llvm/gdb/mod1/gdb-7.9/readline
+BUILD_DIR = /nfs/projects/zephyr/deadzone/ArmoredSoftware/ws/protocol/measurer/gdb-7.9/readline
 
 INSTALL = /bin/install -c
 INSTALL_PROGRAM = /bin/install -c
@@ -48,7 +48,7 @@ PURIFY =
 
 SHELL = /bin/sh
 
-prefix = /usr
+prefix = /usr/local
 exec_prefix = ${prefix}
 
 datarootdir = ${prefix}/share

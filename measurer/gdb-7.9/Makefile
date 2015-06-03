@@ -44,7 +44,7 @@ target=x86_64-unknown-linux-gnu
 
 program_transform_name = s,y,y,
 
-prefix = /usr
+prefix = /usr/local
 exec_prefix = ${prefix}
 
 srcdir = .
@@ -53,10 +53,10 @@ bindir = ${exec_prefix}/bin
 sbindir = ${exec_prefix}/sbin
 libexecdir = ${exec_prefix}/libexec
 datadir = ${datarootdir}
-sysconfdir = /etc
-sharedstatedir = /var
-localstatedir = /var
-libdir = ${exec_prefix}/lib64
+sysconfdir = ${prefix}/etc
+sharedstatedir = ${prefix}/com
+localstatedir = ${prefix}/var
+libdir = ${exec_prefix}/lib
 includedir = ${prefix}/include
 oldincludedir = /usr/include
 infodir = ${datarootdir}/info
@@ -90,7 +90,7 @@ MAINTAINER_MODE_TRUE = #
 # -------------------------------------------------
 
 # The gcc driver likes to know the arguments it was configured with.
-TOPLEVEL_CONFIGURE_ARGUMENTS=./configure --prefix=/usr --with-system-readline
+TOPLEVEL_CONFIGURE_ARGUMENTS=./configure
 
 tooldir = ${exec_prefix}/x86_64-unknown-linux-gnu
 build_tooldir = ${exec_prefix}/x86_64-unknown-linux-gnu
@@ -108,7 +108,7 @@ GCC_SHLIB_SUBDIR =
 BUILD_SUBDIR = build-x86_64-unknown-linux-gnu
 # This is set by the configure script to the arguments to use when configuring
 # directories built for the build system.
-BUILD_CONFIGARGS =  --cache-file=../config.cache '--prefix=/usr' '--with-system-readline' --program-transform-name='s,y,y,' --disable-option-checking --with-build-subdir="$(BUILD_SUBDIR)"
+BUILD_CONFIGARGS =  --cache-file=../config.cache  --program-transform-name='s,y,y,' --disable-option-checking --with-build-subdir="$(BUILD_SUBDIR)"
 
 # Linker flags to use on the host, for stage1 or when not
 # bootstrapping.
@@ -171,7 +171,7 @@ SUBDIRS =  intl libiberty opcodes bfd readline libdecnumber sim gdb etc
 TARGET_CONFIGDIRS = 
 # This is set by the configure script to the arguments to use when configuring
 # directories built for the host system.
-HOST_CONFIGARGS =  --cache-file=./config.cache  --with-system-zlib '--prefix=/usr' '--with-system-readline' --program-transform-name='s,y,y,' --disable-option-checking
+HOST_CONFIGARGS =  --cache-file=./config.cache  --with-system-zlib  --program-transform-name='s,y,y,' --disable-option-checking
 # Host programs are put under this directory, which is . except if building
 # with srcdir=..
 HOST_SUBDIR = .
@@ -242,7 +242,7 @@ POSTSTAGE1_HOST_EXPORTS = \
 TARGET_SUBDIR = x86_64-unknown-linux-gnu
 # This is set by the configure script to the arguments to use when configuring
 # directories built for the target.
-TARGET_CONFIGARGS = --cache-file=./config.cache --enable-multilib   '--prefix=/usr' '--with-system-readline' --program-transform-name='s,y,y,' --disable-option-checking --with-target-subdir="$(TARGET_SUBDIR)"
+TARGET_CONFIGARGS = --cache-file=./config.cache --enable-multilib   --program-transform-name='s,y,y,' --disable-option-checking --with-target-subdir="$(TARGET_SUBDIR)"
 # This is the list of variables to export in the environment when
 # configuring subdirectories for the target system.
 BASE_TARGET_EXPORTS = \
@@ -349,7 +349,7 @@ YACC = bison -y
 FLEX = flex
 LEX = flex
 M4 = m4
-MAKEINFO = /nfs/projects/zephyr/deadzone/ArmoredSoftware/llvm/gdb/mod1/gdb-7.9/missing makeinfo
+MAKEINFO = makeinfo
 EXPECT = expect
 RUNTEST = runtest
 

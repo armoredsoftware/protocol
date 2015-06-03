@@ -20,7 +20,6 @@
 
 #include <assert.h>
 
-
 /*====================================================
   EVENT STUFF
 ======================================================*/
@@ -33,6 +32,7 @@ typedef struct BE_event_t {
 BE_event_t;
 
 typedef struct BE_event_b {
+  int bp_id;
   char * filename;
   int line;
 }
@@ -85,7 +85,7 @@ BE_event * BE_event_create_timed(int delay, int repeat, int action) {
   return ev;
 }
 
-BE_event * BE_event_b_create(char * filename, int line, int repeat, int action) {
+BE_event * BE_event_b_create(int bp_id, char * filename, int line, int repeat, int action) {
   BE_event * ev = (BE_event*)malloc(sizeof(BE_event));
   ev->type = BE_EVENT_B;
 
@@ -93,6 +93,7 @@ BE_event * BE_event_b_create(char * filename, int line, int repeat, int action) 
   memcpy(ev->data.b.filename, filename, sizeof(char) * strlen(filename)+1);
   
   ev->data.b.line = line;
+  ev->data.b.bp_id = bp_id;
   
   ev->active = 1;
   ev->repeat = repeat;
@@ -120,6 +121,31 @@ void BE_event_print(BE_event * ev) {
   
   printf("Event{type=%d,delay=%d,start=%d,active=%d,repeat=%d,action=%d,measurements=...,next=...\n");
 
+}
+
+void BE_event_kill(BE_event * ev) {
+  if (!ev) return;
+  
+  if (ev->type == BE_EVENT_T) {
+    ev->active = false;
+  } else if (ev->type == BE_EVENT_B) {
+    ev->active = false;
+    //remove breakpoint
+    //What happens if there is more than one event for this breakpoint??
+    
+    //interrupt and delete breakpoint
+    execute_command("interrupt");
+    wait_for_inferior(); 
+    normal_stop();
+
+    char arg[15];
+    sprintf(arg, "%d", ev->data.b.bp_id);
+    delete_command(arg,0);
+
+    //continue
+    continue_command_JG();
+     
+  }
 }
 
 BE_event * BE_event_table_create()
@@ -407,7 +433,7 @@ void BE_rhandler_dispatch(struct BE_Context * bec, const char * request)
     char** loc = str_split(args[1], ':');
     int line = atoi(loc[1]);
     
-    BE_event_table_add(bec->et,BE_event_b_create(loc[0],line,0,2));
+    BE_event_table_add(bec->et,BE_event_b_create(get_breakpoint_count()+1,loc[0],line,0,2));
     
     //interrupt and insert breakpoint
     execute_command("interrupt");
@@ -423,7 +449,7 @@ void BE_rhandler_dispatch(struct BE_Context * bec, const char * request)
     char** loc = str_split(args[1], ':');
     int line = atoi(loc[1]);
     
-    BE_event_table_add(bec->et,BE_event_b_create(loc[0],line,1,2));
+    BE_event_table_add(bec->et,BE_event_b_create(get_breakpoint_count()+1,loc[0],line,1,2));
     
     //interrupt and insert breakpoint
     execute_command("interrupt");
@@ -433,6 +459,11 @@ void BE_rhandler_dispatch(struct BE_Context * bec, const char * request)
 
     //continue
     continue_command_JG();
+    
+  }
+  else if (strcmp("measurement_kill",args[0])==0) {
+    int i = atoi(args[1]);
+    BE_event_kill(BE_event_table_get(bec->et,i));
     
   }
   else if (strcmp("measurement_get",args[0])==0) {
@@ -500,10 +531,14 @@ void BE_rhandler_callstack_get(BE_Context * bec)
 
   //attach_command(bec->PID,1);
   //gdb_do_one_event ();
+  printf("Executing a interrupt command\n");
   execute_command("interrupt");
+  printf("Waiting for inferior\n");
   wait_for_inferior(); 
+  printf("Normal stop\n");
   normal_stop();
-  
+
+  printf("getting callstack\n");
   struct ME_CG * stack;
   struct ME_FT * ft = ME_FT_create("root");
   printf("before\n");
@@ -689,7 +724,10 @@ void BE_event_table_handle(BE_Context * bec, BE_event * et, int breaked, char * 
 	    BE_event_handle(bec, curr);
 	    printf("Event handled\n");
 	    if (!curr->repeat) {
-	      //Remove breakpoint...
+	      char arg[15];
+	      sprintf(arg, "%d", curr->data.b.bp_id);
+	      delete_command(arg,0);
+
 	      curr->active = 0;
 	    }
 	    

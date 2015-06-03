@@ -2,10 +2,10 @@
 build: build-test1 build-test2
  
 build-test1:
-	gcc test1.c -o test1.o
+	gcc -g test1.c -o test1.o
 
 build-test2:
-	gcc test2.c -o test2.o
+	gcc -g test2.c -o test2.o
 
 run-test1:
 	./test1.o
