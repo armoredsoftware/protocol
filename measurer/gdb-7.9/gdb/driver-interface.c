@@ -123,6 +123,18 @@ void BE_event_print(BE_event * ev) {
 
 }
 
+void BE_event_disable(BE_event * ev) {
+  if (!ev) return;
+  
+  ev->active = false;
+}
+
+void BE_event_enable(BE_event * ev) {
+  if (!ev) return;
+
+  ev->active = true;
+}
+
 void BE_event_kill(BE_event * ev) {
   if (!ev) return;
   
@@ -413,21 +425,27 @@ void BE_rhandler_dispatch(struct BE_Context * bec, const char * request)
     BE_rhandler_print(bec);
   else if (strcmp("set_target",args[0])==0)
     BE_rhandler_set_target(bec, args[1]);
+  else if (strcmp("detach",args[0])==0)
+    BE_rhandler_detach(bec);
   else if (strcmp("CG_begin",args[0])==0)
     BE_rhandler_CG_begin(bec);
   else if (strcmp("CG_end",args[0])==0)
     BE_rhandler_CG_end(bec);
   else if (strcmp("CG_get",args[0])==0)
     BE_rhandler_CG_get(bec);
-  else if (strcmp("callstack_get",args[0])==0)
+  else if (strcmp("variable_get",args[0])==0)
+    BE_rhandler_variable_get(bec, args[1]);
+ else if (strcmp("callstack_get",args[0])==0)
     BE_rhandler_callstack_get(bec);
   else if (strcmp("callstack_get_at",args[0])==0)
     BE_rhandler_callstack_get_at(bec, args[1]);
   else if (strcmp("callstack_track",args[0])==0) {
-    BE_event_table_add(bec->et,BE_event_create_timed(10000000,1,2));
+    int delay = atoi(args[1]);
+    BE_event_table_add(bec->et,BE_event_create_timed(delay,1,2));
   }
   else if (strcmp("callstack_record_delay",args[0])==0) {
-    BE_event_table_add(bec->et,BE_event_create_timed(10000000,0,2));
+    int delay = atoi(args[1]);
+    BE_event_table_add(bec->et,BE_event_create_timed(delay,0,2));
   }
   else if (strcmp("callstack_record_at",args[0])==0) {
     char** loc = str_split(args[1], ':');
@@ -459,6 +477,16 @@ void BE_rhandler_dispatch(struct BE_Context * bec, const char * request)
 
     //continue
     continue_command_JG();
+    
+  }
+  else if (strcmp("measurement_disable",args[0])==0) {
+    int i = atoi(args[1]);
+    BE_event_disable(BE_event_table_get(bec->et,i));
+    
+  }
+  else if (strcmp("measurement_enable",args[0])==0) {
+    int i = atoi(args[1]);
+    BE_event_enable(BE_event_table_get(bec->et,i));
     
   }
   else if (strcmp("measurement_kill",args[0])==0) {
@@ -633,6 +661,60 @@ void BE_rhandler_callstack_get_at(BE_Context * bec, const char * location)
   ME_CG_delete(stack);
 }
 
+void BE_rhandler_variable_get(BE_Context * bec, char * variable)
+{  
+  if (!bec->attached) {
+    printf("Not attached to a process!\n");
+    return;
+  }
+
+  //attach_command(bec->PID,1);
+  //gdb_do_one_event ();
+  printf("Executing a interrupt command\n");
+  execute_command("interrupt");
+  printf("Waiting for inferior\n");
+  wait_for_inferior(); 
+  printf("Normal stop\n");
+  normal_stop();
+
+  printf("getting callstack\n");
+  struct ME_CG * stack;
+  struct ME_FT * ft = ME_FT_create("root");
+  printf("before\n");
+  BE_get_call_stack_as_CG(NULL, 0, 0, 1, &stack, ft);
+  printf("after\n");
+  //execute_command("continue&");
+  continue_command_JG();
+
+  //Send Type
+  char response_type[1];
+  response_type[0] = 1; 
+  ME_sock_send_dynamic(bec->driverfd, 1, response_type);
+  
+  //Send CallGraph & FT
+  char * encoded_cg;
+  int n;  
+  ME_CG_encode(stack, &n, &encoded_cg);
+  int encoded_cg_count = n * (sizeof(int)/sizeof(char));
+  
+  ME_sock_send_dynamic(bec->driverfd, encoded_cg_count, encoded_cg);
+
+  char * encoded_ft;
+  int encoded_ft_count;
+  ME_FT_encode(ft, &encoded_ft_count, &encoded_ft);
+  ME_sock_send_dynamic(bec->driverfd, encoded_ft_count, encoded_ft);
+
+  printf("freeing encoded_cg\n");
+  free(encoded_cg);
+  printf("freeing encoded_ft\n");
+  free(encoded_ft);
+
+  printf("freeing ft\n");
+  ME_FT_delete(ft);
+  printf("freeing cg\n");
+  ME_CG_delete(stack);
+}
+
 void BE_rhandler_print(BE_Context * bec)
 {
   BE_context_print(bec);
@@ -657,12 +739,25 @@ void BE_rhandler_set_target(BE_Context * bec, char * target_PID)
   continue_command_JG();
 }
 
+
+void BE_rhandler_detach(BE_Context * bec)
+{
+  if (bec->attached) {
+    execute_command("detach",1);
+    bec->attached = false;
+    free(bec->PID);
+    bec->PID == NULL;
+  }
+}
+
+
 void BE_rhandler_quit(BE_Context * bec)
 {
   if (bec->attached) {  
     execute_command("detach",1);
     bec->attached = false;
     free(bec->PID);
+    bec->PID == NULL;
   }
     
   exit(-1);
