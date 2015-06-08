@@ -577,23 +577,43 @@ void ME_FT_print_encoded(char * ft_encoded)
 MEASUREMENT STUFF
 ======================================================*/
 
+typedef enum ME_measurement_type {
+  ME_MEASUREMENT_CALLSTACK, ME_MEASUREMENT_STRING
+} ME_measurement_type;
+
+typedef struct ME_CG_AND_FT {
+  struct ME_CG * cg;
+  struct ME_FT * ft;
+} ME_CG_AND_FT;
+
+typedef union ME_measurement_data {
+  struct ME_CG_AND_FT cgft;
+  char * string_val;
+  
+} ME_measurement_data;
+  
 typedef struct ME_measurement
 {
   //reference to command???
   //when
   int measured; //measurement taken?
-  int type;//type
-  void* data;
-  void* data2;
+  ME_measurement_type type;
+  ME_measurement_data data;
 
   struct ME_measurement * next;
 }
 ME_measurement;
 
-ME_measurement * ME_measurement_create(int type)
+ME_measurement * ME_measurement_create(ME_measurement_type type)
 {
   ME_measurement* ms = (ME_measurement*)malloc(sizeof(ME_measurement));
-  ms->data = NULL;
+  if (type == ME_MEASUREMENT_CALLSTACK) {
+    ms->data.cgft.cg = NULL;
+    ms->data.cgft.ft = NULL;
+  }
+  else if (type == ME_MEASUREMENT_STRING) {
+    ms->data.string_val = NULL;
+  }
   ms->measured = 0;
   ms->type = type;
   ms->next = NULL;
@@ -606,11 +626,14 @@ void ME_measurement_delete(struct ME_measurement * ms)
 
   ME_measurement_delete(ms->next);
 
-  if (ms->type==0) {
-    ME_CG_delete((ME_CG *)ms->data);
-    ME_FT_delete((ME_FT *)ms->data2);
-  }  
-
+  if (ms->type == ME_MEASUREMENT_CALLSTACK) {
+    ME_CG_delete((ME_CG *)ms->data.cgft.cg);
+    ME_FT_delete((ME_FT *)ms->data.cgft.ft);
+  }
+  else if (ms->type == ME_MEASUREMENT_STRING) {
+    free(ms->data.string_val);
+  }
+    
   free(ms);  
 }
 
@@ -625,15 +648,17 @@ void ME_measurement_print(struct ME_measurement * ms)
   printf("type=%d",ms->type);
   printf(", measured=%d", ms->measured);
 
-  if (ms->type==0) //callgraph
-  {
-    printf(", data=");
-    ME_CG_print((ME_CG*)ms->data, (ME_FT*)ms->data2);
-
-    printf(", data2=");
-    ME_FT_print((ME_FT*)ms->data2);
+  if (ms->type == ME_MEASUREMENT_CALLSTACK) {
+    printf(", cg=");
+    ME_CG_print(ms->data.cgft.cg, ms->data.cgft.ft);
+    
+    printf(", ft=");
+    ME_FT_print(ms->data.cgft.ft);
   }
-
+  else if (ms->type == ME_MEASUREMENT_STRING) {
+    printf(", string_val=\"%s\"",ms->data.string_val);
+  }
+    
   printf(", next=");
   ME_measurement_print(ms->next);
   
@@ -648,13 +673,13 @@ void ME_measurement_send(int sockfd, struct ME_measurement * ms) {
   }     
 
   //send type
-  ME_sock_send_dynamic(sockfd, sizeof(int)/sizeof(char), &(ms->type));  
+  ME_sock_send_dynamic(sockfd, sizeof(ms->type)/sizeof(char), &(ms->type));  
 
-  if (ms->type == 0) {
+  if (ms->type == ME_MEASUREMENT_CALLSTACK) {
     //Send data 1 (callgraph)
     char * encoded_cg;
     int n;
-    ME_CG_encode((ME_CG*)ms->data, &n, &encoded_cg);
+    ME_CG_encode(ms->data.cgft.cg, &n, &encoded_cg);
     int encoded_cg_count = n * (sizeof(int)/sizeof(char));
 
     ME_sock_send_dynamic(sockfd, encoded_cg_count, encoded_cg);
@@ -662,13 +687,17 @@ void ME_measurement_send(int sockfd, struct ME_measurement * ms) {
     //send data 2 (ft)
     char * encoded_ft;
     int encoded_ft_count;
-    ME_FT_encode((ME_FT*)ms->data2, &encoded_ft_count, &encoded_ft);
+    ME_FT_encode(ms->data.cgft.ft, &encoded_ft_count, &encoded_ft);
     ME_sock_send_dynamic(sockfd, encoded_ft_count, encoded_ft);
 
     free(encoded_cg);
     free(encoded_ft);
   }
-  
+  else if (ms->type == ME_MEASUREMENT_STRING) {
+    //send string
+    ME_sock_send_dynamic(sockfd, strlen(ms->data.string_val)+1, ms->data.string_val);
+  }
+    
   ME_measurement_send(sockfd, ms->next);
   
 }
@@ -687,14 +716,14 @@ ME_measurement * ME_measurement_recieve(int sockfd) {
   char * message_type=NULL;   
   ME_sock_recv_dynamic(sockfd, &message_type_size, &message_type);
 
-  int type = *((int*)(message_type));
+  ME_measurement_type type = *((ME_measurement_type*)(message_type));
   
   if (type==-1)
     return NULL;
     
   ME_measurement * ms = ME_measurement_create(type);
 
-  if (type==0) {
+  if (ms->type == ME_MEASUREMENT_CALLSTACK) {
     int encoded_cg_count;
     char * encoded_cg;
     int encoded_ft_count;
@@ -714,10 +743,17 @@ ME_measurement * ME_measurement_recieve(int sockfd) {
     free(encoded_cg);
     free(encoded_ft);
 
-    ms->data = decoded_cg;
-    ms->data2 = decoded_ft;
+    ms->data.cgft.cg = decoded_cg;
+    ms->data.cgft.ft = decoded_ft;
   }
-
+  else if (ms->type == ME_MEASUREMENT_STRING) {
+    int string_val_count;
+    char * string_val;
+    ME_sock_recv_dynamic(sockfd, &string_val_count, &string_val);
+    ms->data.string_val = string_val;
+    printf("String val recieved is \"%s\"\n",string_val);
+  }
+  
   ms->next = ME_measurement_recieve(sockfd);
 
 }

@@ -21,6 +21,18 @@
 #include <assert.h>
 
 /*====================================================
+FEATURE STUFF
+======================================================*/
+typedef enum {BE_FEATURE_CALLSTACK, BE_FEATURE_VARIABLE} BE_feature_type;
+
+typedef struct BE_feature {
+  BE_feature_type type;
+  char * expr;
+}
+BE_feature;
+
+
+/*====================================================
   EVENT STUFF
 ======================================================*/
 typedef enum {BE_EVENT_T, BE_EVENT_B} BE_event_type;
@@ -53,9 +65,8 @@ typedef struct BE_event
   int active;
   int repeat;
   
-  //ACTION REFERENCE
-  int action;
-
+  BE_feature feature;
+  
   //MEASUREMENTS
   struct ME_measurement * measurements;
   
@@ -65,19 +76,15 @@ typedef struct BE_event
 }
 BE_event;
 
-BE_event * BE_event_create_timed(int delay, int repeat, int action) {
+BE_event * BE_event_t_create(int delay, int repeat) {
   BE_event * ev = (BE_event*)malloc(sizeof(BE_event));
   ev->type = BE_EVENT_T;
 
   ev->data.t.delay = delay;
   ev->data.t.start = clock();
-  //ev->delay = delay;
-  //ev->start = clock();
   
   ev->active = 1;
   ev->repeat = repeat;
-
-  ev->action = action;
 
   ev->measurements = NULL;
   
@@ -85,7 +92,7 @@ BE_event * BE_event_create_timed(int delay, int repeat, int action) {
   return ev;
 }
 
-BE_event * BE_event_b_create(int bp_id, char * filename, int line, int repeat, int action) {
+BE_event * BE_event_b_create(int bp_id, char * filename, int line, int repeat) {
   BE_event * ev = (BE_event*)malloc(sizeof(BE_event));
   ev->type = BE_EVENT_B;
 
@@ -98,12 +105,18 @@ BE_event * BE_event_b_create(int bp_id, char * filename, int line, int repeat, i
   ev->active = 1;
   ev->repeat = repeat;
 
-  ev->action = action;
-
   ev->measurements = NULL;
   
   ev->next = NULL;
   return ev;
+}
+
+void BE_event_set_feature(struct BE_event * ev, BE_feature_type type, char * expr) {
+  ev->feature.type = type;
+  if (expr) {
+    ev->feature.expr = (char*)malloc(sizeof(char) * strlen(expr)+1);
+    memcpy(ev->feature.expr, expr, sizeof(char) * strlen(expr)+1);
+  }
 }
 
 void BE_event_add_measurement(struct BE_event * ev, struct ME_measurement * ms) {
@@ -163,7 +176,7 @@ void BE_event_kill(BE_event * ev) {
 BE_event * BE_event_table_create()
 {
   //create null event
-  return BE_event_create_timed(0,0,0);
+  return BE_event_t_create(0,0);
 }
 
 void BE_event_table_add(BE_event * et, BE_event * ev) {
@@ -327,8 +340,8 @@ void BE_get_request(struct BE_Context * bec)
 
   /*if (bec->et==NULL) {
     bec->et = BE_event_table_create();
-    BE_event_table_add(bec->et,BE_event_create_timed(10000000,1,1));
-    BE_event_table_add(bec->et,BE_event_create_timed(1000000,1,2));    
+    BE_event_table_add(bec->et,BE_event_t_create(10000000,1,1));
+    BE_event_table_add(bec->et,BE_event_t_create(1000000,1,2));    
     }*/
   
   char request[1024];
@@ -435,23 +448,49 @@ void BE_rhandler_dispatch(struct BE_Context * bec, const char * request)
     BE_rhandler_CG_get(bec);
   else if (strcmp("variable_get",args[0])==0)
     BE_rhandler_variable_get(bec, args[1]);
- else if (strcmp("callstack_get",args[0])==0)
+  else if (strcmp("variable_record_at",args[0])==0) {
+    char** loc = str_split(args[1], ':');
+    int line = atoi(loc[1]);
+
+    BE_event * bev = BE_event_b_create(get_breakpoint_count()+1,loc[0],line,0);
+    BE_event_set_feature(bev, BE_FEATURE_VARIABLE, args[2]);
+    
+    BE_event_table_add(bec->et,bev);
+    
+    //interrupt and insert breakpoint
+    execute_command("interrupt");
+    wait_for_inferior(); 
+    normal_stop();
+    break_command(args[1],0);
+
+    //continue
+    continue_command_JG();
+  }
+  else if (strcmp("callstack_get",args[0])==0)
     BE_rhandler_callstack_get(bec);
   else if (strcmp("callstack_get_at",args[0])==0)
     BE_rhandler_callstack_get_at(bec, args[1]);
   else if (strcmp("callstack_track",args[0])==0) {
     int delay = atoi(args[1]);
-    BE_event_table_add(bec->et,BE_event_create_timed(delay,1,2));
+
+    BE_event * bev = BE_event_t_create(delay,1);
+    BE_event_set_feature(bev, BE_FEATURE_CALLSTACK, NULL);
+    BE_event_table_add(bec->et,bev);
   }
   else if (strcmp("callstack_record_delay",args[0])==0) {
     int delay = atoi(args[1]);
-    BE_event_table_add(bec->et,BE_event_create_timed(delay,0,2));
+
+    BE_event * bev = BE_event_t_create(delay,0);
+    BE_event_set_feature(bev, BE_FEATURE_CALLSTACK, NULL);
+    BE_event_table_add(bec->et,bev);
   }
   else if (strcmp("callstack_record_at",args[0])==0) {
     char** loc = str_split(args[1], ':');
     int line = atoi(loc[1]);
-    
-    BE_event_table_add(bec->et,BE_event_b_create(get_breakpoint_count()+1,loc[0],line,0,2));
+
+    BE_event * bev = BE_event_b_create(get_breakpoint_count()+1,loc[0],line,0);
+    BE_event_set_feature(bev, BE_FEATURE_CALLSTACK, NULL);
+    BE_event_table_add(bec->et,bev);
     
     //interrupt and insert breakpoint
     execute_command("interrupt");
@@ -466,8 +505,10 @@ void BE_rhandler_dispatch(struct BE_Context * bec, const char * request)
   else if (strcmp("callstack_track_at",args[0])==0) {
     char** loc = str_split(args[1], ':');
     int line = atoi(loc[1]);
-    
-    BE_event_table_add(bec->et,BE_event_b_create(get_breakpoint_count()+1,loc[0],line,1,2));
+
+    BE_event * bev = BE_event_b_create(get_breakpoint_count()+1,loc[0],line,1);
+    BE_event_set_feature(bev, BE_FEATURE_CALLSTACK, NULL);
+    BE_event_table_add(bec->et,bev);
     
     //interrupt and insert breakpoint
     execute_command("interrupt");
@@ -507,6 +548,7 @@ void BE_rhandler_dispatch(struct BE_Context * bec, const char * request)
       printf("Sent measurements!\n");
     }
   }
+  
   else {
     printf("\nUnrecognized request! request=%s\n",request);
   }
@@ -667,52 +709,19 @@ void BE_rhandler_variable_get(BE_Context * bec, char * variable)
     printf("Not attached to a process!\n");
     return;
   }
-
-  //attach_command(bec->PID,1);
-  //gdb_do_one_event ();
-  printf("Executing a interrupt command\n");
+  
   execute_command("interrupt");
-  printf("Waiting for inferior\n");
   wait_for_inferior(); 
-  printf("Normal stop\n");
   normal_stop();
 
-  printf("getting callstack\n");
-  struct ME_CG * stack;
-  struct ME_FT * ft = ME_FT_create("root");
-  printf("before\n");
-  BE_get_call_stack_as_CG(NULL, 0, 0, 1, &stack, ft);
-  printf("after\n");
-  //execute_command("continue&");
+  char * value = BE_get_variable(variable, 0);
+  printf("Value of %s = %s\n", variable, value);
+  
   continue_command_JG();
+}
 
-  //Send Type
-  char response_type[1];
-  response_type[0] = 1; 
-  ME_sock_send_dynamic(bec->driverfd, 1, response_type);
-  
-  //Send CallGraph & FT
-  char * encoded_cg;
-  int n;  
-  ME_CG_encode(stack, &n, &encoded_cg);
-  int encoded_cg_count = n * (sizeof(int)/sizeof(char));
-  
-  ME_sock_send_dynamic(bec->driverfd, encoded_cg_count, encoded_cg);
+void BE_rhandler_variable_record_at(BE_Context * bec, char * vairable) {
 
-  char * encoded_ft;
-  int encoded_ft_count;
-  ME_FT_encode(ft, &encoded_ft_count, &encoded_ft);
-  ME_sock_send_dynamic(bec->driverfd, encoded_ft_count, encoded_ft);
-
-  printf("freeing encoded_cg\n");
-  free(encoded_cg);
-  printf("freeing encoded_ft\n");
-  free(encoded_ft);
-
-  printf("freeing ft\n");
-  ME_FT_delete(ft);
-  printf("freeing cg\n");
-  ME_CG_delete(stack);
 }
 
 void BE_rhandler_print(BE_Context * bec)
@@ -836,11 +845,10 @@ void BE_event_table_handle(BE_Context * bec, BE_event * et, int breaked, char * 
 
 void BE_event_handle(BE_Context * bec, BE_event * ev) {
   //printf("handling e%d! delay = %d, start = %d\n", i, ev->delay, ev->start);
-  if (ev->action == 1) {
-    BE_context_print(bec);
-  }
-  else if (ev->action == 2) {
+  if (ev->feature.type == BE_FEATURE_CALLSTACK) {
     BE_ehandler_measure_callstack(bec, ev);
+  } else if (ev->feature.type == BE_FEATURE_VARIABLE) {
+    BE_ehandler_measure_variable(bec, ev);
   }
 }
 
@@ -862,9 +870,26 @@ void BE_ehandler_measure_callstack(BE_Context * bec, BE_event * ev)
   BE_get_call_stack_as_CG(NULL, 0, 0, 1, &stack, ft);
   printf("after\n");
 
-  ME_measurement * ms = ME_measurement_create(0);
-  ms->data = stack;
-  ms->data2 = ft;
+  ME_measurement * ms = ME_measurement_create(ME_MEASUREMENT_CALLSTACK);
+  ms->data.cgft.cg = stack;
+  ms->data.cgft.ft = ft;
+
+  BE_event_add_measurement(ev, ms);
+  
+}
+
+void BE_ehandler_measure_variable(BE_Context * bec, BE_event * ev)
+{
+  if (!bec->attached || !bec->stopped) {
+    printf("Not attached to a process!\n");
+    return;
+  }
+
+  char * value = BE_get_variable(ev->feature.expr, 0);
+  printf("Value of %s = %s\n", ev->feature.expr, value);
+    
+  ME_measurement * ms = ME_measurement_create(ME_MEASUREMENT_STRING);
+  ms->data.string_val = value;
 
   BE_event_add_measurement(ev, ms);
   

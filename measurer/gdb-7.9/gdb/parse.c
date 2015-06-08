@@ -1225,7 +1225,9 @@ parse_exp_in_context_1 (const char **stringptr, CORE_ADDR pc,
       if (! parse_completion)
 	{
 	  xfree (ps.expout);
-	  throw_exception (except);
+	  printf("JG: Could not parse!!!\n");
+	  return NULL;
+	  //throw_exception (except);
 	}
     }
 
@@ -1263,8 +1265,8 @@ parse_expression (const char *string)
   struct expression *exp;
 
   exp = parse_exp_1 (&string, 0, 0, 0);
-  if (*string)
-    error (_("Junk after end of expression."));
+  //if (*string)
+  //  error (_("Junk after end of expression."));
   return exp;
 }
 

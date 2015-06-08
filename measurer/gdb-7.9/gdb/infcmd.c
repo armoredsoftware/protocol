@@ -2584,10 +2584,6 @@ attach_command_continuation_free_args (void *args)
   xfree (a);
 }
 
-void print_command_JG(char *args, int from_tty) {
-  //print_command (args, from_tty);
-}
-
 void
 attach_command (char *args, int from_tty)
 {
