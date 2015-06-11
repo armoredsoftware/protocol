@@ -11,8 +11,8 @@ driver-interface.o: driver-interface.c defs.h common/common-defs.h \
  common/gdb_setjmp.h gdb_wchar.h build-gnulib/import/wctype.h ui-file.h \
  common/host-defs.h ../include/hashtab.h nm.h ../include/fopen-bin.h \
  gdbarch.h frame.h unwind_stop_reasons.def utils.h exceptions.h ui-out.h \
- driver-interface.h ME_common.c ME_common.h common/queue.h gdb_select.h \
- observer.h
+ driver-interface.h ME_common.c ME_common.h ME_RLI_IR.c ME_RLI_IR.h \
+ ME_RLI_IR_API.h ME_RLI_IR_API.c common/queue.h gdb_select.h observer.h
 
 defs.h:
 
@@ -101,6 +101,14 @@ driver-interface.h:
 ME_common.c:
 
 ME_common.h:
+
+ME_RLI_IR.c:
+
+ME_RLI_IR.h:
+
+ME_RLI_IR_API.h:
+
+ME_RLI_IR_API.c:
 
 common/queue.h:
 

@@ -63,6 +63,7 @@ ME_RLI_IR_sym;
 ME_RLI_token * ME_RLI_token_create(char * value) {
   ME_RLI_token * token = (ME_RLI_token*)malloc(sizeof(ME_RLI_token));
   strncpy(token->value, value, MAX_TOKEN_LENGTH);
+  token->next = NULL;
   return token;
 }
 
@@ -77,10 +78,14 @@ void ME_RLI_token_print(ME_RLI_token * token) {
   }
 }
 
+bool _white_space(char c) {
+  return c == ' ' || c == '\n' || c == '\t';
+}
+
 ME_RLI_token * ME_RLI_tokenize(char * in) {
   int curr = 0;
   char token[MAX_TOKEN_LENGTH];
-  char token_curr = 0;
+  int token_curr = 0;
 
   ME_RLI_token * tokens = NULL;
   ME_RLI_token * tokens_curr = NULL;
@@ -103,10 +108,11 @@ ME_RLI_token * ME_RLI_tokenize(char * in) {
       }
       token[token_curr++] = in[curr++]; 
     } else {
-      while (in[curr] != ' ' && in[curr] != 0 && in[curr] != '(' && in[curr] != ')') {
+      while (!_white_space(in[curr]) && in[curr] != 0 && in[curr] != '(' && in[curr] != ')') {
 	token[token_curr++] = in[curr++]; 
       }      
     }
+
     //commit token
     token[token_curr] = 0;
     printf("Token %s\n", token);
@@ -125,7 +131,7 @@ ME_RLI_token * ME_RLI_tokenize(char * in) {
     }
   
     //consume trailing whitespace
-    while (in[curr] == ' ') {
+    while (_white_space(in[curr])) {
       in[curr++];
     }
 
@@ -180,7 +186,7 @@ void ME_RLI_IR_value_print(ME_RLI_IR_value value) {
 
 ME_RLI_IR_value * ME_RLI_IR_value_parse(ME_RLI_token ** curr) {
   ME_RLI_IR_value * value = (ME_RLI_IR_value*)malloc(sizeof(ME_RLI_IR_value));
-
+  
   //if string pattern detected
   if (strcmp((*curr)->value,"'")==0) {
     //consume first tick
@@ -201,7 +207,7 @@ ME_RLI_IR_value * ME_RLI_IR_value_parse(ME_RLI_token ** curr) {
     int int_val = atoi((*curr)->value);
     (*curr) = (*curr)->next;
     (*value) = ME_RLI_IR_value_create_int(int_val);
-
+    
   }
   
   return value;
@@ -228,7 +234,7 @@ ME_RLI_IR_expr * ME_RLI_IR_expr_create_func(ME_RLI_IR_func * func) {
 void ME_RLI_IR_expr_print(ME_RLI_IR_expr * expr)
 {
   if (expr->type == ME_RLI_IR_EXPR_VALUE) {
-    ME_RLI_IR_value_print((*expr->data.value));
+    ME_RLI_IR_value_print(*(expr->data.value));
   }
   else if (expr->type == ME_RLI_IR_EXPR_FUNC) {
     ME_RLI_IR_func_print(expr->data.func);
@@ -266,6 +272,7 @@ ME_RLI_IR_value ME_RLI_IR_expr_eval(ME_RLI_IR_expr * expr) {
 ME_RLI_IR_func * ME_RLI_IR_func_create(ME_RLI_IR_sym * func_name) {
   ME_RLI_IR_func * func = (ME_RLI_IR_func*)(malloc(sizeof(ME_RLI_IR_func)));
   func->func_name = func_name;
+  func->args = NULL;
   return func;
 }
 
@@ -301,7 +308,8 @@ int ME_RLI_IR_func_arg_count(ME_RLI_IR_func * func)
 void ME_RLI_IR_func_add_arg(ME_RLI_IR_func * func, ME_RLI_IR_expr * expr) {
   ME_RLI_IR_arg * arg = (ME_RLI_IR_arg*)malloc(sizeof(ME_RLI_IR_arg));
   arg->expr = expr;
-
+  arg->next = NULL;
+  
   if (!func->args) {
     func->args = arg;
     return;
