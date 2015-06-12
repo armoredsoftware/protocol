@@ -10,6 +10,8 @@ extern void ME_sock_send_dynamic(int, int, char *);
 struct ME_CG;
 struct ME_FT;
 
+struct ME_CG_AND_FT;
+
 extern struct ME_CG * ME_CG_create(int);
 extern void ME_CG_add_child(struct ME_CG *, struct ME_CG *);
 extern struct ME_CG * ME_CG_copy(struct ME_CG *);
@@ -27,6 +29,7 @@ extern struct ME_CG * ME_CG_decode_h(int *, int);
 extern void ME_CG_decode(char *, struct ME_CG **);
 
 extern struct ME_FT * ME_FT_create(char *);
+extern void ME_FT_delete(struct ME_FT *);
 extern int ME_FT_add(struct ME_FT *, char *);
 extern void ME_FT_print(struct ME_FT *);
 extern int ME_FT_get_index(struct ME_FT *, char *);
@@ -38,7 +41,7 @@ extern void ME_FT_print_encoded(char *);
 enum ME_measurement_type;
 struct ME_measurement;
 
-extern struct ME_measurement * ME_measurement_create(ME_measurement_type);
+extern struct ME_measurement * ME_measurement_create(enum ME_measurement_type);
 extern void ME_measurement_delete(struct ME_measurement *);
 extern void ME_measurement_print(struct ME_measurement *);
 extern void ME_measurement_send(int, struct ME_measurement *);

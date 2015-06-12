@@ -23,14 +23,17 @@
 
 char** str_split(char* a_str_O, const char a_delim)
 {  
-  char* a_str = malloc((strlen(a_str_O)+1)*sizeof(char));
-  memcpy(a_str, a_str_O, (strlen(a_str_O)+1)*sizeof(char));
-  
+  char* a_str;
   char** result    = 0;
   size_t count     = 0;
-  char* tmp        = a_str;
+  char* tmp;
   char* last_comma = 0;
   char delim[2];
+  
+  a_str = malloc((strlen(a_str_O)+1)*sizeof(char));
+  memcpy(a_str, a_str_O, (strlen(a_str_O)+1)*sizeof(char));
+  tmp = a_str;
+  
   delim[0] = a_delim;
   delim[1] = 0;
 
@@ -143,13 +146,14 @@ int ME_sock_recv(int sockfd, char * message)
 void ME_sock_send(int sockfd, char * message)
 {
   char sendBuff[1025];
-
+  int count;
+  
   memset(sendBuff, 0 ,sizeof(sendBuff));
 
   snprintf(sendBuff, sizeof(sendBuff), "%s", message);
   printf("Sending:%s\n", sendBuff);
 
-  int count = write(sockfd, sendBuff, sizeof(sendBuff)-1);
+  count = write(sockfd, sendBuff, sizeof(sendBuff)-1);
 
   //printf("Sent %d bytes:\"%s\"\n",count,sendBuff);
 
@@ -157,7 +161,8 @@ void ME_sock_send(int sockfd, char * message)
 
 void ME_sock_recv_dynamic(int sockfd, int * n, char ** message)
 {
-  int n1 = read(sockfd, n, sizeof(int));
+  int n1, n2;
+  n1 = read(sockfd, n, sizeof(int));
 
   if (!(n1>0&&n))
   {
@@ -167,7 +172,7 @@ void ME_sock_recv_dynamic(int sockfd, int * n, char ** message)
       
   (*message) = (char *)malloc(sizeof(char)*(*n));
 
-  int n2 = read(sockfd, (*message), sizeof(char)*(*n));
+  n2 = read(sockfd, (*message), sizeof(char)*(*n));
 
   printf("Recieved %d bytes:\"%s\"\n",(*n),(*message));
   
@@ -208,12 +213,14 @@ ME_CG * ME_CG_create(int symbol)
 
 void ME_CG_add_child(struct ME_CG * parent, struct ME_CG * child)
 {
+  ME_CG * curr;
+  
   if (parent->child == NULL) {
     parent->child = child;
     return;
   }
 
-  ME_CG * curr = parent->child;
+  curr = parent->child;
   while (curr->sibling) {
     curr = curr->sibling;
   }
@@ -240,9 +247,11 @@ void ME_CG_add_child(struct ME_CG * parent, struct ME_CG * child)
 
 ME_CG * ME_CG_copy(struct ME_CG * cg)
 {
+  ME_CG * copy;
+    
   if (cg == NULL) return NULL;
 
-  ME_CG * copy = ME_CG_create(cg->symbol);
+  copy = ME_CG_create(cg->symbol);
   copy->sibling = ME_CG_copy(cg->sibling);
   copy->child = ME_CG_copy(cg->child);
 
@@ -266,6 +275,8 @@ void ME_CG_delete(struct ME_CG * cg)
 
 void ME_CG_merge_stack(struct ME_CG * cg, struct ME_CG * stack)
 {
+  ME_CG * curr;
+  
   if (!cg) {
     printf("No cg to merge to!!!\n");
     exit(-1);
@@ -273,7 +284,7 @@ void ME_CG_merge_stack(struct ME_CG * cg, struct ME_CG * stack)
 
   if (!stack) return;
 
-  ME_CG * curr = cg;
+  curr = cg;
   while (curr->sibling) {
     if (curr->symbol == stack->symbol) {
       if (curr->child==NULL) {
@@ -341,9 +352,10 @@ void ME_CG_print(struct ME_CG * cg, struct ME_FT * ft) {
 }
 
 int ME_CG_count(struct ME_CG * cg) {
-  if (cg == NULL) return 0;
   int i = 1;
-
+  
+  if (cg == NULL) return 0;
+  
   i += ME_CG_count(cg->sibling);
   i += ME_CG_count(cg->child);
 
@@ -352,15 +364,17 @@ int ME_CG_count(struct ME_CG * cg) {
 
 int ME_CG_encode_h(struct ME_CG * cg, int next, int * result)
 {
+  int i_this, i_child, i_sibling;
+  
   if (cg == NULL) return next;
 
-  int i_this = next;
+  i_this = next;
   next += 3;
 
   result[i_this] = cg->symbol;
 
   if (cg->child) {
-    int i_child = next;
+    i_child = next;
     next = ME_CG_encode_h(cg->child, i_child, result);
     result[i_this+1] = i_child;
   } else {
@@ -368,7 +382,7 @@ int ME_CG_encode_h(struct ME_CG * cg, int next, int * result)
   }
 
   if (cg->sibling) {
-    int i_sibling = next;
+    i_sibling = next;
     next = ME_CG_encode_h(cg->sibling, next, result);
     result[i_this+2] = i_sibling;
   } else {
@@ -379,12 +393,13 @@ int ME_CG_encode_h(struct ME_CG * cg, int next, int * result)
 }
 
 void ME_CG_encode(struct ME_CG * cg, int * count, char ** result) {
-  int n = ME_CG_count(cg);
+  int n, n3;
+  n = ME_CG_count(cg);
   printf("count = %d\n", n);
 
   (*result) = (char *)malloc(sizeof(int) * n * 3);
 
-  int n3 = ME_CG_encode_h(cg, 0, (int *)(*result));
+  n3 = ME_CG_encode_h(cg, 0, (int *)(*result));
 
   if (n*3!=n3)
     {
@@ -392,18 +407,17 @@ void ME_CG_encode(struct ME_CG * cg, int * count, char ** result) {
       //exit(-1);
     }
 
-  //int i=0;
-  //for (i=0; i<n*3; i+=3) printf("[%d]%d,%d,%d\n",i,(*result)[i],(*result)[i+1],(*result)[i+2]);
-
   (*count) = (n3) * (sizeof(int)/sizeof(char));
 }
 
 void ME_CG_print_encoded(int n, char * encoded_cg)
 {
-  int * cg_encoded_i = (int *)encoded_cg;
-  int n_i = n * (sizeof(int)/sizeof(char));
-  int i=0;
-  for (i=0; i<n; i+=3) printf("[%d]%d,%d,%d\n",i,cg_encoded_i[i],cg_encoded_i[i+1],cg_encoded_i[i+2]);
+  int * cg_encoded_i;
+  int n_i, i;
+  cg_encoded_i = (int *)encoded_cg;
+  n_i = n * (sizeof(int)/sizeof(char));
+  for (i=0; i<n; i+=3)
+    printf("[%d]%d,%d,%d\n",i,cg_encoded_i[i],cg_encoded_i[i+1],cg_encoded_i[i+2]);
 }
 
 ME_CG * ME_CG_decode_h(int * a, int i)
@@ -460,8 +474,9 @@ void ME_FT_delete(struct ME_FT * ft)
 int ME_FT_add(ME_FT * ft, char * name)
 {  
   int i = 0;
-
-  ME_FT * curr = ft;
+  ME_FT  *curr, *new_entry;
+  
+  curr = ft;
   while (curr->next) {
     i++;
     curr = curr->next;
@@ -469,7 +484,7 @@ int ME_FT_add(ME_FT * ft, char * name)
   }
   i++;
 
-  ME_FT * new_entry = ME_FT_create(name);
+  new_entry = ME_FT_create(name);
   curr->next = new_entry;
   return i;
 }
@@ -513,9 +528,11 @@ char * ME_FT_get(struct ME_FT * ft, int i)
 
 void ME_FT_encode(struct ME_FT * ft, int * count, char ** result)
 {
+  int next, curr_count;
+  ME_FT * curr = ft;
+
   (*count) = 0;
   
-  ME_FT * curr = ft;
   while (curr->next) {
     curr = curr->next;
     //printf("len:%d\n",strlen(curr->name));
@@ -528,10 +545,9 @@ void ME_FT_encode(struct ME_FT * ft, int * count, char ** result)
 
   (*result) = malloc(sizeof(char) * (*count));
 
-  int next = 0;
+  next  = 0;
   
   curr = ft;
-  int curr_count;
   while (curr->next) {
     curr = curr->next;
     curr_count = strlen(curr->name);
@@ -552,11 +568,11 @@ void ME_FT_encode(struct ME_FT * ft, int * count, char ** result)
 
 void ME_FT_decode(char * ft_encoded, ME_FT ** ft)
 {
-  (*ft) = ME_FT_create("root");
-  
   char** names;
   int i;
-  
+
+  (*ft) = ME_FT_create("root");
+    
   names = str_split(ft_encoded, ' ');
 
   for (i = 0; *(names + i); i++)
@@ -667,27 +683,25 @@ void ME_measurement_print(struct ME_measurement * ms)
 }
 
 void ME_measurement_send(int sockfd, struct ME_measurement * ms) {
+  int i, n, encoded_cg_count, encoded_ft_count;
+  char *encoded_cg, *encoded_ft;
   if (!ms) {
-    int i = -1;
-    ME_sock_send_dynamic(sockfd, sizeof(int)/sizeof(char), &i);
+    i = -1;
+    ME_sock_send_dynamic(sockfd, sizeof(int)/sizeof(char), (char*)&i);
     return;
   }     
 
   //send type
-  ME_sock_send_dynamic(sockfd, sizeof(ms->type)/sizeof(char), &(ms->type));  
+  ME_sock_send_dynamic(sockfd, sizeof(ms->type)/sizeof(char), (char*)&(ms->type));  
 
   if (ms->type == ME_MEASUREMENT_CALLSTACK) {
     //Send data 1 (callgraph)
-    char * encoded_cg;
-    int n;
     ME_CG_encode(ms->data.cgft.cg, &n, &encoded_cg);
-    int encoded_cg_count = n * (sizeof(int)/sizeof(char));
+    encoded_cg_count = n * (sizeof(int)/sizeof(char));
 
     ME_sock_send_dynamic(sockfd, encoded_cg_count, encoded_cg);
 
     //send data 2 (ft)
-    char * encoded_ft;
-    int encoded_ft_count;
     ME_FT_encode(ms->data.cgft.ft, &encoded_ft_count, &encoded_ft);
     ME_sock_send_dynamic(sockfd, encoded_ft_count, encoded_ft);
 
@@ -715,27 +729,32 @@ ME_measurement * ME_measurement_recieve(int sockfd) {
 
   int message_type_size;
   char * message_type=NULL;   
+  int encoded_cg_count;
+  char * encoded_cg;
+  int encoded_ft_count;
+  char * encoded_ft;
+  ME_FT * decoded_ft;
+  ME_CG * decoded_cg;
+  ME_measurement_type type;
+  ME_measurement * ms;
+  int string_val_count;
+  char * string_val;
+    
   ME_sock_recv_dynamic(sockfd, &message_type_size, &message_type);
 
-  ME_measurement_type type = *((ME_measurement_type*)(message_type));
+  type = *((ME_measurement_type*)(message_type));
   
   if (type==-1)
     return NULL;
     
-  ME_measurement * ms = ME_measurement_create(type);
+   ms = ME_measurement_create(type);
 
   if (ms->type == ME_MEASUREMENT_CALLSTACK) {
-    int encoded_cg_count;
-    char * encoded_cg;
-    int encoded_ft_count;
-    char * encoded_ft;
-
+    
     ME_sock_recv_dynamic(sockfd, &encoded_cg_count, &encoded_cg);
     ME_sock_recv_dynamic(sockfd, &encoded_ft_count, &encoded_ft);
 
-    ME_FT * decoded_ft;
     ME_FT_decode(encoded_ft, &decoded_ft);
-    ME_CG * decoded_cg;
     ME_CG_decode(encoded_cg, &decoded_cg);
     printf("callgraph = ");
     ME_CG_print(decoded_cg,decoded_ft);
@@ -748,8 +767,6 @@ ME_measurement * ME_measurement_recieve(int sockfd) {
     ms->data.cgft.ft = decoded_ft;
   }
   else if (ms->type == ME_MEASUREMENT_STRING) {
-    int string_val_count;
-    char * string_val;
     ME_sock_recv_dynamic(sockfd, &string_val_count, &string_val);
     ms->data.string_val = string_val;
     printf("String val recieved is \"%s\"\n",string_val);

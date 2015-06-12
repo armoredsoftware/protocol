@@ -11,7 +11,8 @@ typedef struct ME_RLI_token {
 } ME_RLI_token;
 
 typedef enum ME_RLI_IR_value_type {
-  ME_RLI_IR_VALUE_INT, ME_RLI_IR_VALUE_STRING, ME_RLI_IR_VALUE_VOID, ME_RLI_IR_VALUE_LEXPR
+  ME_RLI_IR_VALUE_INT, ME_RLI_IR_VALUE_STRING, ME_RLI_IR_VALUE_VOID, ME_RLI_IR_VALUE_LEXPR,
+  ME_RLI_IR_VALUE_MEASUREMENT, ME_RLI_IR_VALUE_EVENT, ME_RLI_IR_VALUE_FEATURE
 }
 ME_RLI_IR_value_type;
 
@@ -21,6 +22,9 @@ typedef struct ME_RLI_IR_value {
     int int_val;
     char string_val[MAX_STRING_LENGTH];
     struct ME_RLI_IR_expr * lexpr;
+    struct ME_measurement * ms;
+    struct BE_event * event;
+    struct BE_feature * feature;
   } vdata;
 }
 ME_RLI_IR_value;
@@ -115,7 +119,7 @@ ME_RLI_token * ME_RLI_tokenize(char * in) {
 
     //commit token
     token[token_curr] = 0;
-    printf("Token %s\n", token);
+    //printf("Token %s\n", token);
     token_curr = 0;
     if (tokens_curr) {
       tokens_curr->next = ME_RLI_token_create(token);
@@ -158,6 +162,27 @@ ME_RLI_IR_value ME_RLI_IR_value_create_string(char * string_val) {
   return value;
 }
 
+ME_RLI_IR_value ME_RLI_IR_value_create_measurement(struct ME_measurement * ms) {
+  struct ME_RLI_IR_value value;
+  value.type = ME_RLI_IR_VALUE_MEASUREMENT;
+  value.vdata.ms = ms;
+  return value;
+}
+
+ME_RLI_IR_value ME_RLI_IR_value_create_event(struct BE_event * event) {
+  struct ME_RLI_IR_value value;
+  value.type = ME_RLI_IR_VALUE_EVENT;
+  value.vdata.event = event;
+  return value;
+}
+
+ME_RLI_IR_value ME_RLI_IR_value_create_feature(struct BE_feature * feature) {
+  struct ME_RLI_IR_value value;
+  value.type = ME_RLI_IR_VALUE_FEATURE;
+  value.vdata.feature = feature;
+  return value;
+}
+
 ME_RLI_IR_value ME_RLI_IR_value_create_void() {
   struct ME_RLI_IR_value value;
   value.type = ME_RLI_IR_VALUE_VOID;
@@ -181,18 +206,31 @@ void ME_RLI_IR_value_print(ME_RLI_IR_value value) {
   } else if (value.type == ME_RLI_IR_VALUE_LEXPR) {
     printf("LEXPR:");
     ME_RLI_IR_expr_print(value.vdata.lexpr);
-  }
+  } else if (value.type == ME_RLI_IR_VALUE_MEASUREMENT) {
+    printf("MEASUREMENT:");
+    ME_measurement_print(value.vdata.ms);
+  } else if (value.type == ME_RLI_IR_VALUE_EVENT) {
+    printf("EVENT:");
+    BE_event_print(value.vdata.event);
+  } else if (value.type == ME_RLI_IR_VALUE_FEATURE) {
+    printf("FEATURE:");
+    BE_feature_print(value.vdata.feature);
+  }  
 }
 
 ME_RLI_IR_value * ME_RLI_IR_value_parse(ME_RLI_token ** curr) {
-  ME_RLI_IR_value * value = (ME_RLI_IR_value*)malloc(sizeof(ME_RLI_IR_value));
+  ME_RLI_IR_value * value;
+  ME_RLI_IR_expr * lexpr;
+  int int_val;
+  
+  value = (ME_RLI_IR_value*)malloc(sizeof(ME_RLI_IR_value));
   
   //if string pattern detected
   if (strcmp((*curr)->value,"'")==0) {
     //consume first tick
     (*curr) = (*curr)->next;
 
-    ME_RLI_IR_expr * lexpr = ME_RLI_IR_expr_parse(curr);
+    lexpr = ME_RLI_IR_expr_parse(curr);
     (*value) = ME_RLI_IR_value_create_lexpr(lexpr);
     
   } else if ((*curr)->value[0] == '"') {
@@ -204,7 +242,7 @@ ME_RLI_IR_value * ME_RLI_IR_value_parse(ME_RLI_token ** curr) {
     (*curr) = (*curr)->next;
   } else {
 
-    int int_val = atoi((*curr)->value);
+    int_val = atoi((*curr)->value);
     (*curr) = (*curr)->next;
     (*value) = ME_RLI_IR_value_create_int(int_val);
     
@@ -306,7 +344,11 @@ int ME_RLI_IR_func_arg_count(ME_RLI_IR_func * func)
 }
 
 void ME_RLI_IR_func_add_arg(ME_RLI_IR_func * func, ME_RLI_IR_expr * expr) {
-  ME_RLI_IR_arg * arg = (ME_RLI_IR_arg*)malloc(sizeof(ME_RLI_IR_arg));
+  ME_RLI_IR_arg * arg;
+  ME_RLI_IR_arg * curr;
+  
+  arg = (ME_RLI_IR_arg*)malloc(sizeof(ME_RLI_IR_arg));
+
   arg->expr = expr;
   arg->next = NULL;
   
@@ -315,7 +357,7 @@ void ME_RLI_IR_func_add_arg(ME_RLI_IR_func * func, ME_RLI_IR_expr * expr) {
     return;
   }
   
-  ME_RLI_IR_arg * curr = func->args;
+  curr = func->args;
   while(curr->next) {
     curr = curr->next;
   }
@@ -355,10 +397,12 @@ ME_RLI_IR_func * ME_RLI_IR_func_parse(ME_RLI_token ** curr) {
 }
 
 ME_RLI_IR_value ME_RLI_IR_func_eval(ME_RLI_IR_func * func) {
+  int args_count, i;
+  
   //evaluate arguments
-  int args_count = ME_RLI_IR_func_arg_count(func);
+  args_count = ME_RLI_IR_func_arg_count(func);
   ME_RLI_IR_value arg_vals[args_count];
-  int i = 0;
+  i = 0;
   ME_RLI_IR_arg * arg_curr = func->args;
   for (i = 0; i<args_count; i++) {
     arg_vals[i] = ME_RLI_IR_expr_eval(arg_curr->expr);

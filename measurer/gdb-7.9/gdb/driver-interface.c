@@ -23,21 +23,37 @@
 #include <assert.h>
 
 /*====================================================
-FEATURE STUFF
-======================================================*/
-typedef enum {BE_FEATURE_CALLSTACK, BE_FEATURE_VARIABLE} BE_feature_type;
+  FEATURE STUFF
+  ====================================================*/
 
-typedef struct BE_feature {
-  BE_feature_type type;
-  char * expr;
+BE_feature * BE_feature_create_callstack() {
+  BE_feature * feature = (BE_feature*)malloc(sizeof(BE_feature));
+  feature->type = BE_FEATURE_CALLSTACK;
+  return feature;
 }
-BE_feature;
+
+BE_feature * BE_feature_create_variable(char * var_name) {
+  BE_feature * feature = (BE_feature*)malloc(sizeof(BE_feature));
+  feature->type = BE_FEATURE_VARIABLE;
+  strcpy(feature->var_name,var_name);//TODO enforce size limit 
+  return feature;
+}
+
+void BE_feature_print(BE_feature * feature)
+{
+  if (feature->type == BE_FEATURE_CALLSTACK) {
+    printf("{type=callstack}");
+  } else {
+    printf("{type=variable,name=%s}",feature->var_name);
+  }
+  
+}
 
 
 /*====================================================
   EVENT STUFF
-======================================================*/
-typedef enum {BE_EVENT_T, BE_EVENT_B} BE_event_type;
+  ====================================================*/
+/*typedef enum {BE_EVENT_T, BE_EVENT_B} BE_event_type;
 
 typedef struct BE_event_t {
   int delay; //int time when
@@ -47,118 +63,84 @@ BE_event_t;
 
 typedef struct BE_event_b {
   int bp_id;
-  char * filename;
+  char * filename; //TODO convert to array
   int line;
 }
 BE_event_b;
 
-typedef union BE_event_union {
-  struct BE_event_t t;
-  struct BE_event_b b;
-}
-BE_event_union;
-
-typedef struct BE_event
-{
+typedef struct BE_event {
   BE_event_type type;
+  bool repeat;
   
-  union BE_event_union data;
+  union edata {
+    struct BE_event_t t;
+    struct BE_event_b b;
+  } edata;
+  } BE_event;*/
   
-  int active;
-  int repeat;
-  
-  BE_feature feature;
-  
-  //MEASUREMENTS
-  struct ME_measurement * measurements;
-  
-  //FOR EVENT TABLE
-  struct BE_event * next;
-
+typedef struct BE_hook
+{
+  BE_event * event;
+  ME_RLI_IR_expr * action;
+  bool enabled;
 }
-BE_event;
+BE_hook;
+
+/*typedef struct BE_hook_array {
+  BE_hook * hooks[64]; //MAX hook array size???
+  int count=0;
+}
+BE_hook_array;*/
 
 BE_event * BE_event_t_create(int delay, int repeat) {
-  BE_event * ev = (BE_event*)malloc(sizeof(BE_event));
-  ev->type = BE_EVENT_T;
-
-  ev->data.t.delay = delay;
-  ev->data.t.start = clock();
-  
-  ev->active = 1;
-  ev->repeat = repeat;
-
-  ev->measurements = NULL;
-  
-  ev->next = NULL;
-  return ev;
+  BE_event * event = (BE_event*)malloc(sizeof(BE_event));
+  event->type = BE_EVENT_T;
+  event->edata.t.delay = delay;
+  event->edata.t.start = clock();
+  event->repeat = repeat;
+  return event;
 }
 
 BE_event * BE_event_b_create(int bp_id, char * filename, int line, int repeat) {
-  BE_event * ev = (BE_event*)malloc(sizeof(BE_event));
-  ev->type = BE_EVENT_B;
-
-  ev->data.b.filename = (char*)malloc(sizeof(char) * strlen(filename)+1);
-  memcpy(ev->data.b.filename, filename, sizeof(char) * strlen(filename)+1);
+  BE_event * event = (BE_event*)malloc(sizeof(BE_event));
+  event->type = BE_EVENT_B;
+  event->edata.b.filename = (char*)malloc(sizeof(char) * strlen(filename)+1);
+  memcpy(event->edata.b.filename, filename, sizeof(char) * strlen(filename)+1);
   
-  ev->data.b.line = line;
-  ev->data.b.bp_id = bp_id;
-  
-  ev->active = 1;
-  ev->repeat = repeat;
-
-  ev->measurements = NULL;
-  
-  ev->next = NULL;
-  return ev;
+  event->edata.b.line = line;
+  event->edata.b.bp_id = bp_id;
+  event->repeat = repeat;
+  return event;
 }
 
-void BE_event_set_feature(struct BE_event * ev, BE_feature_type type, char * expr) {
-  ev->feature.type = type;
-  if (expr) {
-    ev->feature.expr = (char*)malloc(sizeof(char) * strlen(expr)+1);
-    memcpy(ev->feature.expr, expr, sizeof(char) * strlen(expr)+1);
+void BE_event_print(BE_event * event) {
+  
+  if (event->type == BE_EVENT_T) {
+    printf("{type=T,delay=%d}",event->edata.t.delay);
+  } else if (event->type == BE_EVENT_B) {
+    printf("{type=B,filename=%s,line=%d}",event->edata.b.filename,event->edata.b.line);
   }
 }
 
-void BE_event_add_measurement(struct BE_event * ev, struct ME_measurement * ms) {
-  ms->next = ev->measurements;
-  ev->measurements = ms;
+
+void BE_hook_disable(BE_hook * hook) {
+  if (!hook) return;
+  hook->enabled = false;
 }
 
-void BE_event_print(BE_event * ev) {
-  if (!ev) {
-    printf("NULL\n");
-    return;
-  }
+void BE_hook_enable(BE_hook * hook) {
+  if (!hook) return;
+  hook->enabled = true;
+}
 
-  //INCOMPLETE
+void BE_hook_kill(BE_hook * hook) {
+  if (!hook) return;
+
+  BE_hook_disable(hook);
   
-  printf("Event{type=%d,delay=%d,start=%d,active=%d,repeat=%d,action=%d,measurements=...,next=...\n");
-
-}
-
-void BE_event_disable(BE_event * ev) {
-  if (!ev) return;
-  
-  ev->active = false;
-}
-
-void BE_event_enable(BE_event * ev) {
-  if (!ev) return;
-
-  ev->active = true;
-}
-
-void BE_event_kill(BE_event * ev) {
-  if (!ev) return;
-  
-  if (ev->type == BE_EVENT_T) {
-    ev->active = false;
-  } else if (ev->type == BE_EVENT_B) {
-    ev->active = false;
+  if (hook->event->type == BE_EVENT_B) {
     //remove breakpoint
-    //What happens if there is more than one event for this breakpoint??
+    //TODO What happens if there is more than one event for this breakpoint??
     
     //interrupt and delete breakpoint
     execute_command("interrupt");
@@ -166,44 +148,35 @@ void BE_event_kill(BE_event * ev) {
     normal_stop();
 
     char arg[15];
-    sprintf(arg, "%d", ev->data.b.bp_id);
+    sprintf(arg, "%d", hook->event->edata.b.bp_id);
     delete_command(arg,0);
 
     //continue
     continue_command_JG();
-     
   }
 }
 
-BE_event * BE_event_table_create()
+void BE_hook_array_init()
 {
-  //create null event
-  return BE_event_t_create(0,0);
+  the_context.hook_array.count = 0;
 }
 
-void BE_event_table_add(BE_event * et, BE_event * ev) {
-  BE_event * curr = et;
-  while (curr->next) {
-    curr = curr->next;
-  }
-  curr->next = ev;
+int BE_hook_array_add(BE_hook * hook) {
+  //TODO check for bounds
+  int i = the_context.hook_array.count++;
+  the_context.hook_array.hooks[i] = hook;
+  return i;
 }
 
-BE_event * BE_event_table_get(BE_event * et, int i) {
-  if (i<=0) return NULL;
-  BE_event * curr = et;
-  while (i && curr) {
-    curr = curr->next;
-    i--;
-  }
-  return curr;
+BE_hook * BE_hook_array_get(int i) {
+  return the_context.hook_array.hooks[i];
 }
 
 /*====================================================
   CONTEXT STUFF
-======================================================*/
+  ====================================================*/
 
-typedef struct BE_Context
+/*typedef struct BE_Context
 {
   bool attached;
   bool stopped;
@@ -214,10 +187,9 @@ typedef struct BE_Context
   ME_CG * CG;
   ME_FT * FT;
 
-  BE_event * et;
+  BE_hook * et;
 }
-BE_Context;
-
+BE_Context;*/
 
 void BE_start_session(struct BE_Context * bec)
 {
@@ -231,7 +203,7 @@ void BE_start_session(struct BE_Context * bec)
 
 BE_Context* BE_context_create(void)
 {
-  BE_Context* bec = (BE_Context*)malloc(sizeof(BE_Context));
+  /*BE_Context* bec = (BE_Context*)malloc(sizeof(BE_Context));
   bec->attached = false;
   bec->stopped = false;
   bec->PID = NULL;
@@ -241,9 +213,22 @@ BE_Context* BE_context_create(void)
   bec->CG = NULL;
   bec->FT = ME_FT_create("root");
 
-  bec->et = BE_event_table_create();
+  bec->et = BE_hook_table_create();
   
-  return bec;
+  return bec;*/
+  the_context.attached = false;
+  the_context.stopped = false;
+  the_context.PID = NULL;
+  the_context.driverfd = -1;
+  the_context.CG_tracking = false;
+  the_context.CG_lasttime = 0;
+  the_context.CG = NULL;
+  the_context.FT = ME_FT_create("root");
+
+  //the_context.et = BE_hook_table_create();
+  
+  return &the_context;
+  
 }
 
 void BE_context_print(struct BE_Context * bec)
@@ -341,9 +326,9 @@ void BE_get_request(struct BE_Context * bec)
   exit(-1);*/
 
   /*if (bec->et==NULL) {
-    bec->et = BE_event_table_create();
-    BE_event_table_add(bec->et,BE_event_t_create(10000000,1,1));
-    BE_event_table_add(bec->et,BE_event_t_create(1000000,1,2));    
+    bec->et = BE_hook_table_create();
+    BE_hook_table_add(bec->et,BE_hook_t_create(10000000,1,1));
+    BE_hook_table_add(bec->et,BE_hook_t_create(1000000,1,2));    
     }*/
   
   char request[1024];
@@ -398,11 +383,11 @@ void BE_do_continuous(BE_Context * bec)
     bec->stopped = true;
     printf("Stop caught at %s:%d !\n", filename, line);
 
-    //BE_event_table_handle(bec, bec->et, filename, line);
+    //BE_hook_table_handle(bec, bec->et, filename, line);
   }
 
   //Check events
-  BE_event_table_handle(bec, bec->et, breaked, filename, line);
+  BE_hook_array_handle(bec, breaked, filename, line);
 
   if (bec->stopped) {
     continue_command_JG();
@@ -435,13 +420,13 @@ void BE_rhandler_dispatch(struct BE_Context * bec, const char * request)
   printf("\nHandling %s request!\n",request);
   
   if (strcmp("quit",args[0])==0)
-    BE_rhandler_quit(bec);
+    ME_API_quit();
   else if (strcmp("print",args[0])==0)
-    BE_rhandler_print(bec);
+    ME_API_print_context();
   else if (strcmp("set_target",args[0])==0)
-    BE_rhandler_set_target(bec, args[1]);
+    ME_API_set_target(args[1]);
   else if (strcmp("detach",args[0])==0)
-    BE_rhandler_detach(bec);
+    ME_API_detach();
   else if (strcmp("CG_begin",args[0])==0)
     BE_rhandler_CG_begin(bec);
   else if (strcmp("CG_end",args[0])==0)
@@ -451,13 +436,13 @@ void BE_rhandler_dispatch(struct BE_Context * bec, const char * request)
   else if (strcmp("variable_get",args[0])==0)
     BE_rhandler_variable_get(bec, args[1]);
   else if (strcmp("variable_record_at",args[0])==0) {
-    char** loc = str_split(args[1], ':');
+    /*char** loc = str_split(args[1], ':');
     int line = atoi(loc[1]);
 
-    BE_event * bev = BE_event_b_create(get_breakpoint_count()+1,loc[0],line,0);
-    BE_event_set_feature(bev, BE_FEATURE_VARIABLE, args[2]);
+    BE_hook * bev = BE_event_b_create(get_breakpoint_count()+1,loc[0],line,0);
+    BE_hook_set_feature(bev, BE_FEATURE_VARIABLE, args[2]);
     
-    BE_event_table_add(bec->et,bev);
+    BE_hook_array_add(bev);
     
     //interrupt and insert breakpoint
     execute_command("interrupt");
@@ -466,33 +451,33 @@ void BE_rhandler_dispatch(struct BE_Context * bec, const char * request)
     break_command(args[1],0);
 
     //continue
-    continue_command_JG();
+    continue_command_JG();*/
   }
   else if (strcmp("callstack_get",args[0])==0)
     BE_rhandler_callstack_get(bec);
   else if (strcmp("callstack_get_at",args[0])==0)
     BE_rhandler_callstack_get_at(bec, args[1]);
   else if (strcmp("callstack_track",args[0])==0) {
-    int delay = atoi(args[1]);
+    /*int delay = atoi(args[1]);
 
-    BE_event * bev = BE_event_t_create(delay,1);
-    BE_event_set_feature(bev, BE_FEATURE_CALLSTACK, NULL);
-    BE_event_table_add(bec->et,bev);
+    BE_hook * bev = BE_event_t_create(delay,1);
+    BE_hook_set_feature(bev, BE_FEATURE_CALLSTACK, NULL);
+    BE_hook_array_add(bev);*/
   }
   else if (strcmp("callstack_record_delay",args[0])==0) {
-    int delay = atoi(args[1]);
+    /*int delay = atoi(args[1]);
 
-    BE_event * bev = BE_event_t_create(delay,0);
-    BE_event_set_feature(bev, BE_FEATURE_CALLSTACK, NULL);
-    BE_event_table_add(bec->et,bev);
+    BE_hook * bev = BE_event_t_create(delay,0);
+    BE_hook_set_feature(bev, BE_FEATURE_CALLSTACK, NULL);
+    BE_hook_array_add(bev);*/
   }
   else if (strcmp("callstack_record_at",args[0])==0) {
-    char** loc = str_split(args[1], ':');
+    /*char** loc = str_split(args[1], ':');
     int line = atoi(loc[1]);
 
-    BE_event * bev = BE_event_b_create(get_breakpoint_count()+1,loc[0],line,0);
-    BE_event_set_feature(bev, BE_FEATURE_CALLSTACK, NULL);
-    BE_event_table_add(bec->et,bev);
+    BE_hook * bev = BE_event_b_create(get_breakpoint_count()+1,loc[0],line,0);
+    BE_hook_set_feature(bev, BE_FEATURE_CALLSTACK, NULL);
+    BE_hook_array_add(bev);
     
     //interrupt and insert breakpoint
     execute_command("interrupt");
@@ -502,15 +487,15 @@ void BE_rhandler_dispatch(struct BE_Context * bec, const char * request)
 
     //continue
     continue_command_JG();
-    
+    */
   }  
   else if (strcmp("callstack_track_at",args[0])==0) {
-    char** loc = str_split(args[1], ':');
+    /*char** loc = str_split(args[1], ':');
     int line = atoi(loc[1]);
 
-    BE_event * bev = BE_event_b_create(get_breakpoint_count()+1,loc[0],line,1);
-    BE_event_set_feature(bev, BE_FEATURE_CALLSTACK, NULL);
-    BE_event_table_add(bec->et,bev);
+    BE_hook * bev = BE_event_b_create(get_breakpoint_count()+1,loc[0],line,1);
+    BE_hook_set_feature(bev, BE_FEATURE_CALLSTACK, NULL);
+    BE_hook_array_add(bev);
     
     //interrupt and insert breakpoint
     execute_command("interrupt");
@@ -520,56 +505,50 @@ void BE_rhandler_dispatch(struct BE_Context * bec, const char * request)
 
     //continue
     continue_command_JG();
-    
+    */
   }
   else if (strcmp("measurement_disable",args[0])==0) {
     int i = atoi(args[1]);
-    BE_event_disable(BE_event_table_get(bec->et,i));
+    BE_hook_disable(BE_hook_array_get(i));
     
   }
   else if (strcmp("measurement_enable",args[0])==0) {
     int i = atoi(args[1]);
-    BE_event_enable(BE_event_table_get(bec->et,i));
+    BE_hook_enable(BE_hook_array_get(i));
     
   }
   else if (strcmp("measurement_kill",args[0])==0) {
     int i = atoi(args[1]);
-    BE_event_kill(BE_event_table_get(bec->et,i));
+    BE_hook_kill(BE_hook_array_get(i));
     
   }
   else if (strcmp("measurement_get",args[0])==0) {
     int i = atoi(args[1]);    
-    BE_event * ev = BE_event_table_get(bec->et,i);
-    if (!ev) {
+    BE_hook * hook = BE_hook_array_get(i);
+    if (!hook) {
       printf("No event %d!!!\n", i);
     }
     else {    
-      //BE_event_print(ev);
-      ME_measurement_print(ev->measurements);
-      ME_measurement_send_temp(bec->driverfd, ev->measurements);
-      printf("Sent measurements!\n");
+      //BE_hook_print(ev);
+      //ME_measurement_print(ev->measurements);
+      //ME_measurement_send_temp(bec->driverfd, ev->measurements);
+      printf("Unimplemented!\n");
     }
   }
   
   else {
-    printf("Tokenizing \"%s\"",request);
-
     ME_RLI_token * tokens = ME_RLI_tokenize(request);
 
-    printf("Done\n");
-
-    ME_RLI_token_print(tokens);
-    printf("\n");
-
     ME_RLI_IR_expr * expr = ME_RLI_IR_expr_parse(&tokens);
-    ME_RLI_IR_expr_print(expr);
-
+    //ME_RLI_IR_expr_print(expr);
+    //printf("\n");
+    
     ME_RLI_IR_value result = ME_RLI_IR_expr_eval(expr);
 
-    printf("\nValue = ");
+    printf("result = ");
     ME_RLI_IR_value_print(result);
     printf("\n");
-
+    
     //TODO delete tokens, expr
     
     //printf("\nUnrecognized request! request=%s\n",request);
@@ -746,65 +725,18 @@ void BE_rhandler_variable_record_at(BE_Context * bec, char * vairable) {
 
 }
 
-void BE_rhandler_print(BE_Context * bec)
-{
-  BE_context_print(bec);
-}
-
-void BE_rhandler_set_target(BE_Context * bec, char * target_PID)
-{
-  if (bec->attached) {
-    execute_command("detach",1);
-    bec->attached = false;
-    free(bec->PID);
-  }
-  
-  bec->PID = malloc(sizeof(char) * strlen(target_PID));
-  strcpy(bec->PID, target_PID);
-
-  attach_command(bec->PID,1);
-  gdb_do_one_event ();
-
-  bec->attached = true;
-  
-  continue_command_JG();
-}
-
-
-void BE_rhandler_detach(BE_Context * bec)
-{
-  if (bec->attached) {
-    execute_command("detach",1);
-    bec->attached = false;
-    free(bec->PID);
-    bec->PID == NULL;
-  }
-}
-
-
-void BE_rhandler_quit(BE_Context * bec)
-{
-  if (bec->attached) {  
-    execute_command("detach",1);
-    bec->attached = false;
-    free(bec->PID);
-    bec->PID == NULL;
-  }
-    
-  exit(-1);
-}
-
 /*============================================================*/
-void BE_event_table_handle(BE_Context * bec, BE_event * et, int breaked, char * filename, int line)
-{
-  BE_event * curr;
+void BE_hook_array_handle(BE_Context * bec, int breaked, char * filename, int line)
+{  
   //check event_t
-  for (curr = et->next; curr; curr=curr->next) {  
+  int i = 0;
+  for (i=0; i<bec->hook_array.count;i++) {
+    BE_hook * curr = BE_hook_array_get(i);  
     clock_t t = clock();
-    if (curr->active) {
-      switch (curr->type) {
+    if (curr->enabled) {
+      switch (curr->event->type) {
       case BE_EVENT_T:
-	if (t >= curr->data.t.start + curr->data.t.delay) {
+	if (t >= curr->event->edata.t.start + curr->event->edata.t.delay) {
 
 	  //stop if not stopped
 	  if (!bec->stopped) {
@@ -820,12 +752,12 @@ void BE_event_table_handle(BE_Context * bec, BE_event * et, int breaked, char * 
 	  }    
 
 	  
-	  BE_event_handle(bec, curr);
+	  BE_hook_handle(bec, curr);
 	  
-	  if (curr->repeat) {
-	    curr->data.t.start = t;
+	  if (curr->event->repeat) {
+	    curr->event->edata.t.start = t;
 	  } else {
-	    curr->active = 0;
+	    curr->enabled = false;
 	  }
 	  
 	}
@@ -837,24 +769,25 @@ void BE_event_table_handle(BE_Context * bec, BE_event * et, int breaked, char * 
   }
 
   //check event_b
-  for (curr = et->next; curr; curr=curr->next) {  
-    if (curr->active) {
-      switch (curr->type) {
+  for (i=0; i<bec->hook_array.count;i++) {
+    BE_hook * curr = BE_hook_array_get(i);  
+    if (curr->enabled) {
+      switch (curr->event->type) {
       case BE_EVENT_T:
 	break;
       case BE_EVENT_B:
 	if (breaked) {
-	  if (strcmp(curr->data.b.filename,filename)==0 && curr->data.b.line==line)
+	  if (strcmp(curr->event->edata.b.filename,filename)==0 && curr->event->edata.b.line==line)
 	  {
 	    printf("At the breakpoint for this event!\n");
-	    BE_event_handle(bec, curr);
+	    BE_hook_handle(bec, curr);
 	    printf("Event handled\n");
-	    if (!curr->repeat) {
+	    if (!curr->event->repeat) {
 	      char arg[15];
-	      sprintf(arg, "%d", curr->data.b.bp_id);
+	      sprintf(arg, "%d", curr->event->edata.b.bp_id);
 	      delete_command(arg,0);
 
-	      curr->active = 0;
+	      curr->enabled = 0;
 	    }
 	    
 	  }
@@ -865,13 +798,18 @@ void BE_event_table_handle(BE_Context * bec, BE_event * et, int breaked, char * 
   }  
 }
 
-void BE_event_handle(BE_Context * bec, BE_event * ev) {
+void BE_hook_handle(BE_Context * bec, BE_hook * hook) {
   //printf("handling e%d! delay = %d, start = %d\n", i, ev->delay, ev->start);
-  if (ev->feature.type == BE_FEATURE_CALLSTACK) {
+  if (hook->action) {
+    ME_RLI_IR_expr_eval(hook->action);
+    return;
+  }
+
+  /*if (ev->feature.type == BE_FEATURE_CALLSTACK) {
     BE_ehandler_measure_callstack(bec, ev);
   } else if (ev->feature.type == BE_FEATURE_VARIABLE) {
     BE_ehandler_measure_variable(bec, ev);
-  }
+    }*/
 }
 
 void BE_ehandler_print(BE_Context * bec)
@@ -879,7 +817,7 @@ void BE_ehandler_print(BE_Context * bec)
   BE_context_print(bec);
 }
 
-void BE_ehandler_measure_callstack(BE_Context * bec, BE_event * ev)
+void BE_ehandler_measure_callstack(BE_Context * bec, BE_hook * ev)
 {  
   if (!bec->attached || !bec->stopped) {
     printf("Not attached to a process!\n");
@@ -896,23 +834,240 @@ void BE_ehandler_measure_callstack(BE_Context * bec, BE_event * ev)
   ms->data.cgft.cg = stack;
   ms->data.cgft.ft = ft;
 
-  BE_event_add_measurement(ev, ms);
+  //BE_hook_add_measurement(ev, ms);
   
 }
 
-void BE_ehandler_measure_variable(BE_Context * bec, BE_event * ev)
+void BE_ehandler_measure_variable(BE_Context * bec, BE_hook * ev)
 {
   if (!bec->attached || !bec->stopped) {
     printf("Not attached to a process!\n");
     return;
   }
 
-  char * value = BE_get_variable(ev->feature.expr, 0);
+  /*char * value = BE_get_variable(ev->feature.expr, 0);
   printf("Value of %s = %s\n", ev->feature.expr, value);
     
   ME_measurement * ms = ME_measurement_create(ME_MEASUREMENT_STRING);
   ms->data.string_val = value;
 
-  BE_event_add_measurement(ev, ms);
+  BE_hook_add_measurement(ev, ms);
+  */
+}
+
+/*====================================================
+  API STUFF
+  ====================================================*/
+
+void ME_API_set_target(char * target_PID)
+{
+  printf("ME_API_set_target(%s)\n",target_PID);
   
+  if (the_context.attached) {
+    ME_API_detach();
+  }
+  
+  the_context.PID = malloc(sizeof(char) * strlen(target_PID));
+  strcpy(the_context.PID, target_PID);
+
+  //Attach to process
+  attach_command(the_context.PID,1);
+  gdb_do_one_event ();
+
+  the_context.attached = true;
+  
+  continue_command_JG();
+}
+
+void ME_API_detach()
+{
+  if (the_context.attached) {
+    //Detach
+    execute_command("detach",1);
+
+    //Update context
+    the_context.attached = false;
+    free(the_context.PID);
+    the_context.PID == NULL;
+  }
+}
+
+void ME_API_quit()
+{
+  if (the_context.attached) {
+    ME_API_detach();
+  }
+    
+  exit(-1);
+}
+
+void ME_API_print_context()
+{
+  BE_context_print(&the_context);
+}
+
+ME_measurement * ME_API_measure_callstack()
+{
+  ME_measurement * ms;
+  
+  if (!the_context.attached) {
+    printf("Not attached to a process!\n");
+    return;
+  }
+
+  bool stopped_here = false;
+  if (!the_context.stopped) {
+    //Interrupt Inferior
+    execute_command("interrupt");
+    wait_for_inferior(); 
+    normal_stop();
+    stopped_here = true;
+  }
+ 
+  //Measure Callstack
+  printf("getting callstack\n");
+  struct ME_CG * stack;
+  struct ME_FT * ft = ME_FT_create("root");
+  printf("before\n");
+  BE_get_call_stack_as_CG(NULL, 0, 0, 1, &stack, ft);
+  printf("after\n");
+
+  if (stopped_here) {
+    //Continue Inferior
+    continue_command_JG();
+  }
+    
+  //Create and return measurement
+  ms = ME_measurement_create(ME_MEASUREMENT_CALLSTACK);
+  ms->data.cgft.cg = stack;
+  ms->data.cgft.ft = ft;
+
+  return ms;
+}
+
+ME_measurement * ME_API_measure(BE_feature * feature)
+{
+  ME_measurement * ms;
+  
+  if (!the_context.attached) {
+    printf("Not attached to a process!\n");
+    return;
+  }
+
+  bool stopped_here = false;
+  if (!the_context.stopped) {
+    //Interrupt Inferior
+    execute_command("interrupt");
+    wait_for_inferior(); 
+    normal_stop();
+    stopped_here = true;
+  }
+ 
+  //Measure Callstack
+  if (feature->type == BE_FEATURE_CALLSTACK) {
+    printf("getting callstack\n");
+    struct ME_CG * stack;
+    struct ME_FT * ft = ME_FT_create("root");
+    printf("before\n");
+    BE_get_call_stack_as_CG(NULL, 0, 0, 1, &stack, ft);
+    printf("after\n");
+
+    ms = ME_measurement_create(ME_MEASUREMENT_CALLSTACK);
+    ms->data.cgft.cg = stack;
+    ms->data.cgft.ft = ft;
+  } else if (feature->type == BE_FEATURE_VARIABLE) {
+    printf("getting var\n");
+    char * value = BE_get_variable(feature->var_name, 0);
+    
+    ms = ME_measurement_create(ME_MEASUREMENT_STRING);
+    ms->data.string_val = value;
+  }
+    
+  if (stopped_here) {
+    //Continue Inferior
+    continue_command_JG();
+  }
+
+  return ms;
+}
+
+void ME_API_sendme(ME_measurement * ms)
+{  
+  ME_measurement_print(ms);
+  ME_measurement_send_temp(the_context.driverfd, ms);
+  printf("Sent measurements!\n");
+}
+
+void ME_API_store(int i, ME_measurement * ms) {
+  if (i >= ME_STORE_SIZE) {
+    printf("Could not store beyond bounds of measurement store!\n");
+  }
+  ms->next = the_context.store[i];
+  the_context.store[i] = ms;
+}
+
+ME_measurement * ME_API_load(int i) {
+  if (i >= ME_STORE_SIZE) {
+    printf("Could not load beyond bounds of measurement store!\n");
+    return NULL;
+  }
+  return the_context.store[i];
+}
+
+BE_event * ME_API_delay(int delay, int repeat) {
+  return BE_event_t_create(delay,repeat);
+}
+
+BE_event * ME_API_reach(char * filename, int line, int repeat) {
+  BE_event * event = BE_event_b_create(get_breakpoint_count()+1,filename,line,repeat);
+
+  //interrupt and insert breakpoint
+  execute_command("interrupt");
+  wait_for_inferior(); 
+  normal_stop();
+  char arg[64];
+  sprintf(arg, "%s:%d", filename, line);
+  break_command(arg,0);
+
+  //continue
+  continue_command_JG();
+      
+  return event;
+}
+
+int ME_API_hook(BE_event * event, ME_RLI_IR_expr * action) {
+  BE_hook * hook = (BE_hook *)malloc(sizeof(BE_hook));
+  hook->event = event;
+  hook->action = action;
+  hook->enabled = true;
+  int i = BE_hook_array_add(hook);  
+  return i;
+}
+
+void ME_API_kill(int i) {
+  BE_hook_kill(BE_hook_array_get(i));
+} 
+
+void ME_API_enable(int i) {
+  BE_hook_enable(BE_hook_array_get(i));
+} 
+
+void ME_API_disable(int i) {
+  BE_hook_disable(BE_hook_array_get(i));
+} 
+
+BE_feature * ME_API_callstack() {
+  return BE_feature_create_callstack();
+}
+
+BE_feature * ME_API_var(char * var_name) {
+  return BE_feature_create_variable(var_name);
+}
+
+int ME_API_add(int a, int b) {
+  return a + b;
+}   
+
+int ME_API_subtract(int a, int b) {
+  return a - b;
 }
