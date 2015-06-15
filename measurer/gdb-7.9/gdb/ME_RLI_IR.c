@@ -107,7 +107,7 @@ ME_RLI_token * ME_RLI_tokenize(char * in) {
       while (in[curr] != '"') {
 	if (in[curr] == 0) { 
 	  printf("Lexer error: mismatched quotes\n");
-	  exit(-1);
+	  return NULL;
 	}
 	token[token_curr++] = in[curr++]; 
       }
@@ -285,6 +285,8 @@ ME_RLI_IR_value * ME_RLI_IR_value_parse(ME_RLI_token ** curr) {
     (*curr) = (*curr)->next;
 
     lexpr = ME_RLI_IR_expr_parse(curr);
+    if (!lexpr) return NULL;
+    
     (*value) = ME_RLI_IR_value_create_lexpr(lexpr);
     
   } else if ((*curr)->value[0] == '"') {
@@ -310,6 +312,7 @@ ME_RLI_IR_value * ME_RLI_IR_value_parse(ME_RLI_token ** curr) {
   ====================================================*/
 
 ME_RLI_IR_expr * ME_RLI_IR_expr_create_value(ME_RLI_IR_value * value) {
+  if (!value) return NULL;
   ME_RLI_IR_expr * expr = (ME_RLI_IR_expr*)(malloc(sizeof(ME_RLI_IR_expr)));
   expr->type = ME_RLI_IR_EXPR_VALUE;
   expr->data.value = value;
@@ -317,6 +320,7 @@ ME_RLI_IR_expr * ME_RLI_IR_expr_create_value(ME_RLI_IR_value * value) {
 }
 
 ME_RLI_IR_expr * ME_RLI_IR_expr_create_func(ME_RLI_IR_func * func) {
+  if (!func) return NULL;
   ME_RLI_IR_expr * expr = (ME_RLI_IR_expr*)(malloc(sizeof(ME_RLI_IR_expr)));
   expr->type = ME_RLI_IR_EXPR_FUNC;
   expr->data.func = func;
@@ -436,14 +440,16 @@ ME_RLI_IR_func * ME_RLI_IR_func_parse(ME_RLI_token ** curr) {
   while ((*curr) && strcmp((*curr)->value,")")!=0) {
     //parse expression
     ME_RLI_IR_expr * arg = ME_RLI_IR_expr_parse(curr);
-
+    if (!arg) {
+      return NULL;
+    }    
     ME_RLI_IR_func_add_arg(func, arg);
   }
 
   //consume parenthesis
   if (!(*curr) || strcmp((*curr)->value,")")!=0) {
     printf("Parse error: Mismatched parenthesis \")\"\n");
-    exit(-1);
+    return NULL;
   }  
   (*curr) = (*curr)->next;
   
@@ -469,7 +475,8 @@ ME_RLI_IR_value ME_RLI_IR_func_eval(ME_RLI_IR_func * func) {
     arg_curr = arg_curr->next;
   }
   //resolve function name and evaluate
-  ME_RLI_API_func f = ME_RLI_API_func_look_up(func->func_name->value);  
+  ME_RLI_API_func f = ME_RLI_API_func_look_up(func->func_name->value);
+  if (!f) return ME_RLI_IR_value_create_error("No such function!");
   ME_RLI_IR_value result;
   result = (*f)(arg_vals,args_count);
   return result;

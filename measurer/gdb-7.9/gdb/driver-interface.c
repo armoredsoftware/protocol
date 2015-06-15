@@ -538,13 +538,15 @@ void BE_rhandler_dispatch(struct BE_Context * bec, const char * request)
   
   else {
     ME_RLI_token * tokens = ME_RLI_tokenize(request);
-
+    if (!tokens) return;
+    
     ME_RLI_IR_expr * expr = ME_RLI_IR_expr_parse(&tokens);
+    if (!expr) return;
     //ME_RLI_IR_expr_print(expr);
     //printf("\n");
     
     ME_RLI_IR_value result = ME_RLI_IR_expr_eval(expr);
-
+    
     printf("result = ");
     ME_RLI_IR_value_print(result);
     printf("\n");

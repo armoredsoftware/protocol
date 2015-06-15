@@ -264,8 +264,7 @@ ME_RLI_API_func ME_RLI_API_func_look_up(char * func_name) {
   else if (strcmp(func_name,"enable")==0) return &ME_RLI_IR_API_enable;
   else if (strcmp(func_name,"disable")==0) return &ME_RLI_IR_API_disable;
   else {
-    printf("Interpreter: No such function \"%s\"!\n",func_name);
-    exit(-1);
+    return NULL;
   }
 }
 
