@@ -12,7 +12,7 @@ typedef struct ME_RLI_token {
 
 typedef enum ME_RLI_IR_value_type {
   ME_RLI_IR_VALUE_INT, ME_RLI_IR_VALUE_STRING, ME_RLI_IR_VALUE_VOID, ME_RLI_IR_VALUE_LEXPR,
-  ME_RLI_IR_VALUE_MEASUREMENT, ME_RLI_IR_VALUE_EVENT, ME_RLI_IR_VALUE_FEATURE
+  ME_RLI_IR_VALUE_MEASUREMENT, ME_RLI_IR_VALUE_EVENT, ME_RLI_IR_VALUE_FEATURE, ME_RLI_IR_VALUE_ERROR
 }
 ME_RLI_IR_value_type;
 
@@ -25,6 +25,7 @@ typedef struct ME_RLI_IR_value {
     struct ME_measurement * ms;
     struct BE_event * event;
     struct BE_feature * feature;
+    char error_desc[MAX_STRING_LENGTH];
   } vdata;
 }
 ME_RLI_IR_value;
@@ -154,11 +155,33 @@ ME_RLI_IR_value ME_RLI_IR_value_create_int(int int_val) {
   value.vdata.int_val = int_val;
   return value;
 }
+ME_RLI_IR_value ME_RLI_IR_value_get_int(ME_RLI_IR_value value, int * get) {
+  if (value.type != ME_RLI_IR_VALUE_INT) {
+    return ME_RLI_IR_value_create_error("Expected an int!");
+  }
+  (*get) = value.vdata.int_val;
+  return ME_RLI_IR_value_create_void();
+}
 
 ME_RLI_IR_value ME_RLI_IR_value_create_string(char * string_val) {
   struct ME_RLI_IR_value value;
   value.type = ME_RLI_IR_VALUE_STRING;
   strncpy(value.vdata.string_val, string_val,MAX_STRING_LENGTH);
+  return value;
+}
+ME_RLI_IR_value ME_RLI_IR_value_get_string(ME_RLI_IR_value value, char ** get) {
+  if (value.type != ME_RLI_IR_VALUE_STRING) {
+    return ME_RLI_IR_value_create_error("Expected a string!");
+  }
+  (*get) = value.vdata.string_val;
+  return ME_RLI_IR_value_create_void();
+}
+
+
+ME_RLI_IR_value ME_RLI_IR_value_create_error(char * error_desc) {
+  struct ME_RLI_IR_value value;
+  value.type = ME_RLI_IR_VALUE_ERROR;
+  strncpy(value.vdata.error_desc, error_desc, MAX_STRING_LENGTH);
   return value;
 }
 
@@ -168,12 +191,26 @@ ME_RLI_IR_value ME_RLI_IR_value_create_measurement(struct ME_measurement * ms) {
   value.vdata.ms = ms;
   return value;
 }
+ME_RLI_IR_value ME_RLI_IR_value_get_measurement(ME_RLI_IR_value value, ME_measurement ** get) {
+  if (value.type != ME_RLI_IR_VALUE_MEASUREMENT) {
+    return ME_RLI_IR_value_create_error("Expected a measurement!");
+  }
+  (*get) = value.vdata.ms;
+  return ME_RLI_IR_value_create_void();
+}
 
 ME_RLI_IR_value ME_RLI_IR_value_create_event(struct BE_event * event) {
   struct ME_RLI_IR_value value;
   value.type = ME_RLI_IR_VALUE_EVENT;
   value.vdata.event = event;
   return value;
+}
+ME_RLI_IR_value ME_RLI_IR_value_get_event(ME_RLI_IR_value value, BE_event ** get) {
+  if (value.type != ME_RLI_IR_VALUE_EVENT) {
+    return ME_RLI_IR_value_create_error("Expected an event!");
+  }
+  (*get) = value.vdata.event;
+  return ME_RLI_IR_value_create_void();
 }
 
 ME_RLI_IR_value ME_RLI_IR_value_create_feature(struct BE_feature * feature) {
@@ -182,6 +219,13 @@ ME_RLI_IR_value ME_RLI_IR_value_create_feature(struct BE_feature * feature) {
   value.vdata.feature = feature;
   return value;
 }
+ME_RLI_IR_value ME_RLI_IR_value_get_feature(ME_RLI_IR_value value, struct BE_feature ** get) {
+  if (value.type != ME_RLI_IR_VALUE_FEATURE) {
+    return ME_RLI_IR_value_create_error("Expected a feature!");
+  }
+  (*get) = value.vdata.feature;
+  return ME_RLI_IR_value_create_void();
+}
 
 ME_RLI_IR_value ME_RLI_IR_value_create_void() {
   struct ME_RLI_IR_value value;
@@ -189,12 +233,20 @@ ME_RLI_IR_value ME_RLI_IR_value_create_void() {
   return value;
 }
 
-ME_RLI_IR_value ME_RLI_IR_value_create_lexpr(ME_RLI_IR_expr * lexpr) {
+ME_RLI_IR_value ME_RLI_IR_value_create_lexpr(struct ME_RLI_IR_expr * lexpr) {
   struct ME_RLI_IR_value value;
   value.type = ME_RLI_IR_VALUE_LEXPR;
   value.vdata.lexpr = lexpr;
   return value;
 }
+ME_RLI_IR_value ME_RLI_IR_value_get_lexpr(ME_RLI_IR_value value, struct ME_RLI_IR_expr ** get) {
+  if (value.type != ME_RLI_IR_VALUE_LEXPR) {
+    return ME_RLI_IR_value_create_error("Expected a expression!");
+  }
+  (*get) = value.vdata.lexpr;
+  return ME_RLI_IR_value_create_void();
+}
+
 
 void ME_RLI_IR_value_print(ME_RLI_IR_value value) {
   if (value.type == ME_RLI_IR_VALUE_INT) {
@@ -215,7 +267,9 @@ void ME_RLI_IR_value_print(ME_RLI_IR_value value) {
   } else if (value.type == ME_RLI_IR_VALUE_FEATURE) {
     printf("FEATURE:");
     BE_feature_print(value.vdata.feature);
-  }  
+  } else if (value.type == ME_RLI_IR_VALUE_ERROR) {
+    printf("ERROR:\"%s\"",value.vdata.error_desc);
+  }
 }
 
 ME_RLI_IR_value * ME_RLI_IR_value_parse(ME_RLI_token ** curr) {
@@ -406,6 +460,12 @@ ME_RLI_IR_value ME_RLI_IR_func_eval(ME_RLI_IR_func * func) {
   ME_RLI_IR_arg * arg_curr = func->args;
   for (i = 0; i<args_count; i++) {
     arg_vals[i] = ME_RLI_IR_expr_eval(arg_curr->expr);
+
+    //If error, return
+    if (arg_vals[i].type == ME_RLI_IR_VALUE_ERROR) {
+      return arg_vals[i];
+    }
+    
     arg_curr = arg_curr->next;
   }
   //resolve function name and evaluate

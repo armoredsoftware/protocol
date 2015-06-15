@@ -110,6 +110,8 @@ extern void BE_rhandler_quit(struct BE_Context *);
 extern void BE_hook_handle(struct BE_Context *, struct BE_hook *);
 extern void BE_hook_table_handle(struct BE_Context *, struct BE_hook *, int, char *, int);
 
+extern void ME_API_set_target(char *);
+extern void ME_API_detach();
 extern struct ME_measurement * ME_API_measure_callstack();
 extern struct ME_measurement * ME_API_measure(BE_feature *);
 extern void ME_API_store(int, struct ME_measurement *);

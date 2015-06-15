@@ -325,38 +325,13 @@ start_event_loop (void)
      the event loop engine.  gdb_do_one_event will process one event
      for each invocation.  It blocks waiting for an event and then
      processes it.  */
-  printf("hey\n");
-  
-  // while (1) {
-
-  //sleep(10);
-  
-  //execute_command("attach 23434",1);
 
   int c = 0;
+
+  printf("\n\n=====================================\n\tAPPLICATION MEASURER\n=====================================\n");
   
-  //attach_command("31451",1);
-
-  //sleep(10);
-  
-  //execute_command("bt",1);
-  
-  //detach_command(NULL,1);
-  //execute_command("detach",1);
-
-  //printf("hmm\n");
-
-    //execute_command("bt",1);    
-
-    //execute_command("detach",1);    
-
-    //sleep(10);
-
-    //execute_command("p c",1);
-
-    //}
-
   struct BE_Context * bec = BE_context_create();
+  execute_command("set pagination off",0);
   BE_start_session(bec);
   
   while(1) {
