@@ -174,7 +174,7 @@ void ME_sock_recv_dynamic(int sockfd, int * n, char ** message)
 
   n2 = read(sockfd, (*message), sizeof(char)*(*n));
 
-  printf("Recieved %d bytes:\"%s\"\n",(*n),(*message));
+  //printf("Recieved %d bytes:\"%s\"\n",(*n),(*message));
   
 }
 
@@ -185,7 +185,7 @@ void ME_sock_send_dynamic(int sockfd, int n, char * message)
   
   count = write(sockfd, message, sizeof(char)*n);
 
-  printf("Sent %d bytes:\"%s\"\n",count,message);
+  //printf("Sent %d bytes:\"%s\"\n",count,message);
 }
 
 
@@ -676,10 +676,10 @@ void ME_measurement_print(struct ME_measurement * ms)
     printf(", string_val=\"%s\"",ms->data.string_val);
   }
     
-  printf(", next=");
+  printf(", next=\n");
   ME_measurement_print(ms->next);
   
-  printf("}\n");
+  printf("}");
 }
 
 void ME_measurement_send(int sockfd, struct ME_measurement * ms) {
@@ -769,7 +769,7 @@ ME_measurement * ME_measurement_recieve(int sockfd) {
   else if (ms->type == ME_MEASUREMENT_STRING) {
     ME_sock_recv_dynamic(sockfd, &string_val_count, &string_val);
     ms->data.string_val = string_val;
-    printf("String val recieved is \"%s\"\n",string_val);
+    //printf("String val recieved is \"%s\"\n",string_val);
   }
   
   ms->next = ME_measurement_recieve(sockfd);

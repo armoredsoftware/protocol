@@ -4,11 +4,17 @@
 enum BE_feature_type;
 struct BE_feature;
 
-typedef enum {BE_FEATURE_CALLSTACK, BE_FEATURE_VARIABLE} BE_feature_type;
+typedef enum {BE_FEATURE_CALLSTACK, BE_FEATURE_VARIABLE, BE_FEATURE_MEMORY} BE_feature_type;
 
 typedef struct BE_feature {
   BE_feature_type type;
-  char var_name[64]; //TODO max length of var_name
+  union fdata {
+    char var_name[64]; //TODO max length of var_name
+    struct BE_feature_memory {
+      char address[64];
+      char format[64];
+    } m;
+  } fdata;
 } BE_feature;
 
 enum BE_hook_type;
@@ -22,15 +28,11 @@ typedef enum {BE_EVENT_T, BE_EVENT_B} BE_event_type;
 typedef struct BE_event_t {
   int delay; //int time when
   clock_t start; //int time start
-}
-  BE_event_t;
+} BE_event_t;
 
 typedef struct BE_event_b {
   int bp_id;
-  char * filename; //TODO convert to array
-  int line;
-}
-  BE_event_b;
+} BE_event_b;
 
 typedef struct BE_event {
   BE_event_type type;
@@ -74,7 +76,7 @@ BE_Context;
 BE_Context the_context;
 
 extern struct BE_event * BE_event_t_create(int, int);
-extern struct BE_event * BE_event_b_create(int, char *, int, int);
+extern struct BE_event * BE_event_b_create(int, int);
 //extern void BE_hook_set_feature(struct BE_hook *, enum BE_feature_type, char *);
 //extern void BE_hook_add_measurement(struct BE_hook *, struct ME_measurement *);
 //
@@ -86,6 +88,7 @@ extern void BE_hook_kill(struct BE_hook *);
 //extern struct BE_hook * BE_hook_table_create();
 extern int BE_hook_array_add(struct BE_hook *);
 extern struct BE_hook * BE_hook_array_get(int);
+extern void BE_hook_array_handle(struct BE_Context *, int, char *, int, int);
   
 extern void BE_start_session(struct BE_Context *);
 
@@ -118,6 +121,8 @@ extern void ME_API_store(int, struct ME_measurement *);
 extern struct ME_measurement * ME_API_load(int);
 extern struct BE_event * ME_API_delay(int, int);
 extern struct BE_event * ME_API_reach(char *, int,int);
+extern struct BE_event * ME_API_reach_func(char *,int);
 extern struct BE_feature * ME_API_callstack();
 extern struct BE_feature * ME_API_var(char *);
-
+extern struct BE_feature * ME_API_mem(char *,char *);
+extern void ME_API_gdb(char *);

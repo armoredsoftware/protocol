@@ -35,7 +35,15 @@ BE_feature * BE_feature_create_callstack() {
 BE_feature * BE_feature_create_variable(char * var_name) {
   BE_feature * feature = (BE_feature*)malloc(sizeof(BE_feature));
   feature->type = BE_FEATURE_VARIABLE;
-  strcpy(feature->var_name,var_name);//TODO enforce size limit 
+  strcpy(feature->fdata.var_name,var_name);//TODO enforce size limit 
+  return feature;
+}
+
+BE_feature * BE_feature_create_memory(char * address, char * format) {
+  BE_feature * feature = (BE_feature*)malloc(sizeof(BE_feature));
+  feature->type = BE_FEATURE_MEMORY;
+  strcpy(feature->fdata.m.address,address);
+  strcpy(feature->fdata.m.format,format);
   return feature;
 }
 
@@ -43,8 +51,10 @@ void BE_feature_print(BE_feature * feature)
 {
   if (feature->type == BE_FEATURE_CALLSTACK) {
     printf("{type=callstack}");
-  } else {
-    printf("{type=variable,name=%s}",feature->var_name);
+  } else if (feature->type == BE_FEATURE_VARIABLE) {
+    printf("{type=variable,name=%s}",feature->fdata.var_name);
+  } else if (feature->type == BE_FEATURE_MEMORY) {
+    printf("{type=memory,address=%s,format=%s}",feature->fdata.m.address,feature->fdata.m.format);
   }
   
 }
@@ -53,30 +63,6 @@ void BE_feature_print(BE_feature * feature)
 /*====================================================
   EVENT STUFF
   ====================================================*/
-/*typedef enum {BE_EVENT_T, BE_EVENT_B} BE_event_type;
-
-typedef struct BE_event_t {
-  int delay; //int time when
-  clock_t start; //int time start
-}
-BE_event_t;
-
-typedef struct BE_event_b {
-  int bp_id;
-  char * filename; //TODO convert to array
-  int line;
-}
-BE_event_b;
-
-typedef struct BE_event {
-  BE_event_type type;
-  bool repeat;
-  
-  union edata {
-    struct BE_event_t t;
-    struct BE_event_b b;
-  } edata;
-  } BE_event;*/
   
 typedef struct BE_hook
 {
@@ -85,12 +71,6 @@ typedef struct BE_hook
   bool enabled;
 }
 BE_hook;
-
-/*typedef struct BE_hook_array {
-  BE_hook * hooks[64]; //MAX hook array size???
-  int count=0;
-}
-BE_hook_array;*/
 
 BE_event * BE_event_t_create(int delay, int repeat) {
   BE_event * event = (BE_event*)malloc(sizeof(BE_event));
@@ -101,13 +81,9 @@ BE_event * BE_event_t_create(int delay, int repeat) {
   return event;
 }
 
-BE_event * BE_event_b_create(int bp_id, char * filename, int line, int repeat) {
+BE_event * BE_event_b_create(int bp_id, int repeat) {
   BE_event * event = (BE_event*)malloc(sizeof(BE_event));
   event->type = BE_EVENT_B;
-  event->edata.b.filename = (char*)malloc(sizeof(char) * strlen(filename)+1);
-  memcpy(event->edata.b.filename, filename, sizeof(char) * strlen(filename)+1);
-  
-  event->edata.b.line = line;
   event->edata.b.bp_id = bp_id;
   event->repeat = repeat;
   return event;
@@ -118,7 +94,7 @@ void BE_event_print(BE_event * event) {
   if (event->type == BE_EVENT_T) {
     printf("{type=T,delay=%d}",event->edata.t.delay);
   } else if (event->type == BE_EVENT_B) {
-    printf("{type=B,filename=%s,line=%d}",event->edata.b.filename,event->edata.b.line);
+    printf("{type=B,bp_id=%d}",event->edata.b.bp_id);
   }
 }
 
@@ -378,7 +354,8 @@ void BE_do_continuous(BE_Context * bec)
   //Check inferior for stops
   char * filename = NULL;
   int line = -1;
-  int breaked = fetch_inferior_event_JG(&filename, &line);
+  int bp_id;
+  int breaked = fetch_inferior_event_JG(&filename, &line, &bp_id);
   if (breaked) {
     bec->stopped = true;
     printf("Stop caught at %s:%d !\n", filename, line);
@@ -387,7 +364,7 @@ void BE_do_continuous(BE_Context * bec)
   }
 
   //Check events
-  BE_hook_array_handle(bec, breaked, filename, line);
+  BE_hook_array_handle(bec, breaked, filename, line, bp_id);
 
   if (bec->stopped) {
     continue_command_JG();
@@ -728,7 +705,7 @@ void BE_rhandler_variable_record_at(BE_Context * bec, char * vairable) {
 }
 
 /*============================================================*/
-void BE_hook_array_handle(BE_Context * bec, int breaked, char * filename, int line)
+void BE_hook_array_handle(BE_Context * bec, int breaked, char * filename, int line, int bp_id)
 {  
   //check event_t
   int i = 0;
@@ -779,7 +756,7 @@ void BE_hook_array_handle(BE_Context * bec, int breaked, char * filename, int li
 	break;
       case BE_EVENT_B:
 	if (breaked) {
-	  if (strcmp(curr->event->edata.b.filename,filename)==0 && curr->event->edata.b.line==line)
+	  if (bp_id == curr->event->edata.b.bp_id)
 	  {
 	    printf("At the breakpoint for this event!\n");
 	    BE_hook_handle(bec, curr);
@@ -979,7 +956,13 @@ ME_measurement * ME_API_measure(BE_feature * feature)
     ms->data.cgft.ft = ft;
   } else if (feature->type == BE_FEATURE_VARIABLE) {
     printf("getting var\n");
-    char * value = BE_get_variable(feature->var_name, 0);
+    char * value = BE_get_variable(feature->fdata.var_name, 0);
+    
+    ms = ME_measurement_create(ME_MEASUREMENT_STRING);
+    ms->data.string_val = value;
+  } else if (feature->type == BE_FEATURE_MEMORY) {
+    printf("getting mem\n");
+    char * value = BE_get_memory(feature->fdata.m.address, feature->fdata.m.format);
     
     ms = ME_measurement_create(ME_MEASUREMENT_STRING);
     ms->data.string_val = value;
@@ -1021,7 +1004,7 @@ BE_event * ME_API_delay(int delay, int repeat) {
 }
 
 BE_event * ME_API_reach(char * filename, int line, int repeat) {
-  BE_event * event = BE_event_b_create(get_breakpoint_count()+1,filename,line,repeat);
+  BE_event * event = BE_event_b_create(get_breakpoint_count()+1,repeat);
 
   //interrupt and insert breakpoint
   execute_command("interrupt");
@@ -1030,6 +1013,21 @@ BE_event * ME_API_reach(char * filename, int line, int repeat) {
   char arg[64];
   sprintf(arg, "%s:%d", filename, line);
   break_command(arg,0);
+
+  //continue
+  continue_command_JG();
+      
+  return event;
+}
+
+BE_event * ME_API_reach_func(char * func_name, int repeat) {
+  BE_event * event = BE_event_b_create(get_breakpoint_count()+1,repeat);
+
+  //interrupt and insert breakpoint
+  execute_command("interrupt");
+  wait_for_inferior(); 
+  normal_stop();
+  break_command(func_name,0);
 
   //continue
   continue_command_JG();
@@ -1066,10 +1064,10 @@ BE_feature * ME_API_var(char * var_name) {
   return BE_feature_create_variable(var_name);
 }
 
-int ME_API_add(int a, int b) {
-  return a + b;
-}   
+BE_feature * ME_API_mem(char * address, char * format) {
+  return BE_feature_create_memory(address, format);
+}
 
-int ME_API_subtract(int a, int b) {
-  return a - b;
+void ME_API_gdb(char * command) {
+  return execute_command(command, 1);
 }

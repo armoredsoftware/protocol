@@ -163,6 +163,17 @@ struct ME_RLI_IR_value ME_RLI_IR_API_reach(struct ME_RLI_IR_value * args_vals, i
   return ME_RLI_IR_value_create_event(event);
 }
 
+struct ME_RLI_IR_value ME_RLI_IR_API_reach_func(struct ME_RLI_IR_value * args_vals, int arg_count) {
+  ME_RLI_IR_value_type expected_types[] = {ME_RLI_IR_VALUE_STRING, ME_RLI_IR_VALUE_INT};
+  ME_RLI_IR_value result = ME_RLI_IR_API_check_args(expected_types,sizeof(expected_types)/sizeof(ME_RLI_IR_value_type),args_vals,arg_count);
+  if (result.type == ME_RLI_IR_VALUE_ERROR) return result;
+
+  char * location = args_vals[0].vdata.string_val;
+  int repeat = args_vals[1].vdata.int_val;
+  BE_event * event = ME_API_reach_func(location, repeat);
+  return ME_RLI_IR_value_create_event(event);
+}
+
 struct ME_RLI_IR_value ME_RLI_IR_API_hook(struct ME_RLI_IR_value * args_vals, int arg_count) {
   ME_RLI_IR_value_type expected_types[] = {ME_RLI_IR_VALUE_EVENT, ME_RLI_IR_VALUE_LEXPR};
   ME_RLI_IR_value result = ME_RLI_IR_API_check_args(expected_types,sizeof(expected_types)/sizeof(ME_RLI_IR_value_type),args_vals,arg_count);
@@ -194,6 +205,17 @@ struct ME_RLI_IR_value ME_RLI_IR_API_var(struct ME_RLI_IR_value * args_vals, int
   return ME_RLI_IR_value_create_feature(feature);
 }
 
+struct ME_RLI_IR_value ME_RLI_IR_API_mem(struct ME_RLI_IR_value * args_vals, int arg_count) {
+  ME_RLI_IR_value_type expected_types[] = {ME_RLI_IR_VALUE_STRING, ME_RLI_IR_VALUE_STRING};
+  ME_RLI_IR_value result = ME_RLI_IR_API_check_args(expected_types,sizeof(expected_types)/sizeof(ME_RLI_IR_value_type),args_vals,arg_count);
+  if (result.type == ME_RLI_IR_VALUE_ERROR) return result;
+
+  char * address = args_vals[0].vdata.string_val;
+  char * format = args_vals[1].vdata.string_val;
+  BE_feature * feature = ME_API_mem(address,format);
+  return ME_RLI_IR_value_create_feature(feature);
+}
+
 struct ME_RLI_IR_value ME_RLI_IR_API_kill(struct ME_RLI_IR_value * args_vals, int arg_count) {
   ME_RLI_IR_value_type expected_types[] = {ME_RLI_IR_VALUE_INT};
   ME_RLI_IR_value result = ME_RLI_IR_API_check_args(expected_types,sizeof(expected_types)/sizeof(ME_RLI_IR_value_type),args_vals,arg_count);
@@ -221,6 +243,16 @@ struct ME_RLI_IR_value ME_RLI_IR_API_disable(struct ME_RLI_IR_value * args_vals,
 
   int i = args_vals[0].vdata.int_val;
   ME_API_disable(i);
+  return ME_RLI_IR_value_create_void();
+}
+
+struct ME_RLI_IR_value ME_RLI_IR_API_gdb(struct ME_RLI_IR_value * args_vals, int arg_count) {
+  ME_RLI_IR_value_type expected_types[] = {ME_RLI_IR_VALUE_STRING};
+  ME_RLI_IR_value result = ME_RLI_IR_API_check_args(expected_types,sizeof(expected_types)/sizeof(ME_RLI_IR_value_type),args_vals,arg_count);
+  if (result.type == ME_RLI_IR_VALUE_ERROR) return result;
+
+  char * command = args_vals[0].vdata.string_val;
+  ME_API_gdb(command);
   return ME_RLI_IR_value_create_void();
 }
 
@@ -257,12 +289,15 @@ ME_RLI_API_func ME_RLI_API_func_look_up(char * func_name) {
   else if (strcmp(func_name,"load")==0) return &ME_RLI_IR_API_load;
   else if (strcmp(func_name,"delay")==0) return &ME_RLI_IR_API_delay;
   else if (strcmp(func_name,"reach")==0) return &ME_RLI_IR_API_reach;
+  else if (strcmp(func_name,"reach_func")==0) return &ME_RLI_IR_API_reach_func;
   else if (strcmp(func_name,"hook")==0) return &ME_RLI_IR_API_hook;
   else if (strcmp(func_name,"callstack")==0) return &ME_RLI_IR_API_callstack;
   else if (strcmp(func_name,"var")==0) return &ME_RLI_IR_API_var;
+  else if (strcmp(func_name,"mem")==0) return &ME_RLI_IR_API_mem;
   else if (strcmp(func_name,"kill")==0) return &ME_RLI_IR_API_kill;
   else if (strcmp(func_name,"enable")==0) return &ME_RLI_IR_API_enable;
   else if (strcmp(func_name,"disable")==0) return &ME_RLI_IR_API_disable;
+  else if (strcmp(func_name,"gdb")==0) return &ME_RLI_IR_API_gdb;
   else {
     return NULL;
   }

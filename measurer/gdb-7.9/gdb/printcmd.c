@@ -796,6 +796,227 @@ print_address_demangle (const struct value_print_options *opts,
 }
 
 
+char *
+BE_get_memory (char * exp, char * format)
+{
+  printf("Enter BE_get_memory\n");
+  
+  char * result;
+  result = NULL;
+  
+  //TODO Clear out unnecessary stuff.
+  int from_tty = 0;
+  struct expression *expr;
+  struct format_data fmt;
+  struct cleanup *old_chain;
+  struct value *val;
+
+  fmt.format = last_format ? last_format : 'x';
+  fmt.size = last_size;
+  fmt.count = 1;
+  fmt.raw = 0;
+
+  //if (exp && *exp == '/')
+  // {
+  printf("decoding format...\n");
+   const char *tmp = format;
+   fmt = decode_format (&tmp, last_format, last_size);
+   //exp = (char *) tmp;
+      //}
+
+  /* If we have an expression, evaluate it and use it as the address.  */
+
+  printf("parse expression...\n");
+  if (exp != 0 && *exp != 0)
+    {
+      expr = parse_expression (exp);
+      /* Cause expression not to be there any more if this command is
+         repeated with Newline.  But don't clobber a user-defined
+         command's definition.  */
+      if (from_tty)
+	*exp = 0;
+      old_chain = make_cleanup (free_current_contents, &expr);
+      val = evaluate_expression (expr);
+      if (TYPE_CODE (value_type (val)) == TYPE_CODE_REF)
+	val = coerce_ref (val);
+      /* In rvalue contexts, such as this, functions are coerced into
+         pointers to functions.  This makes "x/i main" work.  */
+      if (/* last_format == 'i'  && */ 
+	  TYPE_CODE (value_type (val)) == TYPE_CODE_FUNC
+	   && VALUE_LVAL (val) == lval_memory)
+	next_address = value_address (val);
+      else
+	next_address = value_as_address (val);
+
+      next_gdbarch = expr->gdbarch;
+      do_cleanups (old_chain);
+    }
+
+  if (!next_gdbarch)
+    error_no_arg (_("starting display address"));
+
+  printf("print stuff...\n");
+  result = (char*)malloc(sizeof(char) * 64); //TODO - max length?...
+  FILE *stream;
+  //stream = fmemopen (result, strlen (result), "w");
+  stream = fmemopen (result, 64, "w");
+  struct ui_file *temp = stdio_fileopen(stream);
+  do_examine_JG (fmt, next_gdbarch, next_address, temp);
+  fclose(stream);
+  free(temp);//free ui_file or something???
+  
+  
+  /* If the examine succeeds, we remember its size and format for next
+     time.  Set last_size to 'b' for strings.  */
+  if (fmt.format == 's')
+    last_size = 'b';
+  else
+    last_size = fmt.size;
+  last_format = fmt.format;
+
+  /* Set a couple of internal variables if appropriate.  */
+  if (last_examine_value)
+    {
+      /* Make last address examined available to the user as $_.  Use
+         the correct pointer type.  */
+      struct type *pointer_type
+	= lookup_pointer_type (value_type (last_examine_value));
+      set_internalvar (lookup_internalvar ("_"),
+		       value_from_pointer (pointer_type,
+					   last_examine_address));
+
+      /* Make contents of last address examined available to the user
+	 as $__.  If the last value has not been fetched from memory
+	 then don't fetch it now; instead mark it by voiding the $__
+	 variable.  */
+      if (value_lazy (last_examine_value))
+	clear_internalvar (lookup_internalvar ("__"));
+      else
+	set_internalvar (lookup_internalvar ("__"), last_examine_value);
+    }
+  return result;
+}
+
+void
+do_examine_JG (struct format_data fmt, struct gdbarch *gdbarch, CORE_ADDR addr, struct ui_file * stream)
+{
+  char format = 0;
+  char size;
+  int count = 1;
+  struct type *val_type = NULL;
+  int i;
+  int maxelts;
+  struct value_print_options opts;
+
+  format = fmt.format;
+  size = fmt.size;
+  count = fmt.count;
+  next_gdbarch = gdbarch;
+  next_address = addr;
+
+  /* Instruction format implies fetch single bytes
+     regardless of the specified size.
+     The case of strings is handled in decode_format, only explicit
+     size operator are not changed to 'b'.  */
+  if (format == 'i')
+    size = 'b';
+
+  if (size == 'a')
+    {
+      /* Pick the appropriate size for an address.  */
+      if (gdbarch_ptr_bit (next_gdbarch) == 64)
+	size = 'g';
+      else if (gdbarch_ptr_bit (next_gdbarch) == 32)
+	size = 'w';
+      else if (gdbarch_ptr_bit (next_gdbarch) == 16)
+	size = 'h';
+      else
+	/* Bad value for gdbarch_ptr_bit.  */
+	internal_error (__FILE__, __LINE__,
+			_("failed internal consistency check"));
+    }
+
+  if (size == 'b')
+    val_type = builtin_type (next_gdbarch)->builtin_int8;
+  else if (size == 'h')
+    val_type = builtin_type (next_gdbarch)->builtin_int16;
+  else if (size == 'w')
+    val_type = builtin_type (next_gdbarch)->builtin_int32;
+  else if (size == 'g')
+    val_type = builtin_type (next_gdbarch)->builtin_int64;
+
+  if (format == 's')
+    {
+      struct type *char_type = NULL;
+
+      /* Search for "char16_t"  or "char32_t" types or fall back to 8-bit char
+	 if type is not found.  */
+      if (size == 'h')
+	char_type = builtin_type (next_gdbarch)->builtin_char16;
+      else if (size == 'w')
+	char_type = builtin_type (next_gdbarch)->builtin_char32;
+      if (char_type)
+        val_type = char_type;
+      else
+        {
+	  if (size != '\0' && size != 'b')
+	    warning (_("Unable to display strings with "
+		       "size '%c', using 'b' instead."), size);
+	  size = 'b';
+	  val_type = builtin_type (next_gdbarch)->builtin_int8;
+        }
+    }
+
+  maxelts = 8;
+  if (size == 'w')
+    maxelts = 4;
+  if (size == 'g')
+    maxelts = 2;
+  if (format == 's' || format == 'i')
+    maxelts = 1;
+
+  get_formatted_print_options (&opts, format);
+
+  /* Print as many objects as specified in COUNT, at most maxelts per line,
+     with the address of the next one at the start of each line.  */
+
+  while (count > 0)
+    {
+      QUIT;
+      for (i = maxelts;
+	   i > 0 && count > 0;
+	   i--, count--)
+	{
+	  /* Note that print_formatted sets next_address for the next
+	     object.  */
+	  last_examine_address = next_address;
+
+	  if (last_examine_value)
+	    value_free (last_examine_value);
+
+	  /* The value to be displayed is not fetched greedily.
+	     Instead, to avoid the possibility of a fetched value not
+	     being used, its retrieval is delayed until the print code
+	     uses it.  When examining an instruction stream, the
+	     disassembler will perform its own memory fetch using just
+	     the address stored in LAST_EXAMINE_VALUE.  FIXME: Should
+	     the disassembler be modified so that LAST_EXAMINE_VALUE
+	     is left with the byte sequence from the last complete
+	     instruction fetched from memory?  */
+	  last_examine_value = value_at_lazy (val_type, next_address);
+
+	  if (last_examine_value)
+	    release_value (last_examine_value);
+
+	  print_formatted (last_examine_value, size, &opts, stream);
+
+	  /* Display any branch delay slots following the final insn.  */
+	  if (format == 'i' && count == 1)
+	    count += branch_delay_insns;
+	}
+    }
+}
+
 /* Examine data at address ADDR in format FMT.
    Fetch it from memory and print on gdb_stdout.  */
 
