@@ -163,7 +163,7 @@ LIBLZMA =
 # available.
 LIBBABELTRACE = 
 
-WARN_CFLAGS =  -Wall -Wdeclaration-after-statement -Wpointer-arith -Wpointer-sign -Wno-unused -Wunused-value -Wunused-function -Wno-switch -Wno-char-subscripts -Wmissing-prototypes -Wdeclaration-after-statement -Wempty-body -Wmissing-parameter-type -Wold-style-declaration -Wold-style-definition -Wformat-nonliteral
+WARN_CFLAGS =  -Wall -Wpointer-arith -Wpointer-sign -Wno-unused -Wunused-value -Wunused-function -Wno-switch -Wno-char-subscripts -Wmissing-prototypes -Wempty-body -Wmissing-parameter-type -Wold-style-declaration -Wold-style-definition -Wformat-nonliteral
 WERROR_CFLAGS = 
 GDB_WARN_CFLAGS = $(WARN_CFLAGS)
 GDB_WERROR_CFLAGS = $(WERROR_CFLAGS)
@@ -836,7 +836,7 @@ SFILES = ada-exp.y ada-lang.c ada-typeprint.c ada-valprint.c ada-tasks.c \
 	dbxread.c demangle.c dictionary.c disasm.c doublest.c dummy-frame.c \
 	dwarf2expr.c dwarf2loc.c dwarf2read.c dwarf2-frame.c \
 	dwarf2-frame-tailcall.c \
-	elfread.c environ.c eval.c event-loop.c driver-interface.c ME_common.c ME_RLI_IR.c ME_RLI_IR_API.c event-top.c \
+	elfread.c environ.c eval.c event-loop.c driver-interface.c ME_common.c ME_RLI_IR.c ME_RLI_IR_API.c ME_gdb.c event-top.c \
 	exceptions.c expprint.c extension.c \
 	f-exp.y f-lang.c f-typeprint.c f-valprint.c filesystem.c \
 	findcmd.c findvar.c frame.c frame-base.c frame-unwind.c \
@@ -905,7 +905,7 @@ exec.h m32r-tdep.h osabi.h gdbcore.h solib-som.h amd64bsd-nat.h \
 i386bsd-nat.h xml-support.h xml-tdesc.h alphabsd-tdep.h gdb_obstack.h \
 ia64-tdep.h ada-lang.h varobj.h varobj-iter.h frv-tdep.h \
 nto-tdep.h serial.h \
-c-lang.h d-lang.h go-lang.h frame.h event-loop.h driver-interface.h ME_common.h ME_RLI_IR.h ME_RLI_IR_API.h block.h cli/cli-setshow.h \
+c-lang.h d-lang.h go-lang.h frame.h event-loop.h driver-interface.h ME_common.h ME_RLI_IR.h ME_RLI_IR_API.h ME_gdb.h block.h cli/cli-setshow.h \
 cli/cli-decode.h cli/cli-cmds.h cli/cli-utils.h \
 cli/cli-script.h macrotab.h symtab.h common/version.h \
 compile/compile.h gnulib/import/string.in.h gnulib/import/str-two-way.h \

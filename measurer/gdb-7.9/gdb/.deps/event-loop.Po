@@ -11,7 +11,8 @@ event-loop.o: event-loop.c defs.h common/common-defs.h config.h \
  common/gdb_setjmp.h gdb_wchar.h build-gnulib/import/wctype.h ui-file.h \
  common/host-defs.h ../include/hashtab.h nm.h ../include/fopen-bin.h \
  gdbarch.h frame.h unwind_stop_reasons.def utils.h exceptions.h ui-out.h \
- event-loop.h event-top.h common/queue.h gdb_select.h observer.h
+ event-loop.h event-top.h common/queue.h gdb_select.h observer.h \
+ driver-interface.h ME_RLI_IR.h ME_common.h
 
 defs.h:
 
@@ -104,3 +105,9 @@ common/queue.h:
 gdb_select.h:
 
 observer.h:
+
+driver-interface.h:
+
+ME_RLI_IR.h:
+
+ME_common.h:

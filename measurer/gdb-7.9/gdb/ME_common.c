@@ -1,4 +1,5 @@
 #include "ME_common.h"
+#include "ME_RLI_IR.h"
 
 #include <sys/socket.h>
 #include <sys/types.h>
@@ -775,3 +776,110 @@ ME_measurement * ME_measurement_recieve(int sockfd) {
   ms->next = ME_measurement_recieve(sockfd);
 
 }
+
+
+/*====================================================
+  FEATURE STUFF
+  ====================================================*/
+
+typedef enum {ME_FEATURE_CALLSTACK, ME_FEATURE_VARIABLE, ME_FEATURE_MEMORY} ME_feature_type;
+
+typedef struct ME_feature {
+  ME_feature_type type;
+  union fdata {
+    char var_name[64]; //TODO max length of var_name
+    struct ME_feature_memory {
+      char address[64];
+      char format[64];
+    } m;
+  } fdata;
+} ME_feature;
+
+ME_feature * ME_feature_create_callstack() {
+  ME_feature * feature = (ME_feature*)malloc(sizeof(ME_feature));
+  feature->type = ME_FEATURE_CALLSTACK;
+  return feature;
+}
+
+ME_feature * ME_feature_create_variable(char * var_name) {
+  ME_feature * feature = (ME_feature*)malloc(sizeof(ME_feature));
+  feature->type = ME_FEATURE_VARIABLE;
+  strcpy(feature->fdata.var_name,var_name);//TODO enforce size limit
+  return feature;
+}
+
+ME_feature * ME_feature_create_memory(char * address, char * format) {
+  ME_feature * feature = (ME_feature*)malloc(sizeof(ME_feature));
+  feature->type = ME_FEATURE_MEMORY;
+  strcpy(feature->fdata.m.address,address);
+  strcpy(feature->fdata.m.format,format);
+  return feature;
+}
+
+void ME_feature_print(ME_feature * feature)
+{
+  if (feature->type == ME_FEATURE_CALLSTACK) {
+    printf("{type=callstack}");
+  } else if (feature->type == ME_FEATURE_VARIABLE) {
+    printf("{type=variable,name=%s}",feature->fdata.var_name);
+  } else if (feature->type == ME_FEATURE_MEMORY) {
+    printf("{type=memory,address=%s,format=%s}",feature->fdata.m.address,feature->fdata.m.format);
+  }
+}
+
+/*====================================================
+  EVENT STUFF
+  ====================================================*/
+typedef enum {BE_EVENT_T, BE_EVENT_B} BE_event_type;
+
+typedef struct BE_event_t {
+  int delay; //int time when
+  clock_t start; //int time start
+} BE_event_t;
+
+typedef struct BE_event_b {
+  int bp_id;
+} BE_event_b;
+
+typedef struct BE_event {
+  BE_event_type type;
+  bool repeat;
+  union edata {
+    struct BE_event_t t;
+    struct BE_event_b b;
+  } edata;
+} BE_event;
+
+typedef struct BE_hook
+{
+  BE_event * event;
+  struct ME_RLI_IR_expr * action;
+  bool enabled;
+} BE_hook;
+
+BE_event * BE_event_t_create(int delay, int repeat) {
+  BE_event * event = (BE_event*)malloc(sizeof(BE_event));
+  event->type = BE_EVENT_T;
+  event->edata.t.delay = delay;
+  event->edata.t.start = clock();
+  event->repeat = repeat;
+  return event;
+}
+
+BE_event * BE_event_b_create(int bp_id, int repeat) {
+  BE_event * event = (BE_event*)malloc(sizeof(BE_event));
+  event->type = BE_EVENT_B;
+  event->edata.b.bp_id = bp_id;
+  event->repeat = repeat;
+  return event;
+}
+
+void BE_event_print(BE_event * event) {
+
+  if (event->type == BE_EVENT_T) {
+    printf("{type=T,delay=%d}",event->edata.t.delay);
+  } else if (event->type == BE_EVENT_B) {
+    printf("{type=B,bp_id=%d}",event->edata.b.bp_id);
+  }
+}
+    

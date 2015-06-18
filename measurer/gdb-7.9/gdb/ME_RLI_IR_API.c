@@ -54,11 +54,11 @@ struct ME_RLI_IR_value ME_RLI_IR_API_seq(struct ME_RLI_IR_value * args_vals, int
 }
 
 struct ME_RLI_IR_value ME_RLI_IR_API_set_target(struct ME_RLI_IR_value * args_vals, int arg_count) {
-  ME_RLI_IR_value_type expected_types[] = {ME_RLI_IR_VALUE_STRING};
+  ME_RLI_IR_value_type expected_types[] = {ME_RLI_IR_VALUE_INT};
   ME_RLI_IR_value result = ME_RLI_IR_API_check_args(expected_types,sizeof(expected_types)/sizeof(ME_RLI_IR_value_type),args_vals,arg_count);
   if (result.type == ME_RLI_IR_VALUE_ERROR) return result;
   
-  ME_API_set_target(args_vals[0].vdata.string_val);
+  ME_API_set_target(args_vals[0].vdata.int_val);
     
   return ME_RLI_IR_value_create_void();
 }
@@ -104,7 +104,7 @@ struct ME_RLI_IR_value ME_RLI_IR_API_measure(struct ME_RLI_IR_value * args_vals,
   ME_RLI_IR_value result = ME_RLI_IR_API_check_args(expected_types,sizeof(expected_types)/sizeof(ME_RLI_IR_value_type),args_vals,arg_count);
   if (result.type == ME_RLI_IR_VALUE_ERROR) return result;
 
-  BE_feature * feature = args_vals[0].vdata.feature;
+  ME_feature * feature = args_vals[0].vdata.feature;
   ME_measurement * ms = ME_API_measure(feature);
   return ME_RLI_IR_value_create_measurement(ms);
 }
@@ -191,7 +191,7 @@ struct ME_RLI_IR_value ME_RLI_IR_API_callstack(struct ME_RLI_IR_value * args_val
   if (result.type == ME_RLI_IR_VALUE_ERROR) return result;
 
   //char * filename = args_vals[0].vdata.string_val;
-  BE_feature * feature = ME_API_callstack();
+  ME_feature * feature = ME_API_callstack();
   return ME_RLI_IR_value_create_feature(feature);
 }
 
@@ -201,7 +201,7 @@ struct ME_RLI_IR_value ME_RLI_IR_API_var(struct ME_RLI_IR_value * args_vals, int
   if (result.type == ME_RLI_IR_VALUE_ERROR) return result;
 
   char * var_name = args_vals[0].vdata.string_val;
-  BE_feature * feature = ME_API_var(var_name);
+  ME_feature * feature = ME_API_var(var_name);
   return ME_RLI_IR_value_create_feature(feature);
 }
 
@@ -212,7 +212,7 @@ struct ME_RLI_IR_value ME_RLI_IR_API_mem(struct ME_RLI_IR_value * args_vals, int
 
   char * address = args_vals[0].vdata.string_val;
   char * format = args_vals[1].vdata.string_val;
-  BE_feature * feature = ME_API_mem(address,format);
+  ME_feature * feature = ME_API_mem(address,format);
   return ME_RLI_IR_value_create_feature(feature);
 }
 

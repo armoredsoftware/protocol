@@ -1222,8 +1222,7 @@ print_command_1 (const char *exp, int voidprint)
 }
 
 
-char *
-BE_get_variable (const char *exp, int voidprint)
+char * BE_get_variable (const char *exp, int voidprint)
 {
   printf("Entered: BE_get_variable\n");
   
@@ -1264,7 +1263,7 @@ BE_get_variable (const char *exp, int voidprint)
       val = evaluate_expression (expr);
     }
   else
-    val = access_value_history (0);
+  val = access_value_history (0);
 
   if (voidprint || (val && value_type (val) &&
 		    TYPE_CODE (value_type (val)) != TYPE_CODE_VOID))

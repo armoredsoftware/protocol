@@ -36,6 +36,8 @@
 #include "gdb_select.h"
 #include "observer.h"
 
+#include "driver-interface.h"
+
 /* Tell create_file_handler what events we are interested in.
    This is used by the select version of the event loop.  */
 

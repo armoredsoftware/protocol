@@ -5,10 +5,10 @@
 #include "ME_RLI_IR.h"
 #include "ME_RLI_IR_API.h"
 
-typedef struct ME_RLI_token {
+/*typedef struct ME_RLI_token {
   char value[MAX_TOKEN_LENGTH];
   struct ME_RLI_token * next;
-} ME_RLI_token;
+  } ME_RLI_token;*/
 
 typedef enum ME_RLI_IR_value_type {
   ME_RLI_IR_VALUE_INT, ME_RLI_IR_VALUE_STRING, ME_RLI_IR_VALUE_VOID, ME_RLI_IR_VALUE_LEXPR,
@@ -24,7 +24,7 @@ typedef struct ME_RLI_IR_value {
     struct ME_RLI_IR_expr * lexpr;
     struct ME_measurement * ms;
     struct BE_event * event;
-    struct BE_feature * feature;
+    struct ME_feature * feature;
     char error_desc[MAX_STRING_LENGTH];
   } vdata;
 }
@@ -37,14 +37,14 @@ ME_RLI_IR_expr_type;
 
 typedef struct ME_RLI_IR_expr {
   ME_RLI_IR_expr_type type;
-  union data {
+  union expr_data {
     struct ME_RLI_IR_value * value;
     struct ME_RLI_IR_func * func;
   } data;
 }
 ME_RLI_IR_expr;
 
-typedef struct ME_RLI_IR_arg {
+/*typedef struct ME_RLI_IR_arg {
   ME_RLI_IR_expr * expr;
   struct ME_RLI_IR_arg * next;
 }
@@ -54,7 +54,7 @@ typedef struct ME_RLI_IR_func {
   struct ME_RLI_IR_sym * func_name;
   struct ME_RLI_IR_arg * args;    
 }
-ME_RLI_IR_func;
+ME_RLI_IR_func;*/
 
 typedef struct ME_RLI_IR_sym {
   char value[MAX_SYM_LENGTH];
@@ -137,7 +137,7 @@ ME_RLI_token * ME_RLI_tokenize(char * in) {
   
     //consume trailing whitespace
     while (_white_space(in[curr])) {
-      in[curr++];
+      curr++;
     }
 
   }
@@ -213,13 +213,13 @@ ME_RLI_IR_value ME_RLI_IR_value_get_event(ME_RLI_IR_value value, BE_event ** get
   return ME_RLI_IR_value_create_void();
 }
 
-ME_RLI_IR_value ME_RLI_IR_value_create_feature(struct BE_feature * feature) {
+ME_RLI_IR_value ME_RLI_IR_value_create_feature(struct ME_feature * feature) {
   struct ME_RLI_IR_value value;
   value.type = ME_RLI_IR_VALUE_FEATURE;
   value.vdata.feature = feature;
   return value;
 }
-ME_RLI_IR_value ME_RLI_IR_value_get_feature(ME_RLI_IR_value value, struct BE_feature ** get) {
+ME_RLI_IR_value ME_RLI_IR_value_get_feature(ME_RLI_IR_value value, struct ME_feature ** get) {
   if (value.type != ME_RLI_IR_VALUE_FEATURE) {
     return ME_RLI_IR_value_create_error("Expected a feature!");
   }
@@ -266,7 +266,7 @@ void ME_RLI_IR_value_print(ME_RLI_IR_value value) {
     BE_event_print(value.vdata.event);
   } else if (value.type == ME_RLI_IR_VALUE_FEATURE) {
     printf("FEATURE:");
-    BE_feature_print(value.vdata.feature);
+    ME_feature_print(value.vdata.feature);
   } else if (value.type == ME_RLI_IR_VALUE_ERROR) {
     printf("ERROR:\"%s\"",value.vdata.error_desc);
   }
@@ -423,7 +423,7 @@ void ME_RLI_IR_func_add_arg(ME_RLI_IR_func * func, ME_RLI_IR_expr * expr) {
   curr->next = arg;
 }
 
-ME_RLI_IR_func * ME_RLI_IR_func_parse(ME_RLI_token ** curr) {
+struct ME_RLI_IR_func * ME_RLI_IR_func_parse(struct ME_RLI_token ** curr) {
   //consume parenthesis
   if (strcmp((*curr)->value,"(")!=0) {
     printf("Parse error: expected \"(\"");

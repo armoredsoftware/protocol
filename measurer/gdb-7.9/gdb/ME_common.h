@@ -47,3 +47,29 @@ extern void ME_measurement_print(struct ME_measurement *);
 extern void ME_measurement_send(int, struct ME_measurement *);
 extern void ME_measurement_send_temp(int, struct ME_measurement *);
 extern struct ME_measurement * ME_measurement_recieve(int);
+
+enum ME_feature_type;
+struct ME_feature;
+
+enum BE_event_type;
+struct BE_event_t;
+struct BE_event_b;
+struct BE_event;
+
+struct BE_hook;
+
+extern struct ME_feature * ME_feature_create_callstack();
+extern struct ME_feature * ME_feature_create_variable(char *);
+extern struct ME_feature * ME_feature_create_memory(char *, char *);
+extern void ME_feature_print(struct ME_feature *);
+
+extern struct BE_event * BE_event_t_create(int, int);
+extern struct BE_event * BE_event_b_create(int, int);
+extern void BE_event_print(struct BE_event *);
+extern void BE_hook_print(struct BE_hook *);
+extern void BE_hook_disable(struct BE_hook *);
+extern void BE_hook_enable(struct BE_hook *);
+extern void BE_hook_kill(struct BE_hook *);
+extern void BE_hook_array_init();
+extern int BE_hook_array_add(struct BE_hook *);
+extern struct BE_hook * BE_hook_array_get(int);
