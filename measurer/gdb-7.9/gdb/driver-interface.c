@@ -364,7 +364,7 @@ void BE_ehandler_measure_variable(BE_hook * ev)
 
 void ME_API_set_target(int target_PID)
 {
-  printf("ME_API_set_target(%s)\n",target_PID);
+  printf("ME_API_set_target(%d)\n",target_PID);
   
   if (the_context.attached) {
     ME_API_detach();

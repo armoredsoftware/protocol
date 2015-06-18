@@ -137,7 +137,7 @@ int ME_sock_recv(int sockfd, char * message)
 
   //printf("Recieved %d bytes:\"%s\"\n",n,message);
 
-  recvBuff[strlen(recvBuff)-1] = 0;
+  //recvBuff[strlen(recvBuff)-1] = 0;
 
   strcpy(message,recvBuff);
 

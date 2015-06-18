@@ -9,6 +9,12 @@
 #include <errno.h>
 #include <arpa/inet.h>
 
+#include <readline/readline.h>
+#define clock history_clock
+#include <readline/history.h>
+#undef spam
+#undef eggs
+
 int
 DI_init_measurer (void)
 {
@@ -119,41 +125,40 @@ void DI_get_measurer_response(int sockfd)
 
 void DI_interactive_mode(int sockfd)
 {
+  rl_bind_key('\t',rl_abort); //disable auto-complete
+  
   char* line=0;
   size_t line_buf_len=0;
   ssize_t curr_line_len;
 
   //set_conio_terminal_mode();
-
-  printf("(me) ");
+    
   fflush(stdout);
   
   while(true) {
     struct timeval tv = { 0L, 0L };
     fd_set fds;
     FD_ZERO(&fds);
-    FD_SET(0, &fds);
+    //FD_SET(0, &fds);
     FD_SET(sockfd, &fds);
+        
+    line = readline("\n(me) ");
+    //curr_line_len=getline(&line, &line_buf_len, stdin);
+    DI_send_request(sockfd, line);
+    //fflush(stdout);
+    if (line[0]!=0)
+      add_history(line);
+        
+    //Check for response
     int readsocks = select(sockfd+1, &fds, NULL, NULL, &tv);
-    
     if (readsocks < 0) {
       printf("Select read error!\n");
       exit(-1);
+    }	
+    if (FD_ISSET(sockfd,&fds)) {
+      DI_get_measurer_response(sockfd); 
     }
-    if (readsocks > 0) {
-      if (FD_ISSET(0,&fds))
-      {
-	curr_line_len=getline(&line, &line_buf_len, stdin);
-	DI_send_request(sockfd, line);
-	
-	printf("(me) ");
-	fflush(stdout);
-      }
-      if (FD_ISSET(sockfd,&fds))
-      {
-	DI_get_measurer_response(sockfd); 
-      }
-    }
+      
   }
   exit(-1);
  
