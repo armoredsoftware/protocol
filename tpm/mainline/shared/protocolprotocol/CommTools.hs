@@ -1,4 +1,4 @@
-{-# LANGUAGE OverloadedStrings, ForeignFunctionInterface #-}
+{-# LANGUAGE TypeSynonymInstances, FlexibleInstances, ConstraintKinds, OverlappingInstances, OverloadedStrings, RecordWildCards, ExistentialQuantification #-}
 module CommTools where
 import Data.ByteString.Lazy hiding (putStrLn)
 import Data.Monoid (mconcat)
@@ -30,14 +30,17 @@ import Network.Info
 import System.Timeout
 import qualified Data.ByteString as B 
 import qualified Data.ByteString.Char8 as Char8
+
+import Data.Word (Word16)
+
 --foreign export converseWithScottyCA :: AD.CARequest -> IO (Either String AD.CAResponse)
 
 --import qualified System.IO.Streams.Internal as StreamsI
 type ID = String
 
 
-ip="10.100.0.6" -- "192.168.122.1" 
-port=3000
+ip="10.100.0.6" -- "192.168.122.1"
+
 
 armoredToShared :: Armored -> Shared
 armoredToShared (ARequest req)              = WRequest req
@@ -166,7 +169,7 @@ instance ToJSON Shared where
 	toJSON (VChanFailure str)          = object ["VChanFailure" .= toJSON str]
 	toJSON (HttpFailure str)	   = object ["HttpFailure" .= toJSON str]
 	toJSON (VChanSuccess str)         =  object ["VChanSuccess" .= toJSON str]
-	toJSON (HttpSuccess port)     = object ["HttpSuccess" .= port]
+	toJSON (HttpSuccess portt)     = object ["HttpSuccess" .= portt]
         toJSON (WNRequest nreq)       = object ["WNRequest" .= toJSON nreq]
         toJSON (WNResponse nres)      = object ["WNResponse" .= toJSON nres]
         -------------------------------adam stuff
@@ -434,23 +437,24 @@ readComp' = do
 getMyIP :: IO IPv4
 getMyIP = do 
   ls <- getNetworkInterfaces 
-  let ls' = Prelude.filter (\x -> (name x) == "eth0") ls 
-  let ni = Prelude.head ls'
-  --putStrLn $ "IP returned from networkInterface call: " ++ (show (ipv4 ni)) 
-  return (ipv4 ni)
+  let ipp = getMyIPHelper "eth0" ls 
+  if ( (show) ipp) /= "0.0.0.0"
+    then return (ipp)
+    else do 
+     return $ getMyIPHelper "xenbr0" ls 
+    where
+     getMyIPHelper str ls = let ls' = Prelude.filter (\x -> (name x) == str) ls 
+                                ni = Prelude.head ls' in 
+                            ipv4 ni 
+
+
+getMyIP' = do
+         ipv4 <- getMyIP 
+         return (Char8.pack (show ipv4))
+
 
 getMyDomId :: IO Int
 getMyDomId = getDomId 
-
-octets :: Word32 -> [Word8]
-octets w = 
-    [ fromIntegral (w `shiftR` 24)
-    , fromIntegral (w `shiftR` 16)
-    , fromIntegral (w `shiftR` 8)
-    , fromIntegral w
-    ]
-word32ToBS :: Word32 -> B.ByteString
-word32ToBS = (B.pack . octets)
 
 
 whoAmI :: Role -> IO Entity 
@@ -461,6 +465,18 @@ whoAmI r = do
        entityName =show r --  "Attester the Magnificent"
      , entityIp = Just (Char8.pack (show i))      
      , entityId = Just myID 
+     , entityRole = r 
+     , entityNote = Nothing
+     } 
+
+whoAmI' :: Role -> IO Entity 
+whoAmI' r = do 
+  i@(IPv4 myIP) <- getMyIP
+--  myID <- getMyDomId
+  return $ Entity {
+       entityName =show r --  "Attester the Magnificent"
+     , entityIp = Just (Char8.pack (show i))      
+     , entityId = Nothing 
      , entityRole = r 
      , entityNote = Nothing
      } 

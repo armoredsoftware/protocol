@@ -252,3 +252,40 @@ executable              AppraiserProtocol
                        
   Main-is: AppraiserProtocolMain.hs
   ghc-options: -O -threaded
+
+
+executable              AbstractCommunication
+  hs-source-dirs:       shared/protocolprotocol
+  build-depends:        base >= 4,
+                        shell >= 1.0,
+                        network < 2.6, 
+                        network-uri < 2.6,
+                        network-info
+
+                       
+  Main-is: AbstractCommunicationMain.hs
+  ghc-options: -O -threaded
+
+executable              TestHttpChanA
+  hs-source-dirs:       shared/protocolprotocol, shared, src
+  build-depends:        base >= 4,
+                        shell >= 1.0,
+                        network < 2.6, 
+                        network-uri < 2.6,
+                        network-info
+
+                       
+  Main-is: TestHttpChannelAMain.hs
+  ghc-options: -O -threaded
+
+executable              TestHttpChanB
+  hs-source-dirs:       shared/protocolprotocol, shared, src
+  build-depends:        base >= 4,
+                        shell >= 1.0,
+                        network < 2.6, 
+                        network-uri < 2.6,
+                        network-info
+
+                       
+  Main-is: TestHttpChannelBMain.hs
+  ghc-options: -O -threaded
