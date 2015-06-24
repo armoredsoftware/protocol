@@ -1,45 +1,41 @@
 current_dir = $(shell pwd)
 
-COMMON_path = ../../../code/experiments/vchanTestCentOS_1/common/common.c
-INCLUDE_path = ../../../code/experiments/vchanTestCentOS_1/include/
+all: build-measurer build-test build-driver
 
+configure-measurer:
+	cd gdb-7.9; make clean; ./configure
+	cp gdb-7.9/patch/Makefile gdb-7.9/gdb/
 
-all: build-hotspot build-relay build-fakeattester
+build-measurer:
+	cd gdb-7.9; make
 
-build-hotspot-getlibs:
-	yum install gcc-c++
-	yum install glibc-static glibc-devel libstdc++ libstdc++-devel
-	yum install glibc-static.i686 glibc-devel.i686 libstdc++.i686 libstdc++-devel.i686	
+build-driver:
+	cd driver; make
 
-build-hotspot-prepjava:
-	export JAVA_HOME=$(current_dir)/jdk1.6.0_45
-	export PATH=$(current_dir)/jdk1.6.0_45/bin:$$PATH
-	export ALT_BOOTDIR=$(current_dir)/jdk1.6.0_45
-	export LD_LIBRARY_PATH=$$LD_LIBRARY_PATH:$(current_dir)/hotspot/build/linux/linux_i486_compiler1/jvmg
+build-test:
+	cd test; make
 
-build-hotspot:
-	export JAVA_HOME=$(current_dir)/jdk1.6.0_45;export PATH=$(current_dir)/jdk1.6.0_45/bin:$$PATH;export ALT_BOOTDIR=$(current_dir)/jdk1.6.0_45;export LD_LIBRARY_PATH=$$LD_LIBRARY_PATH:$(current_dir)/hotspot/build/linux/linux_i486_compiler1/jvmg;cd hotspot/make; make jvmg1
+run-measurer:
+	./gdb-7.9/gdb/gdb
 
-build-hotspot-noprep: 
-	cd hotspot/make; make jvmg1
+run-driver:
+	cd driver; make run-driver1
 
-build-relay:
-	cd relay; make build-relay
+run-test:
+	cd test; make run-test2
 
-build-fakeattester:
-	cd relay; make build-fakeattester 
+run-all:
+	gnome-terminal --hide-menubar --title="Measurer" -x bash -c "make run-measurer; echo \"JOBS DONE.\"; read"
+	gnome-terminal --hide-menubar --title="Application" -x bash -c "make run-test; echo \"JOBS DONE.\"; read"
+	gnome-terminal --hide-menubar --title="Driver" -x bash -c "echo \"pidof test2\"; pidof test2; make run-driver; echo \"JOBS DONE.\"; read"
 
-run-hotspot:
-	export JAVA_HOME=$(current_dir)/jdk1.6.0_45;export PATH=$(current_dir)/jdk1.6.0_45/bin:$$PATH;export ALT_BOOTDIR=$(current_dir)/jdk1.6.0_45;export LD_LIBRARY_PATH=$$LD_LIBRARY_PATH:$(current_dir)/hotspot/build/linux/linux_i486_compiler1/jvmg;./hotspot/build/linux/linux_i486_compiler1/jvmg/gamma -jar $(APP)
+clean: clean-measurer clean-driver clean-test
 
-run-hotspot-hackableloop:
-	export JAVA_HOME=$(current_dir)/jdk1.6.0_45;export PATH=$(current_dir)/jdk1.6.0_45/bin:$$PATH;export ALT_BOOTDIR=$(current_dir)/jdk1.6.0_45;export LD_LIBRARY_PATH=$$LD_LIBRARY_PATH:$(current_dir)/hotspot/build/linux/linux_i486_compiler1/jvmg;./hotspot/build/linux/linux_i486_compiler1/jvmg/gamma -jar applications/loop-hackable/ControlVar.jar
+clean-measurer:
+	cd gdb-7.9; make clean
 
-run-relay:
-	cd relay; make run-relay CLIENT=$(CLIENT) DOMID=$(DOMID)
+clean-driver:
+	cd driver; make clean
 
-run-fakeattester:
-	cd relay; make run-fakeattester CLIENT=$(CLIENT) DOMID=$(DOMID)
-
-clean:
-	cd hotspot/make; make clean
+clean-test:
+	cd test; make clean

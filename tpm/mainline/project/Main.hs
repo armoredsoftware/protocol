@@ -46,7 +46,7 @@ import Protocol
 import HttpChannel
 import AppraiserProtocol
 import AttesterProtocol
-import CAMain
+--import CAMain
 --import AttMain
 --import AMain
 --import BMain

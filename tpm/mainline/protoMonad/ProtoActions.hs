@@ -99,6 +99,7 @@ receive' chan = do
   liftIO $ putStrLn $ "In receive"
   --chan <- getEntityChannel fromId
  -- liftIO $ putStrLn $ "Got Chan"
+  liftIO $ ctrlWait chan
   logger <- liftIO createLogger
   bytes <- liftIO $ readChunkedMessageByteString logger chan
  -- liftIO $ putStrLn $ "Got bytes"
@@ -140,10 +141,10 @@ realDecrypt priKey cipherText = --Concrete implementation here
   C.decrypt priKey cipherText
 
 realSign :: PrivateKey -> ByteString -> Signature --paramaterize over hash?
-realSign priKey bytes = C.sign priKey bytes --Concrete implementation plugs in here
+realSign priKey bytes = C.rsassa_pkcs1_v1_5_sign C.ha_SHA1 priKey bytes --Concrete implementation plugs in here
 
 realVerify :: PublicKey -> ByteString -> Signature -> Bool
-realVerify pubKey m s = C.verify pubKey m s
+realVerify pubKey m s = C.rsassa_pkcs1_v1_5_verify C.ha_SHA1 pubKey m s
 
 --Concrete packing(well-defined strategy for combining elements in preparation for encryption/signing) implementation
 packImpl :: (Binary a) => [a] -> ByteString

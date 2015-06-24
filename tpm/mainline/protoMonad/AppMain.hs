@@ -9,16 +9,18 @@ import TPMUtil
 import Keys
 import TPM.Types
 import Provisioning(readComp)
+import CommTools
 --import ProtoTypes(Channel)
 
 import Prelude 
-import Data.ByteString.Lazy hiding (putStrLn)
+import Data.ByteString.Lazy hiding (putStrLn, map)
 import qualified Data.Map as M
 import System.IO
 import Codec.Crypto.RSA
 import System.Random
 import Data.Digest.Pure.SHA (bytestringDigest, sha1)
 import Data.Binary
+import Control.Applicative hiding (empty)
 
 appCommInit :: Channel -> Int -> IO ProtoEnv
 appCommInit attChan pId = do
@@ -60,10 +62,10 @@ appmain chan pId = do
   let pcrSelect = mkTPMRequest [0..23]
       nonce = 34
   eitherResult <- runProto (caEntity_App [0,1,2] nonce pcrSelect) env
-  let str = case eitherResult of 
-              Left s -> "Error occured: " ++ s
+  str <- case eitherResult of 
+              Left s -> return $ "Error occured: " ++ s
               Right  resp@(ev, n, comp, cert@(SignedData aikPub aikSig), qSig) -> 
-               "Response received:\n" ++ (show resp)
+                evaluate pId ([0,1,2], nonce, pcrSelect) (ev, n, comp, cert, qSig) -- "Response received:\n" ++ (show resp)
   putStrLn str 
   return str                                          
 {-main :: IO ()  
@@ -79,7 +81,7 @@ main = do
   
 evaluate :: Int -> (EvidenceDescriptor, Nonce, TPM_PCR_SELECTION) -> 
             (Evidence, Nonce, TPM_PCR_COMPOSITE, 
-             (SignedData TPM_PUBKEY), Signature) -> IO ()
+             (SignedData TPM_PUBKEY), Signature) -> IO String
 evaluate pId (d, nonceReq, pcrSelect) 
   (ev, nonceResp, pcrComp, cert@(SignedData aikPub aikSig), qSig) = do 
   let caPublicKey = fst generateCAKeyPair
@@ -97,12 +99,18 @@ evaluate pId (d, nonceReq, pcrSelect)
       r2 = realVerify aikPublicKey (encode quoteInfo) qSig
       r3 = nonceReq == nonceResp
   goldenPcrComposite <- readComp
+  --putStrLn $ "\n \n COMP Compare: \n"
+  --putStrLn $ "\n measured comp: \n" ++ show pcrComp
+  --putStrLn $ "\n measured comp: \n" ++ show goldenPcrComposite
   let r4 = pcrComp == goldenPcrComposite
-      r5 = ev == [0,1,2]
-      
-  putStrLn $ "CACert Signature: " ++ (show r1)
-  putStrLn $  "Quote Package Signature: " ++ (show r2)  
-  putStrLn $ "Nonce: " ++ (show r3)
-  putStrLn $ "PCR Values: " ++ (show r4)
-  if (pId == 1) then putStrLn $ "Evidence: " ++ (show r5) else return ()
-  return ()
+      r5 = case pId of 1 -> ev == [0,1,2]
+                       2 -> ev == []
+  putStrLn $ show ev    
+  sequence $ [logf, putStrLn] <*> (pure ("CACert Signature: " ++ (show r1)))
+  sequence $ [logf, putStrLn] <*> (pure ( "Quote Package Signature: " ++ (show r2)  ))
+  sequence $ [logf, putStrLn] <*> (pure ( "Nonce: " ++ (show r3)))
+  sequence $ [logf, putStrLn] <*> (pure ( "PCR Values: " ++ (show r4)))
+  if (or[pId == 1, pId == 2] ) then sequence ([logf, putStrLn] <*> (pure ("Evidence: " ++ (show r5)))) else return [()]
+  return $ case (and [r1, r2, r3, r4, r5]) of 
+    True -> "All checks succeeded"
+    False -> "At least one check failed"

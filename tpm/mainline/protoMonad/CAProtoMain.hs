@@ -28,9 +28,12 @@ oPass = tpm_digest_pass ownerPass
 caEntity_Att :: Proto ()
 caEntity_Att = do
   pId <- protoIs
+  liftIO $ pcrReset
+  liftIO $ pcrModify "a"
   
   case pId of
     1 -> do 
+      
       req@ [AAEvidenceDescriptor dList, 
             reqNonce@(ANonce nApp), 
             ATPM_PCR_SELECTION pcrSelect] <- receive 1 
@@ -47,6 +50,7 @@ caEntity_Att = do
           caCert = decrypt' sessKey kEncBlob 
       
       evidence <- caAtt_Mea dList
+      
   
       let quoteExData = 
             [AEvidence evidence, 
@@ -79,16 +83,17 @@ caEntity_Att = do
           caCert = decrypt' sessKey kEncBlob 
       
       --evidence <- caAtt_Mea dList
-  
+      
+      evidence <- return []
       let quoteExData = 
-            [ANonce nApp, 
+            [AEvidence evidence, ANonce nApp, 
              ASignedData $ SignedData (ATPM_PUBKEY (dat caCert)) (sig caCert)]
       (pcrComp, qSig) <- tpmQuote iKeyHandle pcrSelect quoteExData
 
       let response = 
             [reqNonce, 
              ATPM_PCR_COMPOSITE pcrComp, 
-             (quoteExData !! 1), 
+             (quoteExData !! 2), 
              ASignature qSig]
       send 1 response
       return ()
@@ -100,12 +105,13 @@ caAtt_CA signedContents = do
   let val = SignedData 
             (ATPM_IDENTITY_CONTENTS  (dat signedContents)) 
             (sig signedContents)
-  attChan <- liftIO $ server_init 0
+  attChan <- liftIO $ client_init 4
   send' attChan [AEntityInfo myInfo, ASignedData val]          
   --send 2 {-1-} [AEntityInfo myInfo, ASignedData val]
   [ACipherText ekEncBlob, ACipherText kEncBlob] <- receive' attChan
   --[ACipherText ekEncBlob, ACipherText kEncBlob] <- receive 2 --1
 
+  liftIO $ close attChan
   return (ekEncBlob, kEncBlob)
 
 caAtt_Mea :: EvidenceDescriptor -> Proto Evidence
@@ -142,10 +148,10 @@ caEntity_App d nonceA pcrSelect = do
   --do checks here...
   --return (e, nA, pComp, SignedData aikPub aikSig, sig)
     
-caEntity_CA :: Proto ()
-caEntity_CA = do
+caEntity_CA :: LibXenVChan -> Proto ()
+caEntity_CA attChan = do
 
-  attChan <- liftIO $ client_init 0
+  --attChan <- liftIO $ server_init vId
   {-[AEntityInfo eInfo, 
    ASignedData (SignedData (ATPM_IDENTITY_CONTENTS pubKey) sig)] 
                                                                  <- receive 1 -}
