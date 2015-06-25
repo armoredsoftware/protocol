@@ -238,29 +238,27 @@ aChannelInit neg c = do
         putStrLn err 
         return $ Left err
       Right c' -> do
-      -- n1_2 <- (randomIO :: IO Integer)
+       n1_2 <- (randomIO :: IO Integer)
        if n1' == n1+1 then do 
-         send c' (CommResponse (nb1+1,0))
-         return $ Right c' 
+         send c' (CommResponse (nb1+1,n1_2))
+         resp <- receive c' :: IO (Result CommResponse)
+         case resp of 
+          Error err -> do 
+           putStrLn err
+           return $ Left err
+          Success (CommResponse (n1_2',x)) -> do 
+           if ((n1_2' == (n1_2 + 1)) &&( x == 0)) then
+             return $ Right c' 
+            else do
+             let str = "final nonces did not match."
+             putStrLn str
+             return $ Left str            
          else do 
-         return $ Left "nonces no match!!"
-{-
-       resp <- (receive c :: IO (Result CommResponse))       
-       case resp of 
-         Error err -> do 
-           putStrLn err 
-           return $ Left err 
-         Success (CommResponse (n1',n1_2'))-> do
-           if ((n1 + 1) == n1') && ( (n1_2 + 1) == n1_2')
-              then do     
-                bc <- mkChannel c'            
-                return $ Right bc  --han 
-              else do 
-                putStrLn $ "mismatch: " ++ (show n1') ++ " and " ++ (show (n1 + 1))
-                return $ Left "n1' did not match n1."
-           -}
+           let str = "n1' did not match n1 + 1."
+           putStrLn str
+           return $ Left str
 
-bChannelInit :: Channel ->Integer -> IO (Either String (Channel))
+bChannelInit :: Channel -> Integer -> IO (Either String Channel)
 bChannelInit c na = do 
      putStrLn "bChannelInit triggered!!"
   --comReq <- (receive neg :: IO (Result (Value,Integer)))
@@ -282,7 +280,7 @@ bChannelInit c na = do
        Success (CommResponse (nb1',n2))-> do
          if (nb1 + 1) == nb1' 
           then do
-             --send c (CommResponse (na+1,n2+1))
+             send c (CommResponse (n2+1,0))
              --chan <- mkChannel c 
              return $ Right c --han 
            else do 

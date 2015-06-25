@@ -73,14 +73,14 @@ myProto =    CreateChannel (AChannel "chan") Requester
 	   $ Result (Var "result")
 	     
 
-<<<<<<< HEAD
-privacyPol = [Reveal [(ProtocolItem, [IntProperty 1])]  FREE 
-             ]
-=======
+-- <<<<<<< HEAD
+--privacyPol = [Reveal [(ProtocolItem, [IntProperty 1])]  FREE 
+  --           ]
+-- =======
 {-privacyPol = [Reveal [(ProtocolItem, [IntProperty 1])] condOS
                    , Reveal [(ProtocolItem, [IntProperty 2])] FREE
                                                                 ] --condOS --FREE  -}
->>>>>>> 0652a7f8fdc5f8afb2b9f1f0c6df78abb8dd481b
+-- >>>>>>> 0652a7f8fdc5f8afb2b9f1f0c6df78abb8dd481b
 
 privacyPol = [Reveal [(ProtocolItem, [IntProperty 1])] FREE
                                                                 ] --condOS

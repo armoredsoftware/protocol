@@ -1,3 +1,4 @@
+{-# LANGUAGE RankNTypes, TypeSynonymInstances, FlexibleInstances, ConstraintKinds, OverlappingInstances, OverloadedStrings, RecordWildCards, ExistentialQuantification #-}
 module VChanComm where
 
 
@@ -8,9 +9,9 @@ import Control.Concurrent.MVar
 import Data.ByteString.Lazy hiding (putStrLn,length,map)
 --import CommTools
 import Data.IORef
-
+import Control.Applicative
 data VChannel = VChannel {
-     mTheirID :: Maybe Int,
+     refmTheirID :: IORef (Maybe Int),
      reflibXenVChan :: IORef (Maybe LibXenVChan)
      }
 
@@ -34,7 +35,8 @@ instance IsChannel VChannel where
         bytes <- readChunkedMessageByteString logger chan
         return $ jsonParse (fromStrict bytes)
   initialize c = do 
-    case (mTheirID c) of 
+    mTheirID <- readIORef ( refmTheirID c )
+    case (mTheirID ) of 
      Nothing -> return () 
      Just idd -> do 
        mchan <- readIORef (reflibXenVChan c)
@@ -50,11 +52,25 @@ instance IsChannel VChannel where
     mchan <- readIORef (reflibXenVChan c)                              
     case mchan of 
       Nothing -> return () 
-      Just chan -> close chan 
+      Just chan -> do close chan 
+  toRequest c = do 
+    idd <- getDomId 
+    return $ toJSON $ VChanRequest idd
+  fromRequest r c = do
+    case fromJSON r :: Result VChanRequest of 
+      Error err -> return $ Left err
+      Success (VChanRequest i) ->do 
+       modifyIORef (refmTheirID c) (\_ -> Just i)
+       return $ Right c  
+newtype VChanRequest = VChanRequest {
+  id :: Int
+  } deriving (Show, Eq)
+instance ToJSON VChanRequest where
+  toJSON (VChanRequest x) = object
+    [ "VChanRequestID" .= x]
 
-newtype VChanRequest = {
-     id :: Int
-     }
+instance FromJSON VChanRequest where
+  parseJSON (Object o) = VChanRequest <$> o .: "VChanRequestID"    
 
 
 {-
