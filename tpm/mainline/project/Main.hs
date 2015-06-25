@@ -43,7 +43,7 @@ import AttesterMain
 import AppMain
 
 import Protocol
-
+import HttpChannel
 import AppraiserProtocol
 import AttesterProtocol
 --import CAMain
@@ -51,6 +51,12 @@ import AttesterProtocol
 --import AMain
 --import BMain
 --import ScottyCA
+import qualified AbstractedCommunication as ELFIJERLFWIEJF
+import qualified TestChannel as WOIEJF
+import qualified TestHttpChannelA as WEOIJFWAPOJF
+import qualified TestHttpChannelB as EIJFWSAOERFJ
+--import qualified TestHttpChannelAMain as FEIJFEIJF
+--import qualified TestHttpChannelBMain as EIFJEIF 
 
 {-
 cmd_log :: (TPM t) => ShellCmd (State t)

@@ -1,4 +1,4 @@
-{-# LANGUAGE TypeSynonymInstances, FlexibleInstances, OverlappingInstances, OverloadedStrings, RecordWildCards  #-}
+{-# LANGUAGE TypeSynonymInstances, FlexibleInstances, OverlappingInstances, OverloadedStrings, RecordWildCards, ExistentialQuantification #-}
 module ProtoTypes where
 
 import Data.Aeson (toJSON, parseJSON, ToJSON,FromJSON, object , (.=), (.:) )
@@ -21,6 +21,7 @@ import Data.ByteString.Lazy(ByteString, empty, append, pack, toStrict, fromStric
 import Control.Concurrent (ThreadId)
 import Data.Binary
 import Codec.Crypto.RSA hiding (sign, verify)
+
 
 data FormalRequest = FormalRequest Entity NRequest deriving (Show)
 
@@ -206,7 +207,8 @@ instance Eq ChannelInfo where
 data Role = Appraiser
     	  | Attester
 	  | Measurer
-          | PrivacyCA deriving ( Eq, Show)
+          | PrivacyCA 
+          | Undetermined deriving ( Eq, Show)
 
 
             
@@ -531,13 +533,15 @@ instance ToJSON Role where
 	toJSON Appraiser = DA.String "Appraiser"
 	toJSON Attester  = DA.String "Attester"
 	toJSON Measurer  = DA.String "Measurer"
-        toJSON PrivacyCA = DA.String "PrivacyCA"				 
+        toJSON PrivacyCA = DA.String "PrivacyCA"
+        toJSON Undetermined = DA.String "Undetermined"				 
         
 instance FromJSON Role where
 	parseJSON (DA.String "Appraiser") = pure Appraiser
 	parseJSON (DA.String "Attester")  = pure Attester
 	parseJSON (DA.String "Measurer")  = pure Measurer
 	parseJSON (DA.String "PrivacyCA") = pure PrivacyCA        
+        parseJSON (DA.String "Undetermined") = pure Undetermined
 					                 
 
 

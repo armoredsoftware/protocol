@@ -28,6 +28,8 @@ import Data.Time
 import Control.Concurrent
 import System.Timeout
 
+import Data.Word (Word16)
+
 import qualified Data.List as List
 negotiationport = 3000
 
@@ -231,12 +233,14 @@ tryCreateHttpChannel ent chanName = do
               liftIO $ putStrLn $ "Error. received wrong type back when expected nonce in attempt http chan contact: " ++ (show a)
               return Nothing 
 
+--somewhere about 50,000 are the reserved temp ports. this is pie, but with the 5 in the wrong place.
+defaultport=53141
 
 getFreePort :: [ChannelEntry] -> Port 
-getFreePort [] = 3001   
+getFreePort [] = defaultport 
 getFreePort chanEs = let ports = harvestPorts chanEs in 
                        if Prelude.length ports == 0 
-                         then 3001
+                         then defaultport 
                          else (maximum ports) + 1
 
 eitherReceiveSharedWTimeout :: LibXenVChan -> IO (Either String Shared)
