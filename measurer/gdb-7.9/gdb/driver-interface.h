@@ -47,7 +47,7 @@ extern bool startsWith(const char *, const char *);
 
 extern void BE_update_callgraph();
 extern void BE_do_continous();
-extern void BE_rhandler_dispatch(char *);
+extern struct ME_RLI_IR_value BE_rhandler_dispatch(char *);
 
 extern void BE_hook_handle(struct BE_hook *);
 extern void BE_hook_table_handle(struct BE_hook *, int, char *, int);

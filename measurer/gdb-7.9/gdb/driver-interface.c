@@ -27,6 +27,8 @@
 
 #include <assert.h>
 
+#include <jansson.h>
+
 void BE_hook_disable(BE_hook * hook) {
   if (!hook) return;
   hook->enabled = false;
@@ -141,11 +143,44 @@ void BE_get_request()
 {
  
   char request[1024];
+
   int n = ME_sock_recv(the_context.driverfd, request);
+
+  if (n <= 0 || !(*request))
+    return;
   
-  if (n > 0 && (*request))
-    BE_rhandler_dispatch(request);
-    
+  //Parse out JSON
+  json_t *root, *params;
+  json_error_t error;
+  root = json_loads(request, 0, &error);
+  params = json_object_get(root,"params");
+  char * RLI_expr = json_string_value(params);
+  
+  ME_RLI_IR_value value_result= BE_rhandler_dispatch(RLI_expr);
+
+  json_decref(root);
+
+  //Send response
+  root = json_object();
+  json_object_set_new(root, "jsonrpc", json_string("2.0"));
+
+  if (value_result.type == ME_RLI_IR_VALUE_MEASUREMENT) {
+    json_object_set_new(root, "result", ME_measurement_toJSON(value_result.vdata.ms));
+  }
+  else {
+    json_object_set_new(root, "result", json_null());
+  }
+
+
+  json_object_set_new(root, "id", json_string("1"));
+
+  char * response;
+  response = json_dumps( root, 0 );
+  
+  ME_sock_send(the_context.driverfd, response);
+  
+  json_decref(root);  
+
 }
 
 void BE_update_callgraph()
@@ -210,7 +245,7 @@ void BE_do_continuous()
   
 }
 
-void BE_rhandler_dispatch(char * request)
+struct ME_RLI_IR_value BE_rhandler_dispatch(char * request)
 {  
   printf("\nHandling %s request!\n",request);
   
@@ -231,7 +266,8 @@ void BE_rhandler_dispatch(char * request)
   //TODO delete tokens, expr
     
   //printf("\nUnrecognized request! request=%s\n",request);
-  
+
+  return result;
 }
 
 /*============================================================*/

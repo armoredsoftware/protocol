@@ -8,12 +8,11 @@
 #include <unistd.h>
 #include <errno.h>
 #include <arpa/inet.h>
+#include <jansson.h>
 
 #include <readline/readline.h>
 #define clock history_clock
 #include <readline/history.h>
-#undef spam
-#undef eggs
 
 int
 DI_init_measurer (void)
@@ -61,7 +60,32 @@ DI_init_measurer (void)
 
 void DI_send_request(int sockfd, char * request)
 {
-  ME_sock_send(sockfd, request);
+  //build JSON and send
+  json_t *root, *result;
+  json_error_t error;
+  root = json_object();
+  json_object_set_new(root, "jsonrpc", json_string("2.0"));
+  json_object_set_new(root, "method", json_string("eval"));
+  json_object_set_new(root, "params", json_string(request));   
+  json_object_set_new(root, "id", json_string("1"));
+
+  char * send = json_dumps(root, 0);
+  
+  ME_sock_send(sockfd, send);
+
+  json_decref(root);
+
+
+  //get response
+  char response[1024];
+  int n = ME_sock_recv(sockfd, response);
+
+  printf("Recieved:%s\n",response);
+
+  root = json_loads(response, 0, &error);
+  result = json_object_get(root,"result"); 
+  
+  printf("Result = %s\n",json_string_value(result));
 }
 
 
@@ -144,42 +168,21 @@ void DI_interactive_mode(int sockfd)
         
     line = readline("\n(me) ");
     //curr_line_len=getline(&line, &line_buf_len, stdin);
+
     DI_send_request(sockfd, line);
+
     //fflush(stdout);
     if (line[0]!=0)
       add_history(line);
-        
-    //Check for response
-    int readsocks = select(sockfd+1, &fds, NULL, NULL, &tv);
+
+    /*int readsocks = select(sockfd+1, &fds, NULL, NULL, &tv);
     if (readsocks < 0) {
       printf("Select read error!\n");
       exit(-1);
     }	
     if (FD_ISSET(sockfd,&fds)) {
       DI_get_measurer_response(sockfd); 
-    }
+      }*/
       
-  }
-  exit(-1);
- 
-  while (true)
-  {
-    printf("Enter command to send to measurer:");
-
-    curr_line_len=getline(&line, &line_buf_len, stdin);
-
-    DI_send_request(sockfd, line);
-
-    if (strcmp(line,"CG_get\n")==0
-	|| strcmp(line,"callstack_get\n")==0 )
-    {
-      DI_get_measurer_response(sockfd);
-    }
-    else if (strcmp(line,"quit\n")==0)
-    {
-      close(sockfd);
-      exit(0);
-    }
-    
   }
 }

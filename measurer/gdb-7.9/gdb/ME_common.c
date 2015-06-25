@@ -21,6 +21,7 @@
 
 #include <fcntl.h>
 
+#include <jansson.h>
 
 char** str_split(char* a_str_O, const char a_delim)
 {  
@@ -203,6 +204,30 @@ typedef struct ME_CG
 }
 ME_CG;
 
+void ME_CG_toJSON_h(struct ME_CG *cg, struct ME_FT * ft, json_t * json_siblings) {
+  if (!cg) return;
+  json_t * json_cg = json_object();
+  json_array_append(json_siblings, json_cg);
+  json_object_set_new(json_cg, "symbol", json_string(ME_FT_get(ft,cg->symbol)));
+  ME_CG_toJSON_h(cg->sibling, ft, json_siblings);
+  json_t * json_children = json_array();
+  ME_CG_toJSON_h(cg->child, ft, json_children);
+  json_object_set_new(json_cg, "children", json_children);
+}
+
+json_t * ME_CG_toJSON(struct ME_CG * cg, struct ME_FT * ft) {
+  if (!cg) return json_null();
+
+  json_t * json_cg = json_object();
+  json_object_set_new(json_cg, "symbol", json_string(ME_FT_get(ft,cg->symbol)));
+
+  json_t * json_children = json_array();
+  ME_CG_toJSON_h(cg->child, ft, json_children);
+  json_object_set_new(json_cg, "children", json_children);
+  
+  return json_cg;
+}
+
 ME_CG * ME_CG_create(int symbol)
 {
   ME_CG* cg = (ME_CG*)malloc(sizeof(ME_CG));
@@ -227,24 +252,6 @@ void ME_CG_add_child(struct ME_CG * parent, struct ME_CG * child)
   }
   curr->sibling = child;
 }
-
-/*ME_CG * ME_CG_add_child(struct ME_CG * parent, int child_symbol)
-{
-  if (parent->child == NULL) {
-    parent->child = child;
-    return;
-  }
-
-  ME_CG * curr = parent->child;
-  if (curr->symbol==child_symbol) return curr;
-  while (curr->sibling) {
-    curr = curr->sibling;
-    if (curr->symbol==child_symbol) return curr;
-  }
-  ME_CG * child = ME_CG_create(child_symbol);  
-  curr->sibling = child;
-  return child;
-  }*/
 
 ME_CG * ME_CG_copy(struct ME_CG * cg)
 {
@@ -472,8 +479,9 @@ void ME_FT_delete(struct ME_FT * ft)
   free(ft);
 }
 
-int ME_FT_add(ME_FT * ft, char * name)
-{  
+int ME_FT_add(ME_FT * ft, char * name) {
+  if (!name) return -1;
+
   int i = 0;
   ME_FT  *curr, *new_entry;
   
@@ -505,6 +513,8 @@ void ME_FT_print(ME_FT * ft)
 
 int ME_FT_get_index(ME_FT * ft, char * name)
 {
+  if (!name) return -1;
+
   int i = 0;
   ME_FT * curr = ft;
   while (curr->next) {
@@ -516,7 +526,9 @@ int ME_FT_get_index(ME_FT * ft, char * name)
 }
 
 char * ME_FT_get(struct ME_FT * ft, int i)
-{
+{ 
+  if (i==-1) return NULL;
+
   ME_FT * curr = ft;
   while (curr->next) {
     i--;
@@ -621,6 +633,44 @@ typedef struct ME_measurement
   struct ME_measurement * next;
 }
 ME_measurement;
+
+json_t * ME_measurement_toJSON(struct ME_measurement *ms) {
+  if (!ms) return json_null();
+
+  json_t * json_ms = json_object();
+  //set type
+  if (ms->type == ME_MEASUREMENT_CALLSTACK) {
+    json_object_set_new(json_ms, "type", json_string("callstack"));
+    json_object_set_new(json_ms, "data", ME_CG_toJSON(ms->data.cgft.cg, ms->data.cgft.ft));
+  } else if (ms->type == ME_MEASUREMENT_STRING) {
+    json_object_set_new(json_ms, "type", json_string("string"));
+    json_object_set_new(json_ms, "data", json_string(ms->data.string_val));
+  }
+
+  //set next
+  json_object_set_new(json_ms, "next", ME_measurement_toJSON(ms->next));
+  
+  return json_ms;
+}
+ME_measurement * ME_measurement_fromJSON(json_t * json_ms) {
+  ME_measurement* ms = (ME_measurement*)malloc(sizeof(ME_measurement));
+  //get type
+  json_t * json_type = json_object_get(json_ms, "type");
+  char * type = json_string_value(json_type);
+  if (strcmp(type, "callstack")==0) {
+    ms->type = ME_MEASUREMENT_CALLSTACK;
+  } else if (strcmp(type, "string")==0) {
+    ms->type = ME_MEASUREMENT_STRING;
+  }
+  //get data
+  //TODO ...
+
+  //TODO next
+  
+  return ms;
+
+  
+}
 
 ME_measurement * ME_measurement_create(ME_measurement_type type)
 {
