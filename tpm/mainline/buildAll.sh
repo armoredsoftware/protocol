@@ -6,7 +6,7 @@ cabal build CAMain
 #cabal build Measurer
 
 
-
+#changed this in protoMonad branch
 scp dist/build/AppraiserProtocol/AppraiserProtocol root@10.100.0.234: ;  #Appraiser
 scp dist/build/AttesterProtocol/AttesterProtocol root@10.100.0.222: ; #Attester
 scp dist/build/AttesterProtocol/AttesterProtocol root@10.100.0.203: ; #Attester
