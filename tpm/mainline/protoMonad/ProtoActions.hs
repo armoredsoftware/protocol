@@ -1,6 +1,6 @@
 module ProtoActions where
 
-import ProtoTypes
+import ProtoTypesA
 import ProtoMonad
 import VChanUtil
 import CommTools (sendG', receiveG') 
@@ -66,46 +66,48 @@ send toId ds = do
  -- logger <- liftIO createLogger
 --  liftIO $ sendChunkedMessageByteString logger chan (toStrict $ encode ds)
  -- liftIO $ putStrLn $ "Sending: " ++ (show ds)
-  liftIO $ sendG' chan ds
-  liftIO $ putStrLn $ "Sent message! " ++ (show ds)
+  --liftIO $ sendG' chan ds
+  liftIO $ send' chan ds
+  --liftIO $ putStrLn $ "Sent message! " ++ (show ds)
   return ()
   
-send' :: LibXenVChan -> Message -> Proto ()
+send' :: LibXenVChan -> Message -> IO ()
 send' chan ds = do
   --chan <- getEntityChannel toId
-  logger <- liftIO createLogger
-  liftIO $ sendChunkedMessageByteString logger chan (toStrict $ encode ds)
-  liftIO $ putStrLn $ "Sending: " ++ (show ds)
+  logger <- createLogger
+  sendChunkedMessageByteString logger chan (toStrict $ encode ds)
+  putStrLn $ "Sending: " ++ (show ds)
  -- liftIO $ sendG' chan ds
-  liftIO $ putStrLn $ "Sent message! " ++ (show ds)
+  putStrLn $ "Sent message! " ++ (show ds)
   return ()
   
 receive :: EntityId -> Proto Message
 receive fromId = do
-  liftIO $ putStrLn $ "In receive"
+ -- liftIO $ putStrLn $ "In receive"
   chan <- getEntityChannel fromId
  -- liftIO $ putStrLn $ "Got Chan"
   --logger <- liftIO createLogger
   --bytes <- liftIO $ readChunkedMessageByteString logger chan
  -- liftIO $ putStrLn $ "Got bytes"
  -- let result = decode $ fromStrict bytes
-  result <- liftIO $ receiveG' chan
-  liftIO $ putStrLn $ "Received message!"   -- ++ (show result)
+  result <- liftIO $ receive' chan
+--  result <- liftIO $ receiveG' chan
+--  liftIO $ putStrLn $ "Received message!"   -- ++ (show result)
  -- liftIO $ putStrLn $ "Received: " ++ (show result)
   return $ result
 
-receive' :: LibXenVChan -> Proto Message
+receive' :: LibXenVChan -> IO Message
 receive' chan = do
-  liftIO $ putStrLn $ "In receive"
+  putStrLn $ "In receive"
   --chan <- getEntityChannel fromId
  -- liftIO $ putStrLn $ "Got Chan"
-  liftIO $ ctrlWait chan
-  logger <- liftIO createLogger
-  bytes <- liftIO $ readChunkedMessageByteString logger chan
+  ctrlWait chan
+  logger <- createLogger
+  bytes <- readChunkedMessageByteString logger chan
  -- liftIO $ putStrLn $ "Got bytes"
   let result = decode $ fromStrict bytes
   --result <- liftIO $ receiveG' chan
-  liftIO $ putStrLn $ "Received message!"   -- ++ (show result)
+  putStrLn $ "Received message!"   -- ++ (show result)
  -- liftIO $ putStrLn $ "Received: " ++ (show result)
   return $ result
   

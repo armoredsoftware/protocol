@@ -37,15 +37,15 @@ import PrivacyCA
 import Provisioning
 import Demo3Shared
 import InterpreterTypes
-import ProtoMain
+--import ProtoMain
 import CAProtoMain
 import AttesterMain
 import AppMain
 
-import Protocol
+--import Protocol
 import HttpChannel
-import AppraiserProtocol
-import AttesterProtocol
+--import AppraiserProtocol
+--import AttesterProtocol
 --import CAMain
 --import AttMain
 --import AMain

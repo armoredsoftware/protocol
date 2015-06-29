@@ -171,7 +171,7 @@ type Message = [ArmoredData]
 data EntityInfo = EntityInfo {
   entityName :: String,
   entityIp :: Int,
-  chan :: Channel
+  chan :: LibXenVChan
 } deriving (Eq, Show)
 
 instance Binary EntityInfo where

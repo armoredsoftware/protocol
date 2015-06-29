@@ -2,7 +2,7 @@
 
 module CAProtoMain where
 
-import ProtoTypes
+import ProtoTypesA
 import ProtoMonad
 import ProtoActions
 import Keys
@@ -34,7 +34,7 @@ caEntity_Att = do
   case pId of
     1 -> do 
       
-      req@ [AAEvidenceDescriptor dList, 
+      req@ [AEvidenceDescriptor dList, 
             reqNonce@(ANonce nApp), 
             ATPM_PCR_SELECTION pcrSelect] <- receive 1 
       
@@ -105,10 +105,10 @@ caAtt_CA signedContents = do
   let val = SignedData 
             (ATPM_IDENTITY_CONTENTS  (dat signedContents)) 
             (sig signedContents)
-  attChan <- liftIO $ client_init 4
-  send' attChan [AEntityInfo myInfo, ASignedData val]          
+  attChan <- getEntityChannel 2 --liftIO $ client_init 4
+  liftIO $ send' attChan [AEntityInfo myInfo, ASignedData val]          
   --send 2 {-1-} [AEntityInfo myInfo, ASignedData val]
-  [ACipherText ekEncBlob, ACipherText kEncBlob] <- receive' attChan
+  [ACipherText ekEncBlob, ACipherText kEncBlob] <- liftIO $ receive' attChan
   --[ACipherText ekEncBlob, ACipherText kEncBlob] <- receive 2 --1
 
   liftIO $ close attChan
@@ -125,7 +125,7 @@ caEntity_App d nonceA pcrSelect = do
   pId <- protoIs
   
   let request = case pId of 
-        1 -> [AAEvidenceDescriptor d, ANonce nonceA, ATPM_PCR_SELECTION pcrSelect]
+        1 -> [AEvidenceDescriptor d, ANonce nonceA, ATPM_PCR_SELECTION pcrSelect]
         2 -> [ANonce nonceA, ATPM_PCR_SELECTION pcrSelect]
 
   send 1 request
@@ -151,13 +151,14 @@ caEntity_App d nonceA pcrSelect = do
 caEntity_CA :: LibXenVChan -> Proto ()
 caEntity_CA attChan = do
 
+  --attChan <- getEntityChannel 0
   --attChan <- liftIO $ server_init vId
   {-[AEntityInfo eInfo, 
    ASignedData (SignedData (ATPM_IDENTITY_CONTENTS pubKey) sig)] 
                                                                  <- receive 1 -}
   [AEntityInfo eInfo, 
    ASignedData (SignedData (ATPM_IDENTITY_CONTENTS pubKey) sig)] 
-                                                                 <- receive' attChan
+                                                                 <- liftIO $ receive' attChan
 
   ekPubKey <- liftIO readPubEK
 
@@ -175,7 +176,7 @@ caEntity_CA attChan = do
       encryptedCert = encryptCTR aes ctr strictCert
       enc = fromStrict encryptedCert
 
-  send' attChan [ACipherText encBlob, ACipherText enc]
+  liftIO $ send' attChan [ACipherText encBlob, ACipherText enc]
   --send 1 [ACipherText encBlob, ACipherText enc]
  where 
    symKey = 

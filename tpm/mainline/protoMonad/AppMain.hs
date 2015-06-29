@@ -1,8 +1,8 @@
-module AppMain where
+module Main where --AppMain where 
 
 import CAProtoMain (caEntity_App)
 import ProtoMonad
-import ProtoTypes
+import ProtoTypesA
 import ProtoActions
 import VChanUtil
 import TPMUtil
@@ -22,21 +22,6 @@ import Data.Digest.Pure.SHA (bytestringDigest, sha1)
 import Data.Binary
 import Control.Applicative hiding (empty)
 
-appCommInit :: Channel -> Int -> IO ProtoEnv
-appCommInit attChan pId = do
-  --attChan <- client_init domid
-  let myInfo = EntityInfo "Appraiser" 22 attChan
-      attInfo = EntityInfo "Attester" 22 attChan
-      mList = [(0, myInfo), (1, attInfo)]
-      ents = M.fromList mList
-      myPri = snd $ generateAKeyPair
-      attPub = getBPubKey
-      pubs = M.fromList [(1,attPub)]
-  
-  
-  return $ ProtoEnv 0 myPri ents pubs 0 0 0 pId
-
-{-
 appCommInit :: Int -> IO ProtoEnv
 appCommInit domid = do
   attChan <- client_init domid
@@ -49,16 +34,15 @@ appCommInit domid = do
       pubs = M.fromList [(1,attPub)]
   
   
-  return $ ProtoEnv 0 myPri ents pubs 0 0 0  -}
-  
-  --return ()
+  return $ ProtoEnv 0 myPri ents pubs 0 0 0 1 
 
---main = attCommInit [1,2]
 
-appmain :: Channel -> Int -> IO String
-appmain chan pId = do 
+main = appmain 1
+
+appmain :: Int -> IO ()
+appmain pId = do 
   putStrLn "Main of entity Appraiser"
-  env <- appCommInit chan pId -- [appId, caId] --TODO: Need Channel form Paul
+  env <- appCommInit 3 -- [appId, caId] --TODO: Need Channel form Paul
   let pcrSelect = mkTPMRequest [0..23]
       nonce = 34
   eitherResult <- runProto (caEntity_App [0,1,2] nonce pcrSelect) env
@@ -67,16 +51,7 @@ appmain chan pId = do
               Right  resp@(ev, n, comp, cert@(SignedData aikPub aikSig), qSig) -> 
                 evaluate pId ([0,1,2], nonce, pcrSelect) (ev, n, comp, cert, qSig) -- "Response received:\n" ++ (show resp)
   putStrLn str 
-  return str                                          
-{-main :: IO ()  
-main = do 
-  putStrLn "main of Appraiser"
-  return () -}
-  
-  {-let as = [ANonce empty, ANonce empty, ACipherText empty]
-      asCipher = genEncrypt (fst generateAKeyPair) as
-      as' = genDecrypt (snd generateAKeyPair) asCipher
-  putStrLn $ show $ as' -}
+  return ()                                     
  
   
 evaluate :: Int -> (EvidenceDescriptor, Nonce, TPM_PCR_SELECTION) -> 

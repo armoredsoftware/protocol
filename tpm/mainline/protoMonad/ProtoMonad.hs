@@ -2,7 +2,7 @@
 
 module ProtoMonad where
 
-import ProtoTypes
+import ProtoTypesA
 import ProtoTypes(Channel)
 import VChanUtil
 
@@ -39,7 +39,7 @@ protoIs = do
   id <- T.asks protoId
   return id
   
-getEntityChannel :: EntityId -> Proto Channel
+getEntityChannel :: EntityId -> Proto LibXenVChan
 getEntityChannel id = do
   eInfo <- getEntityInfo id
   return $ chan eInfo
