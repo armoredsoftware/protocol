@@ -18,7 +18,7 @@
 
 
 srcdir = .
-prefix = /usr
+prefix = /usr/local
 exec_prefix = ${prefix}
 abs_builddir = /nfs/projects/zephyr/deadzone/ArmoredSoftware/ws/protocol/measurer/gdb-7.9/gdb/testsuite
 

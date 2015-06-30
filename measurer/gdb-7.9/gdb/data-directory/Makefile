@@ -26,7 +26,7 @@ VPATH = $(SYSCALLS_SRCDIR):$(PYTHON_SRCDIR):$(GUILE_SRCDIR):$(SYSTEM_GDBINIT_SRC
 top_srcdir = ..
 top_builddir = ..
 
-prefix = /usr
+prefix = /usr/local
 exec_prefix = ${prefix}
 
 datarootdir = ${prefix}/share

@@ -15,7 +15,7 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-prefix = /usr/local
+prefix = /usr
 exec_prefix = ${prefix}
 
 host_alias = x86_64-unknown-linux-gnu
@@ -44,7 +44,7 @@ htmldir = ${docdir}
 pdfdir = ${docdir}
 includedir = ${prefix}/include
 
-install_sh = ${SHELL} /nfs/projects/zephyr/deadzone/ArmoredSoftware/ws/protocol/measurer/gdb-7.9/install-sh
+install_sh = ${SHELL} /nfs/projects/zephyr/deadzone/ArmoredSoftware/llvm/gdb/mod1/gdb-7.9/install-sh
 
 # This can be referenced by `LIBINTL' as computed by
 # ZW_GNU_GETTEXT_SISTER_DIR.
@@ -112,9 +112,9 @@ FLEX = flex
 YLWRAP = $(srcdir)/../ylwrap
 
 # where to find makeinfo, preferably one designed for texinfo-2
-MAKEINFO = makeinfo --split-size=5000000
+MAKEINFO = /nfs/projects/zephyr/deadzone/ArmoredSoftware/llvm/gdb/mod1/gdb-7.9/missing makeinfo --split-size=5000000
 MAKEINFOFLAGS = 
-MAKEINFO_EXTRA_FLAGS =  -DHAVE_MAKEINFO_CLICK
+MAKEINFO_EXTRA_FLAGS = 
 MAKEINFO_CMD = $(MAKEINFO) $(MAKEINFOFLAGS) $(MAKEINFO_EXTRA_FLAGS)
 
 MAKEHTML = $(MAKEINFO_CMD) --html
@@ -149,12 +149,12 @@ LIBDECNUMBER_CFLAGS = -I$(LIBDECNUMBER_DIR) -I$(LIBDECNUMBER_SRC)
 # Where is the READLINE library?  Typically in ../readline.
 READLINE_DIR = ../readline
 READLINE_SRC = $(srcdir)/$(READLINE_DIR)
-READLINE = $(READLINE_DIR)/libreadline.a
-READLINE_DEPS = $(READLINE)
-READLINE_CFLAGS = -I$(READLINE_SRC)/..
+READLINE = -lreadline
+READLINE_DEPS = 
+READLINE_CFLAGS = 
 
 # Where is expat?  This will be empty if expat was not available.
-LIBEXPAT = -lexpat
+LIBEXPAT = 
 
 # Where is lzma?  This will be empty if lzma was not available.
 LIBLZMA = 
@@ -576,7 +576,7 @@ INTERNAL_LDFLAGS = $(CFLAGS) $(GLOBAL_CFLAGS) $(MH_LDFLAGS) $(LDFLAGS) $(CONFIG_
 # LIBIBERTY appears twice on purpose.
 CLIBS = $(SIM) $(READLINE) $(OPCODES) $(BFD) $(INTL) $(LIBIBERTY) $(LIBDECNUMBER) \
 	$(XM_CLIBS) $(NAT_CLIBS) $(GDBTKLIBS) \
-	-ldl -ldl -lncurses -lz -lm -ldl -ljansson      \
+	-ldl -ldl -lncurses -lm -ldl -ljansson      \
 	$(LIBEXPAT) $(LIBLZMA) $(LIBBABELTRACE) \
 	$(LIBIBERTY) $(WIN32LIBS) $(LIBGNU)
 CDEPS = $(XM_CDEPS) $(NAT_CDEPS) $(SIM) $(BFD) $(READLINE_DEPS) \

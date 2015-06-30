@@ -11,7 +11,7 @@
 #define AUTO_LOAD_SAFE_PATH "$debugdir:$datadir/auto-load"
 
 /* Directory of programs. */
-#define BINDIR "/usr/bin"
+#define BINDIR "/usr/local/bin"
 
 /* Define to one of `_getb67', `GETB67', `getb67' for Cray-2 and Cray-YMP
    systems. This function is required for `alloca.c' support on those systems.
@@ -22,7 +22,7 @@
 /* #undef C_ALLOCA */
 
 /* look for global separate debug info in this path [LIBDIR/debug] */
-#define DEBUGDIR "/usr/lib/debug"
+#define DEBUGDIR "/usr/local/lib/debug"
 
 /* Define if the separate-debug-dir directory should be relocated when GDB is
    moved. */
@@ -42,7 +42,7 @@
 #define GDBINIT ".gdbinit"
 
 /* look for global separate data files in this path [DATADIR/gdb] */
-#define GDB_DATADIR "/usr/share/gdb"
+#define GDB_DATADIR "/usr/local/share/gdb"
 
 /* Define if the gdb-datadir directory should be relocated when GDB is moved.
    */
@@ -182,7 +182,7 @@
 /* #undef HAVE_LIBDL */
 
 /* Define if you have the expat library. */
-/* #undef HAVE_LIBEXPAT */
+#define HAVE_LIBEXPAT 1
 
 /* Define to 1 if you have the `libiconvlist' function. */
 /* #undef HAVE_LIBICONVLIST */
@@ -530,10 +530,10 @@
 #define HAVE_WRESIZE 1
 
 /* Define to 1 if you have the `XML_StopParser' function. */
-/* #undef HAVE_XML_STOPPARSER */
+#define HAVE_XML_STOPPARSER 1
 
 /* Define to 1 if you have the <zlib.h> header file. */
-/* #undef HAVE_ZLIB_H */
+#define HAVE_ZLIB_H 1
 
 /* Define to 1 if your system has the _etext variable. */
 #define HAVE__ETEXT 1
@@ -551,7 +551,7 @@
 #define ICONV_CONST 
 
 /* directory to load the JIT readers from */
-#define JIT_READER_DIR "/usr/lib/gdb"
+#define JIT_READER_DIR "/usr/local/lib/gdb"
 
 /* Define if the jit-reader-dir directory should be relocated when GDB is
    moved. */

@@ -64,6 +64,7 @@ extern struct ME_measurement * ME_API_load(int);
 extern struct BE_event * ME_API_delay(int, int);
 extern struct BE_event * ME_API_reach(char *, int,int);
 extern struct BE_event * ME_API_reach_func(char *,int);
+extern struct BE_event * ME_API_reach_syscall(char *,int);
 extern int ME_API_hook(struct BE_event *, struct ME_RLI_IR_expr *);
 extern void ME_API_kill(int);
 extern void ME_API_enable(int);

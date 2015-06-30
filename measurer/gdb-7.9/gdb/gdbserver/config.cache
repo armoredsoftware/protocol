@@ -465,7 +465,7 @@ ac_cv_prog_AR=${ac_cv_prog_AR=ar}
 ac_cv_prog_AWK=${ac_cv_prog_AWK=gawk}
 ac_cv_prog_CC=${ac_cv_prog_CC=gcc}
 ac_cv_prog_CPP=${ac_cv_prog_CPP='gcc -E'}
-ac_cv_prog_MAKEINFO=${ac_cv_prog_MAKEINFO='/nfs/projects/zephyr/deadzone/ArmoredSoftware/llvm/gdb/mod1/gdb-7.9/missing makeinfo --split-size=5000000'}
+ac_cv_prog_MAKEINFO=${ac_cv_prog_MAKEINFO='makeinfo --split-size=5000000'}
 ac_cv_prog_PERL=${ac_cv_prog_PERL=perl}
 ac_cv_prog_RANLIB=${ac_cv_prog_RANLIB=ranlib}
 ac_cv_prog_cc_c89=${ac_cv_prog_cc_c89=}

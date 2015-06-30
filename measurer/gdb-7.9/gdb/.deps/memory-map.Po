@@ -11,7 +11,8 @@ memory-map.o: memory-map.c defs.h common/common-defs.h config.h \
  common/gdb_setjmp.h gdb_wchar.h build-gnulib/import/wctype.h ui-file.h \
  common/host-defs.h ../include/hashtab.h nm.h ../include/fopen-bin.h \
  gdbarch.h frame.h unwind_stop_reasons.def utils.h exceptions.h ui-out.h \
- memory-map.h memattr.h common/vec.h
+ memory-map.h memattr.h common/vec.h xml-support.h gdb_obstack.h \
+ ../include/obstack.h common/xml-utils.h
 
 defs.h:
 
@@ -100,3 +101,11 @@ memory-map.h:
 memattr.h:
 
 common/vec.h:
+
+xml-support.h:
+
+gdb_obstack.h:
+
+../include/obstack.h:
+
+common/xml-utils.h:

@@ -58,7 +58,7 @@ CC = gcc
 CFLAGS = -g -O2
 CPPFLAGS = 
 RANLIB = ranlib
-MAKEINFO = /nfs/projects/zephyr/deadzone/ArmoredSoftware/llvm/gdb/mod1/gdb-7.9/missing makeinfo --split-size=5000000
+MAKEINFO = makeinfo --split-size=5000000
 PERL = perl
 
 PICFLAG = 
@@ -101,7 +101,7 @@ FLAGS_TO_PASS = \
 # Subdirectories to recurse into. We need to override this during cleaning
 SUBDIRS = testsuite
 
-# FIXME: add  once we're sure it works for everyone.
+# FIXME: add info once we're sure it works for everyone.
 all: stamp-picdir stamp-noasandir $(TARGETLIB) required-list all-subdir
 	@: $(MAKE) ; $(MULTIDO) $(FLAGS_TO_PASS) multi-do DO=all
 

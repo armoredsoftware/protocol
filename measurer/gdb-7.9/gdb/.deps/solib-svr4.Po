@@ -23,7 +23,7 @@ solib-svr4.o: solib-svr4.c defs.h common/common-defs.h config.h \
  common/break-common.h infrun.h regcache.h common/common-regcache.h \
  gdbthread.h common/vec.h observer.h solist.h solib.h solib-svr4.h \
  bfd-target.h ../bfd/elf-bfd.h ../include/elf/internal.h \
- ../include/bfdlink.h auxv.h
+ ../include/bfdlink.h auxv.h xml-support.h common/xml-utils.h
 
 defs.h:
 
@@ -220,3 +220,7 @@ bfd-target.h:
 ../include/bfdlink.h:
 
 auxv.h:
+
+xml-support.h:
+
+common/xml-utils.h:

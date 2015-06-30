@@ -43,7 +43,7 @@ PATH: /tools/matlab/bin
 ## Core tests. ##
 ## ----------- ##
 
-configure:2452: loading cache ./config.cache
+configure:2460: creating cache ./config.cache
 configure:2565: checking build system type
 configure:2579: result: x86_64-unknown-linux-gnu
 configure:2599: checking host system type
@@ -94,14 +94,24 @@ configure:3141: gcc -o conftest -g -O2    conftest.c  >&5
 configure:3145: $? = 0
 configure:3167: result: 
 configure:3173: checking for suffix of object files
+configure:3195: gcc -c -g -O2  conftest.c >&5
+configure:3199: $? = 0
 configure:3220: result: o
 configure:3224: checking whether we are using the GNU C compiler
+configure:3243: gcc -c -g -O2  conftest.c >&5
+configure:3243: $? = 0
 configure:3252: result: yes
 configure:3261: checking whether gcc accepts -g
+configure:3281: gcc -c -g  conftest.c >&5
+configure:3281: $? = 0
 configure:3322: result: yes
 configure:3339: checking for gcc option to accept ISO C89
+configure:3403: gcc  -c -g -O2  conftest.c >&5
+configure:3403: $? = 0
 configure:3416: result: none needed
 configure:3437: checking for library containing strerror
+configure:3468: gcc -o conftest -g -O2    conftest.c  >&5
+configure:3468: $? = 0
 configure:3485: result: none required
 configure:3510: checking for a BSD-compatible install
 configure:3578: result: /bin/install -c
@@ -157,6 +167,26 @@ configure:4805: result: yes
 configure:4822: checking for gcc option to accept ISO C89
 configure:4899: result: none needed
 configure:4924: checking how to run the C preprocessor
+configure:4955: gcc -E  conftest.c
+configure:4955: $? = 0
+configure:4969: gcc -E  conftest.c
+conftest.c:11:28: fatal error: ac_nonexistent.h: No such file or directory
+ #include <ac_nonexistent.h>
+                            ^
+compilation terminated.
+configure:4969: $? = 1
+configure: failed program was:
+| /* confdefs.h */
+| #define PACKAGE_NAME "bfd"
+| #define PACKAGE_TARNAME "bfd"
+| #define PACKAGE_VERSION "2.25.51"
+| #define PACKAGE_STRING "bfd 2.25.51"
+| #define PACKAGE_BUGREPORT ""
+| #define PACKAGE_URL ""
+| #define PACKAGE "bfd"
+| #define VERSION "2.25.51"
+| /* end confdefs.h.  */
+| #include <ac_nonexistent.h>
 configure:4994: result: gcc -E
 configure:5014: gcc -E  conftest.c
 configure:5014: $? = 0
@@ -183,28 +213,147 @@ configure:5115: result: /bin/grep
 configure:5120: checking for egrep
 configure:5182: result: /bin/grep -E
 configure:5187: checking for ANSI C header files
+configure:5207: gcc -c -g -O2  conftest.c >&5
+configure:5207: $? = 0
+configure:5280: gcc -o conftest -g -O2    conftest.c  >&5
+configure:5280: $? = 0
+configure:5280: ./conftest
+configure:5280: $? = 0
 configure:5291: result: yes
 configure:5304: checking for sys/types.h
+configure:5304: gcc -c -g -O2  conftest.c >&5
+configure:5304: $? = 0
 configure:5304: result: yes
 configure:5304: checking for sys/stat.h
+configure:5304: gcc -c -g -O2  conftest.c >&5
+configure:5304: $? = 0
 configure:5304: result: yes
 configure:5304: checking for stdlib.h
+configure:5304: gcc -c -g -O2  conftest.c >&5
+configure:5304: $? = 0
 configure:5304: result: yes
 configure:5304: checking for string.h
+configure:5304: gcc -c -g -O2  conftest.c >&5
+configure:5304: $? = 0
 configure:5304: result: yes
 configure:5304: checking for memory.h
+configure:5304: gcc -c -g -O2  conftest.c >&5
+configure:5304: $? = 0
 configure:5304: result: yes
 configure:5304: checking for strings.h
+configure:5304: gcc -c -g -O2  conftest.c >&5
+configure:5304: $? = 0
 configure:5304: result: yes
 configure:5304: checking for inttypes.h
+configure:5304: gcc -c -g -O2  conftest.c >&5
+configure:5304: $? = 0
 configure:5304: result: yes
 configure:5304: checking for stdint.h
+configure:5304: gcc -c -g -O2  conftest.c >&5
+configure:5304: $? = 0
 configure:5304: result: yes
 configure:5304: checking for unistd.h
+configure:5304: gcc -c -g -O2  conftest.c >&5
+configure:5304: $? = 0
 configure:5304: result: yes
+configure:5318: checking minix/config.h usability
+configure:5318: gcc -c -g -O2  conftest.c >&5
+conftest.c:54:26: fatal error: minix/config.h: No such file or directory
+ #include <minix/config.h>
+                          ^
+compilation terminated.
+configure:5318: $? = 1
+configure: failed program was:
+| /* confdefs.h */
+| #define PACKAGE_NAME "bfd"
+| #define PACKAGE_TARNAME "bfd"
+| #define PACKAGE_VERSION "2.25.51"
+| #define PACKAGE_STRING "bfd 2.25.51"
+| #define PACKAGE_BUGREPORT ""
+| #define PACKAGE_URL ""
+| #define PACKAGE "bfd"
+| #define VERSION "2.25.51"
+| #define STDC_HEADERS 1
+| #define HAVE_SYS_TYPES_H 1
+| #define HAVE_SYS_STAT_H 1
+| #define HAVE_STDLIB_H 1
+| #define HAVE_STRING_H 1
+| #define HAVE_MEMORY_H 1
+| #define HAVE_STRINGS_H 1
+| #define HAVE_INTTYPES_H 1
+| #define HAVE_STDINT_H 1
+| #define HAVE_UNISTD_H 1
+| /* end confdefs.h.  */
+| #include <stdio.h>
+| #ifdef HAVE_SYS_TYPES_H
+| # include <sys/types.h>
+| #endif
+| #ifdef HAVE_SYS_STAT_H
+| # include <sys/stat.h>
+| #endif
+| #ifdef STDC_HEADERS
+| # include <stdlib.h>
+| # include <stddef.h>
+| #else
+| # ifdef HAVE_STDLIB_H
+| #  include <stdlib.h>
+| # endif
+| #endif
+| #ifdef HAVE_STRING_H
+| # if !defined STDC_HEADERS && defined HAVE_MEMORY_H
+| #  include <memory.h>
+| # endif
+| # include <string.h>
+| #endif
+| #ifdef HAVE_STRINGS_H
+| # include <strings.h>
+| #endif
+| #ifdef HAVE_INTTYPES_H
+| # include <inttypes.h>
+| #endif
+| #ifdef HAVE_STDINT_H
+| # include <stdint.h>
+| #endif
+| #ifdef HAVE_UNISTD_H
+| # include <unistd.h>
+| #endif
+| #include <minix/config.h>
+configure:5318: result: no
+configure:5318: checking minix/config.h presence
+configure:5318: gcc -E  conftest.c
+conftest.c:21:26: fatal error: minix/config.h: No such file or directory
+ #include <minix/config.h>
+                          ^
+compilation terminated.
+configure:5318: $? = 1
+configure: failed program was:
+| /* confdefs.h */
+| #define PACKAGE_NAME "bfd"
+| #define PACKAGE_TARNAME "bfd"
+| #define PACKAGE_VERSION "2.25.51"
+| #define PACKAGE_STRING "bfd 2.25.51"
+| #define PACKAGE_BUGREPORT ""
+| #define PACKAGE_URL ""
+| #define PACKAGE "bfd"
+| #define VERSION "2.25.51"
+| #define STDC_HEADERS 1
+| #define HAVE_SYS_TYPES_H 1
+| #define HAVE_SYS_STAT_H 1
+| #define HAVE_STDLIB_H 1
+| #define HAVE_STRING_H 1
+| #define HAVE_MEMORY_H 1
+| #define HAVE_STRINGS_H 1
+| #define HAVE_INTTYPES_H 1
+| #define HAVE_STDINT_H 1
+| #define HAVE_UNISTD_H 1
+| /* end confdefs.h.  */
+| #include <minix/config.h>
+configure:5318: result: no
 configure:5318: checking for minix/config.h
 configure:5318: result: no
 configure:5339: checking whether it is safe to define __EXTENSIONS__
+configure:5357: gcc -c -g -O2  conftest.c >&5
+configure:5357: $? = 0
 configure:5364: result: yes
 configure:5427: checking how to print strings
 configure:5454: result: printf
@@ -219,6 +368,10 @@ configure:5743: result: yes
 configure:5755: checking for BSD- or MS-compatible name lister (nm)
 configure:5804: result: nm
 configure:5934: checking the name lister (nm) interface
+configure:5941: gcc -c -g -O2  conftest.c >&5
+configure:5944: nm "conftest.o"
+configure:5947: output
+0000000000000000 B some_variable
 configure:5954: result: BSD nm
 configure:5957: checking whether ln -s works
 configure:5961: result: yes
@@ -239,46 +392,259 @@ configure:6549: result: ar
 configure:6627: checking for x86_64-unknown-linux-gnu-strip
 configure:6657: result: no
 configure:6667: checking for strip
+configure:6683: found /bin/strip
 configure:6694: result: strip
 configure:6726: checking for x86_64-unknown-linux-gnu-ranlib
 configure:6753: result: ranlib
 configure:6895: checking command to parse nm output from gcc object
+configure:7013: gcc -c -g -O2  conftest.c >&5
+configure:7016: $? = 0
+configure:7020: nm conftest.o \| sed -n -e 's/^.*[ ]\([ABCDGIRSTW][ABCDGIRSTW]*\)[ ][ ]*\([_A-Za-z][_A-Za-z0-9]*\)$/\1 \2 \2/p' \> conftest.nm
+configure:7023: $? = 0
+configure:7077: gcc -o conftest -g -O2    conftest.c conftstm.o >&5
+configure:7080: $? = 0
 configure:7118: result: ok
 configure:7213: gcc -c -g -O2  conftest.c >&5
 configure:7216: $? = 0
 configure:7966: checking for dlfcn.h
+configure:7966: gcc -c -g -O2  conftest.c >&5
+configure:7966: $? = 0
 configure:7966: result: yes
 configure:8122: checking for objdir
 configure:8137: result: .libs
 configure:8408: checking if gcc supports -fno-rtti -fno-exceptions
+configure:8426: gcc -c -g -O2  -fno-rtti -fno-exceptions conftest.c >&5
+cc1: warning: command line option '-fno-rtti' is valid for C++/ObjC++ but not for C
+configure:8430: $? = 0
 configure:8443: result: no
 configure:8463: checking for gcc option to produce PIC
 configure:8749: result: -fPIC -DPIC
 configure:8761: checking if gcc PIC flag -fPIC -DPIC works
+configure:8779: gcc -c -g -O2  -fPIC -DPIC -DPIC conftest.c >&5
+configure:8783: $? = 0
 configure:8796: result: yes
 configure:8820: checking if gcc static flag -static works
 configure:8848: result: no
 configure:8863: checking if gcc supports -c -o file.o
+configure:8884: gcc -c -g -O2  -o out/conftest2.o conftest.c >&5
+configure:8888: $? = 0
 configure:8910: result: yes
 configure:8918: checking if gcc supports -c -o file.o
 configure:8965: result: yes
 configure:8998: checking whether the gcc linker (ld -m elf_x86_64) supports shared libraries
 configure:10069: result: yes
 configure:10314: checking dynamic linker characteristics
+configure:10765: gcc -o conftest -g -O2    -Wl,-rpath -Wl,/foo conftest.c  >&5
+configure:10765: $? = 0
 configure:10987: result: GNU/Linux ld.so
 configure:11094: checking how to hardcode library paths into programs
 configure:11119: result: immediate
 configure:11213: checking for shl_load
+configure:11213: gcc -o conftest -g -O2    conftest.c  >&5
+/tmp/ccaJfWnI.o: In function `main':
+/nfs/projects/zephyr/deadzone/ArmoredSoftware/ws/protocol/measurer/gdb-7.9/bfd/conftest.c:62: undefined reference to `shl_load'
+collect2: error: ld returned 1 exit status
+configure:11213: $? = 1
+configure: failed program was:
+| /* confdefs.h */
+| #define PACKAGE_NAME "bfd"
+| #define PACKAGE_TARNAME "bfd"
+| #define PACKAGE_VERSION "2.25.51"
+| #define PACKAGE_STRING "bfd 2.25.51"
+| #define PACKAGE_BUGREPORT ""
+| #define PACKAGE_URL ""
+| #define PACKAGE "bfd"
+| #define VERSION "2.25.51"
+| #define STDC_HEADERS 1
+| #define HAVE_SYS_TYPES_H 1
+| #define HAVE_SYS_STAT_H 1
+| #define HAVE_STDLIB_H 1
+| #define HAVE_STRING_H 1
+| #define HAVE_MEMORY_H 1
+| #define HAVE_STRINGS_H 1
+| #define HAVE_INTTYPES_H 1
+| #define HAVE_STDINT_H 1
+| #define HAVE_UNISTD_H 1
+| #define __EXTENSIONS__ 1
+| #define _ALL_SOURCE 1
+| #define _GNU_SOURCE 1
+| #define _POSIX_PTHREAD_SEMANTICS 1
+| #define _TANDEM_SOURCE 1
+| #define HAVE_DLFCN_H 1
+| #define LT_OBJDIR ".libs/"
+| /* end confdefs.h.  */
+| /* Define shl_load to an innocuous variant, in case <limits.h> declares shl_load.
+|    For example, HP-UX 11i <limits.h> declares gettimeofday.  */
+| #define shl_load innocuous_shl_load
+| 
+| /* System header to define __stub macros and hopefully few prototypes,
+|     which can conflict with char shl_load (); below.
+|     Prefer <limits.h> to <assert.h> if __STDC__ is defined, since
+|     <limits.h> exists even on freestanding compilers.  */
+| 
+| #ifdef __STDC__
+| # include <limits.h>
+| #else
+| # include <assert.h>
+| #endif
+| 
+| #undef shl_load
+| 
+| /* Override any GCC internal prototype to avoid an error.
+|    Use char because int might match the return type of a GCC
+|    builtin and then its argument prototype would still apply.  */
+| #ifdef __cplusplus
+| extern "C"
+| #endif
+| char shl_load ();
+| /* The GNU C library defines this for functions which it implements
+|     to always fail with ENOSYS.  Some functions are actually named
+|     something starting with __ and the normal name is an alias.  */
+| #if defined __stub_shl_load || defined __stub___shl_load
+| choke me
+| #endif
+| 
+| int
+| main ()
+| {
+| return shl_load ();
+|   ;
+|   return 0;
+| }
 configure:11213: result: no
 configure:11217: checking for shl_load in -ldld
+configure:11242: gcc -o conftest -g -O2    conftest.c -ldld   >&5
+/bin/ld: cannot find -ldld
+collect2: error: ld returned 1 exit status
+configure:11242: $? = 1
+configure: failed program was:
+| /* confdefs.h */
+| #define PACKAGE_NAME "bfd"
+| #define PACKAGE_TARNAME "bfd"
+| #define PACKAGE_VERSION "2.25.51"
+| #define PACKAGE_STRING "bfd 2.25.51"
+| #define PACKAGE_BUGREPORT ""
+| #define PACKAGE_URL ""
+| #define PACKAGE "bfd"
+| #define VERSION "2.25.51"
+| #define STDC_HEADERS 1
+| #define HAVE_SYS_TYPES_H 1
+| #define HAVE_SYS_STAT_H 1
+| #define HAVE_STDLIB_H 1
+| #define HAVE_STRING_H 1
+| #define HAVE_MEMORY_H 1
+| #define HAVE_STRINGS_H 1
+| #define HAVE_INTTYPES_H 1
+| #define HAVE_STDINT_H 1
+| #define HAVE_UNISTD_H 1
+| #define __EXTENSIONS__ 1
+| #define _ALL_SOURCE 1
+| #define _GNU_SOURCE 1
+| #define _POSIX_PTHREAD_SEMANTICS 1
+| #define _TANDEM_SOURCE 1
+| #define HAVE_DLFCN_H 1
+| #define LT_OBJDIR ".libs/"
+| /* end confdefs.h.  */
+| 
+| /* Override any GCC internal prototype to avoid an error.
+|    Use char because int might match the return type of a GCC
+|    builtin and then its argument prototype would still apply.  */
+| #ifdef __cplusplus
+| extern "C"
+| #endif
+| char shl_load ();
+| int
+| main ()
+| {
+| return shl_load ();
+|   ;
+|   return 0;
+| }
 configure:11251: result: no
 configure:11256: checking for dlopen
+configure:11256: gcc -o conftest -g -O2    conftest.c  >&5
+/tmp/ccYwxEOU.o: In function `main':
+/nfs/projects/zephyr/deadzone/ArmoredSoftware/ws/protocol/measurer/gdb-7.9/bfd/conftest.c:62: undefined reference to `dlopen'
+collect2: error: ld returned 1 exit status
+configure:11256: $? = 1
+configure: failed program was:
+| /* confdefs.h */
+| #define PACKAGE_NAME "bfd"
+| #define PACKAGE_TARNAME "bfd"
+| #define PACKAGE_VERSION "2.25.51"
+| #define PACKAGE_STRING "bfd 2.25.51"
+| #define PACKAGE_BUGREPORT ""
+| #define PACKAGE_URL ""
+| #define PACKAGE "bfd"
+| #define VERSION "2.25.51"
+| #define STDC_HEADERS 1
+| #define HAVE_SYS_TYPES_H 1
+| #define HAVE_SYS_STAT_H 1
+| #define HAVE_STDLIB_H 1
+| #define HAVE_STRING_H 1
+| #define HAVE_MEMORY_H 1
+| #define HAVE_STRINGS_H 1
+| #define HAVE_INTTYPES_H 1
+| #define HAVE_STDINT_H 1
+| #define HAVE_UNISTD_H 1
+| #define __EXTENSIONS__ 1
+| #define _ALL_SOURCE 1
+| #define _GNU_SOURCE 1
+| #define _POSIX_PTHREAD_SEMANTICS 1
+| #define _TANDEM_SOURCE 1
+| #define HAVE_DLFCN_H 1
+| #define LT_OBJDIR ".libs/"
+| /* end confdefs.h.  */
+| /* Define dlopen to an innocuous variant, in case <limits.h> declares dlopen.
+|    For example, HP-UX 11i <limits.h> declares gettimeofday.  */
+| #define dlopen innocuous_dlopen
+| 
+| /* System header to define __stub macros and hopefully few prototypes,
+|     which can conflict with char dlopen (); below.
+|     Prefer <limits.h> to <assert.h> if __STDC__ is defined, since
+|     <limits.h> exists even on freestanding compilers.  */
+| 
+| #ifdef __STDC__
+| # include <limits.h>
+| #else
+| # include <assert.h>
+| #endif
+| 
+| #undef dlopen
+| 
+| /* Override any GCC internal prototype to avoid an error.
+|    Use char because int might match the return type of a GCC
+|    builtin and then its argument prototype would still apply.  */
+| #ifdef __cplusplus
+| extern "C"
+| #endif
+| char dlopen ();
+| /* The GNU C library defines this for functions which it implements
+|     to always fail with ENOSYS.  Some functions are actually named
+|     something starting with __ and the normal name is an alias.  */
+| #if defined __stub_dlopen || defined __stub___dlopen
+| choke me
+| #endif
+| 
+| int
+| main ()
+| {
+| return dlopen ();
+|   ;
+|   return 0;
+| }
 configure:11256: result: no
 configure:11260: checking for dlopen in -ldl
+configure:11285: gcc -o conftest -g -O2    conftest.c -ldl   >&5
+configure:11285: $? = 0
 configure:11294: result: yes
 configure:11413: checking whether a program can dlopen itself
+configure:11493: gcc -o conftest -g -O2  -DHAVE_DLFCN_H   -Wl,--export-dynamic conftest.c -ldl  >&5
+configure:11496: $? = 0
 configure:11514: result: yes
 configure:11519: checking whether a statically linked program can dlopen itself
+configure:11599: gcc -o conftest -g -O2  -DHAVE_DLFCN_H   -Wl,--export-dynamic  conftest.c -ldl  >&5
+configure:11602: $? = 0
 configure:11620: result: yes
 configure:11659: checking whether stripping libraries is possible
 configure:11664: result: yes
@@ -291,12 +657,135 @@ configure:11732: result: yes
 configure:11782: checking for dlfcn.h
 configure:11782: result: yes
 configure:11795: checking for windows.h
+configure:11795: gcc -c -g -O2  conftest.c >&5
+conftest.c:63:21: fatal error: windows.h: No such file or directory
+ #include <windows.h>
+                     ^
+compilation terminated.
+configure:11795: $? = 1
+configure: failed program was:
+| /* confdefs.h */
+| #define PACKAGE_NAME "bfd"
+| #define PACKAGE_TARNAME "bfd"
+| #define PACKAGE_VERSION "2.25.51"
+| #define PACKAGE_STRING "bfd 2.25.51"
+| #define PACKAGE_BUGREPORT ""
+| #define PACKAGE_URL ""
+| #define PACKAGE "bfd"
+| #define VERSION "2.25.51"
+| #define STDC_HEADERS 1
+| #define HAVE_SYS_TYPES_H 1
+| #define HAVE_SYS_STAT_H 1
+| #define HAVE_STDLIB_H 1
+| #define HAVE_STRING_H 1
+| #define HAVE_MEMORY_H 1
+| #define HAVE_STRINGS_H 1
+| #define HAVE_INTTYPES_H 1
+| #define HAVE_STDINT_H 1
+| #define HAVE_UNISTD_H 1
+| #define __EXTENSIONS__ 1
+| #define _ALL_SOURCE 1
+| #define _GNU_SOURCE 1
+| #define _POSIX_PTHREAD_SEMANTICS 1
+| #define _TANDEM_SOURCE 1
+| #define HAVE_DLFCN_H 1
+| #define LT_OBJDIR ".libs/"
+| #define HAVE_DLFCN_H 1
+| /* end confdefs.h.  */
+| #include <stdio.h>
+| #ifdef HAVE_SYS_TYPES_H
+| # include <sys/types.h>
+| #endif
+| #ifdef HAVE_SYS_STAT_H
+| # include <sys/stat.h>
+| #endif
+| #ifdef STDC_HEADERS
+| # include <stdlib.h>
+| # include <stddef.h>
+| #else
+| # ifdef HAVE_STDLIB_H
+| #  include <stdlib.h>
+| # endif
+| #endif
+| #ifdef HAVE_STRING_H
+| # if !defined STDC_HEADERS && defined HAVE_MEMORY_H
+| #  include <memory.h>
+| # endif
+| # include <string.h>
+| #endif
+| #ifdef HAVE_STRINGS_H
+| # include <strings.h>
+| #endif
+| #ifdef HAVE_INTTYPES_H
+| # include <inttypes.h>
+| #endif
+| #ifdef HAVE_STDINT_H
+| # include <stdint.h>
+| #endif
+| #ifdef HAVE_UNISTD_H
+| # include <unistd.h>
+| #endif
+| 
+| #include <windows.h>
 configure:11795: result: no
 configure:11822: checking for library containing dlopen
+configure:11853: gcc -o conftest -g -O2    conftest.c  >&5
+/tmp/ccgsLSJu.o: In function `main':
+/nfs/projects/zephyr/deadzone/ArmoredSoftware/ws/protocol/measurer/gdb-7.9/bfd/conftest.c:40: undefined reference to `dlopen'
+collect2: error: ld returned 1 exit status
+configure:11853: $? = 1
+configure: failed program was:
+| /* confdefs.h */
+| #define PACKAGE_NAME "bfd"
+| #define PACKAGE_TARNAME "bfd"
+| #define PACKAGE_VERSION "2.25.51"
+| #define PACKAGE_STRING "bfd 2.25.51"
+| #define PACKAGE_BUGREPORT ""
+| #define PACKAGE_URL ""
+| #define PACKAGE "bfd"
+| #define VERSION "2.25.51"
+| #define STDC_HEADERS 1
+| #define HAVE_SYS_TYPES_H 1
+| #define HAVE_SYS_STAT_H 1
+| #define HAVE_STDLIB_H 1
+| #define HAVE_STRING_H 1
+| #define HAVE_MEMORY_H 1
+| #define HAVE_STRINGS_H 1
+| #define HAVE_INTTYPES_H 1
+| #define HAVE_STDINT_H 1
+| #define HAVE_UNISTD_H 1
+| #define __EXTENSIONS__ 1
+| #define _ALL_SOURCE 1
+| #define _GNU_SOURCE 1
+| #define _POSIX_PTHREAD_SEMANTICS 1
+| #define _TANDEM_SOURCE 1
+| #define HAVE_DLFCN_H 1
+| #define LT_OBJDIR ".libs/"
+| #define HAVE_DLFCN_H 1
+| /* end confdefs.h.  */
+| 
+| /* Override any GCC internal prototype to avoid an error.
+|    Use char because int might match the return type of a GCC
+|    builtin and then its argument prototype would still apply.  */
+| #ifdef __cplusplus
+| extern "C"
+| #endif
+| char dlopen ();
+| int
+| main ()
+| {
+| return dlopen ();
+|   ;
+|   return 0;
+| }
+configure:11853: gcc -o conftest -g -O2    conftest.c -ldl   >&5
+configure:11853: $? = 0
 configure:11870: result: -ldl
 configure:11901: checking for special C compiler options needed for large files
 configure:11946: result: no
 configure:11952: checking for _FILE_OFFSET_BITS value needed for large files
+configure:11977: gcc -c -g -O2  conftest.c >&5
+configure:11977: $? = 0
 configure:12009: result: no
 configure:12333: checking whether to enable maintainer-specific portions of Makefiles
 configure:12342: result: no
@@ -317,12 +806,40 @@ configure:12701: result: /bin/xgettext
 configure:12741: checking for msgmerge
 configure:12771: result: /bin/msgmerge
 configure:12824: checking size of long long
+configure:12829: gcc -o conftest -g -O2    conftest.c -ldl  >&5
+configure:12829: $? = 0
+configure:12829: ./conftest
+configure:12829: $? = 0
 configure:12844: result: 8
 configure:12858: checking size of void *
+configure:12863: gcc -o conftest -g -O2    conftest.c -ldl  >&5
+configure:12863: $? = 0
+configure:12863: ./conftest
+configure:12863: $? = 0
 configure:12878: result: 8
 configure:12892: checking size of long
+configure:12897: gcc -o conftest -g -O2    conftest.c -ldl  >&5
+configure:12897: $? = 0
+configure:12897: ./conftest
+configure:12897: $? = 0
 configure:12912: result: 8
+configure:12994: checking alloca.h usability
+configure:12994: gcc -c -g -O2  conftest.c >&5
+configure:12994: $? = 0
+configure:12994: result: yes
+configure:12994: checking alloca.h presence
+configure:12994: gcc -E  conftest.c
+configure:12994: $? = 0
+configure:12994: result: yes
 configure:12994: checking for alloca.h
+configure:12994: result: yes
+configure:12994: checking stddef.h usability
+configure:12994: gcc -c -g -O2  conftest.c >&5
+configure:12994: $? = 0
+configure:12994: result: yes
+configure:12994: checking stddef.h presence
+configure:12994: gcc -E  conftest.c
+configure:12994: $? = 0
 configure:12994: result: yes
 configure:12994: checking for stddef.h
 configure:12994: result: yes
@@ -332,19 +849,67 @@ configure:12994: checking for strings.h
 configure:12994: result: yes
 configure:12994: checking for stdlib.h
 configure:12994: result: yes
+configure:12994: checking time.h usability
+configure:12994: gcc -c -g -O2  conftest.c >&5
+configure:12994: $? = 0
+configure:12994: result: yes
+configure:12994: checking time.h presence
+configure:12994: gcc -E  conftest.c
+configure:12994: $? = 0
+configure:12994: result: yes
 configure:12994: checking for time.h
 configure:12994: result: yes
 configure:12994: checking for unistd.h
 configure:12994: result: yes
+configure:12994: checking wchar.h usability
+configure:12994: gcc -c -g -O2  conftest.c >&5
+configure:12994: $? = 0
+configure:12994: result: yes
+configure:12994: checking wchar.h presence
+configure:12994: gcc -E  conftest.c
+configure:12994: $? = 0
+configure:12994: result: yes
 configure:12994: checking for wchar.h
 configure:12994: result: yes
+configure:13008: checking fcntl.h usability
+configure:13008: gcc -c -g -O2  conftest.c >&5
+configure:13008: $? = 0
+configure:13008: result: yes
+configure:13008: checking fcntl.h presence
+configure:13008: gcc -E  conftest.c
+configure:13008: $? = 0
+configure:13008: result: yes
 configure:13008: checking for fcntl.h
 configure:13008: result: yes
+configure:13008: checking sys/file.h usability
+configure:13008: gcc -c -g -O2  conftest.c >&5
+configure:13008: $? = 0
+configure:13008: result: yes
+configure:13008: checking sys/file.h presence
+configure:13008: gcc -E  conftest.c
+configure:13008: $? = 0
+configure:13008: result: yes
 configure:13008: checking for sys/file.h
+configure:13008: result: yes
+configure:13008: checking sys/time.h usability
+configure:13008: gcc -c -g -O2  conftest.c >&5
+configure:13008: $? = 0
+configure:13008: result: yes
+configure:13008: checking sys/time.h presence
+configure:13008: gcc -E  conftest.c
+configure:13008: $? = 0
 configure:13008: result: yes
 configure:13008: checking for sys/time.h
 configure:13008: result: yes
 configure:13008: checking for sys/stat.h
+configure:13008: result: yes
+configure:13008: checking sys/resource.h usability
+configure:13008: gcc -c -g -O2  conftest.c >&5
+configure:13008: $? = 0
+configure:13008: result: yes
+configure:13008: checking sys/resource.h presence
+configure:13008: gcc -E  conftest.c
+configure:13008: $? = 0
 configure:13008: result: yes
 configure:13008: checking for sys/resource.h
 configure:13008: result: yes
@@ -691,126 +1256,2097 @@ configure:13068: result: yes
 configure:13149: checking what to include in bfd_stdint.h
 configure:13177: result: stdint.h (already complete)
 configure:13425: checking whether time.h and sys/time.h may both be included
+configure:13445: gcc -c -g -O2  conftest.c >&5
+configure:13445: $? = 0
 configure:13452: result: yes
 configure:13463: checking for dirent.h that defines DIR
+configure:13482: gcc -c -g -O2  conftest.c >&5
+configure:13482: $? = 0
 configure:13490: result: yes
 configure:13504: checking for library containing opendir
+configure:13535: gcc -o conftest -g -O2    conftest.c -ldl  >&5
+configure:13535: $? = 0
 configure:13552: result: none required
 configure:13620: checking whether string.h and strings.h may both be included
+configure:13637: gcc -c -g -O2  conftest.c >&5
+configure:13637: $? = 0
 configure:13644: result: yes
 configure:13655: checking for fcntl
+configure:13655: gcc -o conftest -g -O2    conftest.c -ldl  >&5
+configure:13655: $? = 0
 configure:13655: result: yes
 configure:13655: checking for getpagesize
+configure:13655: gcc -o conftest -g -O2    conftest.c -ldl  >&5
+configure:13655: $? = 0
 configure:13655: result: yes
 configure:13655: checking for setitimer
+configure:13655: gcc -o conftest -g -O2    conftest.c -ldl  >&5
+configure:13655: $? = 0
 configure:13655: result: yes
 configure:13655: checking for sysconf
+configure:13655: gcc -o conftest -g -O2    conftest.c -ldl  >&5
+configure:13655: $? = 0
 configure:13655: result: yes
 configure:13655: checking for fdopen
+configure:13655: gcc -o conftest -g -O2    conftest.c -ldl  >&5
+configure:13655: $? = 0
 configure:13655: result: yes
 configure:13655: checking for getuid
+configure:13655: gcc -o conftest -g -O2    conftest.c -ldl  >&5
+configure:13655: $? = 0
 configure:13655: result: yes
 configure:13655: checking for getgid
+configure:13655: gcc -o conftest -g -O2    conftest.c -ldl  >&5
+configure:13655: $? = 0
 configure:13655: result: yes
 configure:13655: checking for fileno
+configure:13655: gcc -o conftest -g -O2    conftest.c -ldl  >&5
+configure:13655: $? = 0
 configure:13655: result: yes
 configure:13668: checking for strtoull
+configure:13668: gcc -o conftest -g -O2    conftest.c -ldl  >&5
+configure:13668: $? = 0
 configure:13668: result: yes
 configure:13668: checking for getrlimit
+configure:13668: gcc -o conftest -g -O2    conftest.c -ldl  >&5
+configure:13668: $? = 0
 configure:13668: result: yes
 configure:13679: checking whether basename is declared
+configure:13679: gcc -c -g -O2  conftest.c >&5
+configure:13679: $? = 0
 configure:13679: result: yes
 configure:13690: checking whether ftello is declared
+configure:13690: gcc -c -g -O2  conftest.c >&5
+configure:13690: $? = 0
 configure:13690: result: yes
 configure:13701: checking whether ftello64 is declared
+configure:13701: gcc -c -g -O2  conftest.c >&5
+configure:13701: $? = 0
 configure:13701: result: yes
 configure:13712: checking whether fseeko is declared
+configure:13712: gcc -c -g -O2  conftest.c >&5
+configure:13712: $? = 0
 configure:13712: result: yes
 configure:13723: checking whether fseeko64 is declared
+configure:13723: gcc -c -g -O2  conftest.c >&5
+configure:13723: $? = 0
 configure:13723: result: yes
 configure:13743: checking whether ffs is declared
+configure:13743: gcc -c -g -O2  conftest.c >&5
+configure:13743: $? = 0
 configure:13743: result: yes
 configure:13754: checking whether free is declared
+configure:13754: gcc -c -g -O2  conftest.c >&5
+configure:13754: $? = 0
 configure:13754: result: yes
 configure:13765: checking whether getenv is declared
+configure:13765: gcc -c -g -O2  conftest.c >&5
+configure:13765: $? = 0
 configure:13765: result: yes
 configure:13776: checking whether malloc is declared
+configure:13776: gcc -c -g -O2  conftest.c >&5
+configure:13776: $? = 0
 configure:13776: result: yes
 configure:13787: checking whether realloc is declared
+configure:13787: gcc -c -g -O2  conftest.c >&5
+configure:13787: $? = 0
 configure:13787: result: yes
 configure:13798: checking whether stpcpy is declared
+configure:13798: gcc -c -g -O2  conftest.c >&5
+configure:13798: $? = 0
 configure:13798: result: yes
 configure:13809: checking whether strstr is declared
+configure:13809: gcc -c -g -O2  conftest.c >&5
+configure:13809: $? = 0
 configure:13809: result: yes
 configure:13820: checking whether snprintf is declared
+configure:13820: gcc -c -g -O2  conftest.c >&5
+configure:13820: $? = 0
 configure:13820: result: yes
 configure:13831: checking whether vsnprintf is declared
+configure:13831: gcc -c -g -O2  conftest.c >&5
+configure:13831: $? = 0
 configure:13831: result: yes
 configure:13842: checking whether strnlen is declared
+configure:13842: gcc -c -g -O2  conftest.c >&5
+configure:13842: $? = 0
 configure:13842: result: yes
 configure:13868: checking for library containing zlibVersion
-configure:13916: result: no
+configure:13899: gcc -o conftest -g -O2    conftest.c -ldl  >&5
+/tmp/cc11nKar.o: In function `main':
+/nfs/projects/zephyr/deadzone/ArmoredSoftware/ws/protocol/measurer/gdb-7.9/bfd/conftest.c:86: undefined reference to `zlibVersion'
+collect2: error: ld returned 1 exit status
+configure:13899: $? = 1
+configure: failed program was:
+| /* confdefs.h */
+| #define PACKAGE_NAME "bfd"
+| #define PACKAGE_TARNAME "bfd"
+| #define PACKAGE_VERSION "2.25.51"
+| #define PACKAGE_STRING "bfd 2.25.51"
+| #define PACKAGE_BUGREPORT ""
+| #define PACKAGE_URL ""
+| #define PACKAGE "bfd"
+| #define VERSION "2.25.51"
+| #define STDC_HEADERS 1
+| #define HAVE_SYS_TYPES_H 1
+| #define HAVE_SYS_STAT_H 1
+| #define HAVE_STDLIB_H 1
+| #define HAVE_STRING_H 1
+| #define HAVE_MEMORY_H 1
+| #define HAVE_STRINGS_H 1
+| #define HAVE_INTTYPES_H 1
+| #define HAVE_STDINT_H 1
+| #define HAVE_UNISTD_H 1
+| #define __EXTENSIONS__ 1
+| #define _ALL_SOURCE 1
+| #define _GNU_SOURCE 1
+| #define _POSIX_PTHREAD_SEMANTICS 1
+| #define _TANDEM_SOURCE 1
+| #define HAVE_DLFCN_H 1
+| #define LT_OBJDIR ".libs/"
+| #define HAVE_DLFCN_H 1
+| #define USE_SECUREPLT 1
+| #define ENABLE_NLS 1
+| #define SIZEOF_LONG_LONG 8
+| #define SIZEOF_VOID_P 8
+| #define SIZEOF_LONG 8
+| #define HAVE_ALLOCA_H 1
+| #define HAVE_STDDEF_H 1
+| #define HAVE_STRING_H 1
+| #define HAVE_STRINGS_H 1
+| #define HAVE_STDLIB_H 1
+| #define HAVE_TIME_H 1
+| #define HAVE_UNISTD_H 1
+| #define HAVE_WCHAR_H 1
+| #define HAVE_FCNTL_H 1
+| #define HAVE_SYS_FILE_H 1
+| #define HAVE_SYS_TIME_H 1
+| #define HAVE_SYS_STAT_H 1
+| #define HAVE_SYS_RESOURCE_H 1
+| #define TIME_WITH_SYS_TIME 1
+| #define HAVE_DIRENT_H 1
+| #define STRING_WITH_STRINGS 1
+| #define HAVE_FCNTL 1
+| #define HAVE_GETPAGESIZE 1
+| #define HAVE_SETITIMER 1
+| #define HAVE_SYSCONF 1
+| #define HAVE_FDOPEN 1
+| #define HAVE_GETUID 1
+| #define HAVE_GETGID 1
+| #define HAVE_FILENO 1
+| #define HAVE_STRTOULL 1
+| #define HAVE_GETRLIMIT 1
+| #define HAVE_DECL_BASENAME 1
+| #define HAVE_DECL_FTELLO 1
+| #define HAVE_DECL_FTELLO64 1
+| #define HAVE_DECL_FSEEKO 1
+| #define HAVE_DECL_FSEEKO64 1
+| #define HAVE_DECL_FFS 1
+| #define HAVE_DECL_FREE 1
+| #define HAVE_DECL_GETENV 1
+| #define HAVE_DECL_MALLOC 1
+| #define HAVE_DECL_REALLOC 1
+| #define HAVE_DECL_STPCPY 1
+| #define HAVE_DECL_STRSTR 1
+| #define HAVE_DECL_SNPRINTF 1
+| #define HAVE_DECL_VSNPRINTF 1
+| #define HAVE_DECL_STRNLEN 1
+| /* end confdefs.h.  */
+| 
+| /* Override any GCC internal prototype to avoid an error.
+|    Use char because int might match the return type of a GCC
+|    builtin and then its argument prototype would still apply.  */
+| #ifdef __cplusplus
+| extern "C"
+| #endif
+| char zlibVersion ();
+| int
+| main ()
+| {
+| return zlibVersion ();
+|   ;
+|   return 0;
+| }
+configure:13899: gcc -o conftest -g -O2    conftest.c -lz  -ldl  >&5
+configure:13899: $? = 0
+configure:13916: result: -lz
+configure:13923: checking zlib.h usability
+configure:13923: gcc -c -g -O2  conftest.c >&5
+configure:13923: $? = 0
+configure:13923: result: yes
+configure:13923: checking zlib.h presence
+configure:13923: gcc -E  conftest.c
+configure:13923: $? = 0
+configure:13923: result: yes
+configure:13923: checking for zlib.h
+configure:13923: result: yes
+configure:14201: checking sys/procfs.h usability
+configure:14201: gcc -c -g -O2  conftest.c >&5
+configure:14201: $? = 0
+configure:14201: result: yes
+configure:14201: checking sys/procfs.h presence
+configure:14201: gcc -E  conftest.c
+configure:14201: $? = 0
+configure:14201: result: yes
 configure:14201: checking for sys/procfs.h
 configure:14201: result: yes
 configure:14212: checking for prstatus_t in sys/procfs.h
+configure:14232: gcc -c -g -O2  conftest.c >&5
+configure:14232: $? = 0
 configure:14246: result: yes
 configure:14249: checking for prstatus32_t in sys/procfs.h
+configure:14269: gcc -c -g -O2  conftest.c >&5
+conftest.c: In function 'main':
+conftest.c:86:1: error: unknown type name 'prstatus32_t'
+ prstatus32_t avar
+ ^
+configure:14269: $? = 1
+configure: failed program was:
+| /* confdefs.h */
+| #define PACKAGE_NAME "bfd"
+| #define PACKAGE_TARNAME "bfd"
+| #define PACKAGE_VERSION "2.25.51"
+| #define PACKAGE_STRING "bfd 2.25.51"
+| #define PACKAGE_BUGREPORT ""
+| #define PACKAGE_URL ""
+| #define PACKAGE "bfd"
+| #define VERSION "2.25.51"
+| #define STDC_HEADERS 1
+| #define HAVE_SYS_TYPES_H 1
+| #define HAVE_SYS_STAT_H 1
+| #define HAVE_STDLIB_H 1
+| #define HAVE_STRING_H 1
+| #define HAVE_MEMORY_H 1
+| #define HAVE_STRINGS_H 1
+| #define HAVE_INTTYPES_H 1
+| #define HAVE_STDINT_H 1
+| #define HAVE_UNISTD_H 1
+| #define __EXTENSIONS__ 1
+| #define _ALL_SOURCE 1
+| #define _GNU_SOURCE 1
+| #define _POSIX_PTHREAD_SEMANTICS 1
+| #define _TANDEM_SOURCE 1
+| #define HAVE_DLFCN_H 1
+| #define LT_OBJDIR ".libs/"
+| #define HAVE_DLFCN_H 1
+| #define USE_SECUREPLT 1
+| #define ENABLE_NLS 1
+| #define SIZEOF_LONG_LONG 8
+| #define SIZEOF_VOID_P 8
+| #define SIZEOF_LONG 8
+| #define HAVE_ALLOCA_H 1
+| #define HAVE_STDDEF_H 1
+| #define HAVE_STRING_H 1
+| #define HAVE_STRINGS_H 1
+| #define HAVE_STDLIB_H 1
+| #define HAVE_TIME_H 1
+| #define HAVE_UNISTD_H 1
+| #define HAVE_WCHAR_H 1
+| #define HAVE_FCNTL_H 1
+| #define HAVE_SYS_FILE_H 1
+| #define HAVE_SYS_TIME_H 1
+| #define HAVE_SYS_STAT_H 1
+| #define HAVE_SYS_RESOURCE_H 1
+| #define TIME_WITH_SYS_TIME 1
+| #define HAVE_DIRENT_H 1
+| #define STRING_WITH_STRINGS 1
+| #define HAVE_FCNTL 1
+| #define HAVE_GETPAGESIZE 1
+| #define HAVE_SETITIMER 1
+| #define HAVE_SYSCONF 1
+| #define HAVE_FDOPEN 1
+| #define HAVE_GETUID 1
+| #define HAVE_GETGID 1
+| #define HAVE_FILENO 1
+| #define HAVE_STRTOULL 1
+| #define HAVE_GETRLIMIT 1
+| #define HAVE_DECL_BASENAME 1
+| #define HAVE_DECL_FTELLO 1
+| #define HAVE_DECL_FTELLO64 1
+| #define HAVE_DECL_FSEEKO 1
+| #define HAVE_DECL_FSEEKO64 1
+| #define HAVE_DECL_FFS 1
+| #define HAVE_DECL_FREE 1
+| #define HAVE_DECL_GETENV 1
+| #define HAVE_DECL_MALLOC 1
+| #define HAVE_DECL_REALLOC 1
+| #define HAVE_DECL_STPCPY 1
+| #define HAVE_DECL_STRSTR 1
+| #define HAVE_DECL_SNPRINTF 1
+| #define HAVE_DECL_VSNPRINTF 1
+| #define HAVE_DECL_STRNLEN 1
+| #define HAVE_ZLIB_H 1
+| #define HAVE_SYS_PROCFS_H 1
+| #define HAVE_PRSTATUS_T 1
+| /* end confdefs.h.  */
+| 
+| #define _SYSCALL32
+| /* Needed for new procfs interface on sparc-solaris.  */
+| #define _STRUCTURED_PROC 1
+| #include <sys/procfs.h>
+| int
+| main ()
+| {
+| prstatus32_t avar
+|   ;
+|   return 0;
+| }
 configure:14283: result: no
 configure:14286: checking for prstatus_t.pr_who in sys/procfs.h
+configure:14306: gcc -c -g -O2  conftest.c >&5
+conftest.c: In function 'main':
+conftest.c:86:44: error: 'prstatus_t' has no member named 'pr_who'
+ prstatus_t avar; void* aref = (void*) &avar.pr_who
+                                            ^
+configure:14306: $? = 1
+configure: failed program was:
+| /* confdefs.h */
+| #define PACKAGE_NAME "bfd"
+| #define PACKAGE_TARNAME "bfd"
+| #define PACKAGE_VERSION "2.25.51"
+| #define PACKAGE_STRING "bfd 2.25.51"
+| #define PACKAGE_BUGREPORT ""
+| #define PACKAGE_URL ""
+| #define PACKAGE "bfd"
+| #define VERSION "2.25.51"
+| #define STDC_HEADERS 1
+| #define HAVE_SYS_TYPES_H 1
+| #define HAVE_SYS_STAT_H 1
+| #define HAVE_STDLIB_H 1
+| #define HAVE_STRING_H 1
+| #define HAVE_MEMORY_H 1
+| #define HAVE_STRINGS_H 1
+| #define HAVE_INTTYPES_H 1
+| #define HAVE_STDINT_H 1
+| #define HAVE_UNISTD_H 1
+| #define __EXTENSIONS__ 1
+| #define _ALL_SOURCE 1
+| #define _GNU_SOURCE 1
+| #define _POSIX_PTHREAD_SEMANTICS 1
+| #define _TANDEM_SOURCE 1
+| #define HAVE_DLFCN_H 1
+| #define LT_OBJDIR ".libs/"
+| #define HAVE_DLFCN_H 1
+| #define USE_SECUREPLT 1
+| #define ENABLE_NLS 1
+| #define SIZEOF_LONG_LONG 8
+| #define SIZEOF_VOID_P 8
+| #define SIZEOF_LONG 8
+| #define HAVE_ALLOCA_H 1
+| #define HAVE_STDDEF_H 1
+| #define HAVE_STRING_H 1
+| #define HAVE_STRINGS_H 1
+| #define HAVE_STDLIB_H 1
+| #define HAVE_TIME_H 1
+| #define HAVE_UNISTD_H 1
+| #define HAVE_WCHAR_H 1
+| #define HAVE_FCNTL_H 1
+| #define HAVE_SYS_FILE_H 1
+| #define HAVE_SYS_TIME_H 1
+| #define HAVE_SYS_STAT_H 1
+| #define HAVE_SYS_RESOURCE_H 1
+| #define TIME_WITH_SYS_TIME 1
+| #define HAVE_DIRENT_H 1
+| #define STRING_WITH_STRINGS 1
+| #define HAVE_FCNTL 1
+| #define HAVE_GETPAGESIZE 1
+| #define HAVE_SETITIMER 1
+| #define HAVE_SYSCONF 1
+| #define HAVE_FDOPEN 1
+| #define HAVE_GETUID 1
+| #define HAVE_GETGID 1
+| #define HAVE_FILENO 1
+| #define HAVE_STRTOULL 1
+| #define HAVE_GETRLIMIT 1
+| #define HAVE_DECL_BASENAME 1
+| #define HAVE_DECL_FTELLO 1
+| #define HAVE_DECL_FTELLO64 1
+| #define HAVE_DECL_FSEEKO 1
+| #define HAVE_DECL_FSEEKO64 1
+| #define HAVE_DECL_FFS 1
+| #define HAVE_DECL_FREE 1
+| #define HAVE_DECL_GETENV 1
+| #define HAVE_DECL_MALLOC 1
+| #define HAVE_DECL_REALLOC 1
+| #define HAVE_DECL_STPCPY 1
+| #define HAVE_DECL_STRSTR 1
+| #define HAVE_DECL_SNPRINTF 1
+| #define HAVE_DECL_VSNPRINTF 1
+| #define HAVE_DECL_STRNLEN 1
+| #define HAVE_ZLIB_H 1
+| #define HAVE_SYS_PROCFS_H 1
+| #define HAVE_PRSTATUS_T 1
+| /* end confdefs.h.  */
+| 
+| #define _SYSCALL32
+| /* Needed for new procfs interface on sparc-solaris.  */
+| #define _STRUCTURED_PROC 1
+| #include <sys/procfs.h>
+| int
+| main ()
+| {
+| prstatus_t avar; void* aref = (void*) &avar.pr_who
+|   ;
+|   return 0;
+| }
 configure:14320: result: no
 configure:14323: checking for prstatus32_t.pr_who in sys/procfs.h
+configure:14343: gcc -c -g -O2  conftest.c >&5
+conftest.c: In function 'main':
+conftest.c:86:1: error: unknown type name 'prstatus32_t'
+ prstatus32_t avar; void* aref = (void*) &avar.pr_who
+ ^
+conftest.c:86:46: error: request for member 'pr_who' in something not a structure or union
+ prstatus32_t avar; void* aref = (void*) &avar.pr_who
+                                              ^
+configure:14343: $? = 1
+configure: failed program was:
+| /* confdefs.h */
+| #define PACKAGE_NAME "bfd"
+| #define PACKAGE_TARNAME "bfd"
+| #define PACKAGE_VERSION "2.25.51"
+| #define PACKAGE_STRING "bfd 2.25.51"
+| #define PACKAGE_BUGREPORT ""
+| #define PACKAGE_URL ""
+| #define PACKAGE "bfd"
+| #define VERSION "2.25.51"
+| #define STDC_HEADERS 1
+| #define HAVE_SYS_TYPES_H 1
+| #define HAVE_SYS_STAT_H 1
+| #define HAVE_STDLIB_H 1
+| #define HAVE_STRING_H 1
+| #define HAVE_MEMORY_H 1
+| #define HAVE_STRINGS_H 1
+| #define HAVE_INTTYPES_H 1
+| #define HAVE_STDINT_H 1
+| #define HAVE_UNISTD_H 1
+| #define __EXTENSIONS__ 1
+| #define _ALL_SOURCE 1
+| #define _GNU_SOURCE 1
+| #define _POSIX_PTHREAD_SEMANTICS 1
+| #define _TANDEM_SOURCE 1
+| #define HAVE_DLFCN_H 1
+| #define LT_OBJDIR ".libs/"
+| #define HAVE_DLFCN_H 1
+| #define USE_SECUREPLT 1
+| #define ENABLE_NLS 1
+| #define SIZEOF_LONG_LONG 8
+| #define SIZEOF_VOID_P 8
+| #define SIZEOF_LONG 8
+| #define HAVE_ALLOCA_H 1
+| #define HAVE_STDDEF_H 1
+| #define HAVE_STRING_H 1
+| #define HAVE_STRINGS_H 1
+| #define HAVE_STDLIB_H 1
+| #define HAVE_TIME_H 1
+| #define HAVE_UNISTD_H 1
+| #define HAVE_WCHAR_H 1
+| #define HAVE_FCNTL_H 1
+| #define HAVE_SYS_FILE_H 1
+| #define HAVE_SYS_TIME_H 1
+| #define HAVE_SYS_STAT_H 1
+| #define HAVE_SYS_RESOURCE_H 1
+| #define TIME_WITH_SYS_TIME 1
+| #define HAVE_DIRENT_H 1
+| #define STRING_WITH_STRINGS 1
+| #define HAVE_FCNTL 1
+| #define HAVE_GETPAGESIZE 1
+| #define HAVE_SETITIMER 1
+| #define HAVE_SYSCONF 1
+| #define HAVE_FDOPEN 1
+| #define HAVE_GETUID 1
+| #define HAVE_GETGID 1
+| #define HAVE_FILENO 1
+| #define HAVE_STRTOULL 1
+| #define HAVE_GETRLIMIT 1
+| #define HAVE_DECL_BASENAME 1
+| #define HAVE_DECL_FTELLO 1
+| #define HAVE_DECL_FTELLO64 1
+| #define HAVE_DECL_FSEEKO 1
+| #define HAVE_DECL_FSEEKO64 1
+| #define HAVE_DECL_FFS 1
+| #define HAVE_DECL_FREE 1
+| #define HAVE_DECL_GETENV 1
+| #define HAVE_DECL_MALLOC 1
+| #define HAVE_DECL_REALLOC 1
+| #define HAVE_DECL_STPCPY 1
+| #define HAVE_DECL_STRSTR 1
+| #define HAVE_DECL_SNPRINTF 1
+| #define HAVE_DECL_VSNPRINTF 1
+| #define HAVE_DECL_STRNLEN 1
+| #define HAVE_ZLIB_H 1
+| #define HAVE_SYS_PROCFS_H 1
+| #define HAVE_PRSTATUS_T 1
+| /* end confdefs.h.  */
+| 
+| #define _SYSCALL32
+| /* Needed for new procfs interface on sparc-solaris.  */
+| #define _STRUCTURED_PROC 1
+| #include <sys/procfs.h>
+| int
+| main ()
+| {
+| prstatus32_t avar; void* aref = (void*) &avar.pr_who
+|   ;
+|   return 0;
+| }
 configure:14357: result: no
 configure:14360: checking for pstatus_t in sys/procfs.h
+configure:14380: gcc -c -g -O2  conftest.c >&5
+conftest.c: In function 'main':
+conftest.c:86:1: error: unknown type name 'pstatus_t'
+ pstatus_t avar
+ ^
+configure:14380: $? = 1
+configure: failed program was:
+| /* confdefs.h */
+| #define PACKAGE_NAME "bfd"
+| #define PACKAGE_TARNAME "bfd"
+| #define PACKAGE_VERSION "2.25.51"
+| #define PACKAGE_STRING "bfd 2.25.51"
+| #define PACKAGE_BUGREPORT ""
+| #define PACKAGE_URL ""
+| #define PACKAGE "bfd"
+| #define VERSION "2.25.51"
+| #define STDC_HEADERS 1
+| #define HAVE_SYS_TYPES_H 1
+| #define HAVE_SYS_STAT_H 1
+| #define HAVE_STDLIB_H 1
+| #define HAVE_STRING_H 1
+| #define HAVE_MEMORY_H 1
+| #define HAVE_STRINGS_H 1
+| #define HAVE_INTTYPES_H 1
+| #define HAVE_STDINT_H 1
+| #define HAVE_UNISTD_H 1
+| #define __EXTENSIONS__ 1
+| #define _ALL_SOURCE 1
+| #define _GNU_SOURCE 1
+| #define _POSIX_PTHREAD_SEMANTICS 1
+| #define _TANDEM_SOURCE 1
+| #define HAVE_DLFCN_H 1
+| #define LT_OBJDIR ".libs/"
+| #define HAVE_DLFCN_H 1
+| #define USE_SECUREPLT 1
+| #define ENABLE_NLS 1
+| #define SIZEOF_LONG_LONG 8
+| #define SIZEOF_VOID_P 8
+| #define SIZEOF_LONG 8
+| #define HAVE_ALLOCA_H 1
+| #define HAVE_STDDEF_H 1
+| #define HAVE_STRING_H 1
+| #define HAVE_STRINGS_H 1
+| #define HAVE_STDLIB_H 1
+| #define HAVE_TIME_H 1
+| #define HAVE_UNISTD_H 1
+| #define HAVE_WCHAR_H 1
+| #define HAVE_FCNTL_H 1
+| #define HAVE_SYS_FILE_H 1
+| #define HAVE_SYS_TIME_H 1
+| #define HAVE_SYS_STAT_H 1
+| #define HAVE_SYS_RESOURCE_H 1
+| #define TIME_WITH_SYS_TIME 1
+| #define HAVE_DIRENT_H 1
+| #define STRING_WITH_STRINGS 1
+| #define HAVE_FCNTL 1
+| #define HAVE_GETPAGESIZE 1
+| #define HAVE_SETITIMER 1
+| #define HAVE_SYSCONF 1
+| #define HAVE_FDOPEN 1
+| #define HAVE_GETUID 1
+| #define HAVE_GETGID 1
+| #define HAVE_FILENO 1
+| #define HAVE_STRTOULL 1
+| #define HAVE_GETRLIMIT 1
+| #define HAVE_DECL_BASENAME 1
+| #define HAVE_DECL_FTELLO 1
+| #define HAVE_DECL_FTELLO64 1
+| #define HAVE_DECL_FSEEKO 1
+| #define HAVE_DECL_FSEEKO64 1
+| #define HAVE_DECL_FFS 1
+| #define HAVE_DECL_FREE 1
+| #define HAVE_DECL_GETENV 1
+| #define HAVE_DECL_MALLOC 1
+| #define HAVE_DECL_REALLOC 1
+| #define HAVE_DECL_STPCPY 1
+| #define HAVE_DECL_STRSTR 1
+| #define HAVE_DECL_SNPRINTF 1
+| #define HAVE_DECL_VSNPRINTF 1
+| #define HAVE_DECL_STRNLEN 1
+| #define HAVE_ZLIB_H 1
+| #define HAVE_SYS_PROCFS_H 1
+| #define HAVE_PRSTATUS_T 1
+| /* end confdefs.h.  */
+| 
+| #define _SYSCALL32
+| /* Needed for new procfs interface on sparc-solaris.  */
+| #define _STRUCTURED_PROC 1
+| #include <sys/procfs.h>
+| int
+| main ()
+| {
+| pstatus_t avar
+|   ;
+|   return 0;
+| }
 configure:14394: result: no
 configure:14397: checking for pxstatus_t in sys/procfs.h
+configure:14417: gcc -c -g -O2  conftest.c >&5
+conftest.c: In function 'main':
+conftest.c:86:1: error: unknown type name 'pxstatus_t'
+ pxstatus_t avar
+ ^
+configure:14417: $? = 1
+configure: failed program was:
+| /* confdefs.h */
+| #define PACKAGE_NAME "bfd"
+| #define PACKAGE_TARNAME "bfd"
+| #define PACKAGE_VERSION "2.25.51"
+| #define PACKAGE_STRING "bfd 2.25.51"
+| #define PACKAGE_BUGREPORT ""
+| #define PACKAGE_URL ""
+| #define PACKAGE "bfd"
+| #define VERSION "2.25.51"
+| #define STDC_HEADERS 1
+| #define HAVE_SYS_TYPES_H 1
+| #define HAVE_SYS_STAT_H 1
+| #define HAVE_STDLIB_H 1
+| #define HAVE_STRING_H 1
+| #define HAVE_MEMORY_H 1
+| #define HAVE_STRINGS_H 1
+| #define HAVE_INTTYPES_H 1
+| #define HAVE_STDINT_H 1
+| #define HAVE_UNISTD_H 1
+| #define __EXTENSIONS__ 1
+| #define _ALL_SOURCE 1
+| #define _GNU_SOURCE 1
+| #define _POSIX_PTHREAD_SEMANTICS 1
+| #define _TANDEM_SOURCE 1
+| #define HAVE_DLFCN_H 1
+| #define LT_OBJDIR ".libs/"
+| #define HAVE_DLFCN_H 1
+| #define USE_SECUREPLT 1
+| #define ENABLE_NLS 1
+| #define SIZEOF_LONG_LONG 8
+| #define SIZEOF_VOID_P 8
+| #define SIZEOF_LONG 8
+| #define HAVE_ALLOCA_H 1
+| #define HAVE_STDDEF_H 1
+| #define HAVE_STRING_H 1
+| #define HAVE_STRINGS_H 1
+| #define HAVE_STDLIB_H 1
+| #define HAVE_TIME_H 1
+| #define HAVE_UNISTD_H 1
+| #define HAVE_WCHAR_H 1
+| #define HAVE_FCNTL_H 1
+| #define HAVE_SYS_FILE_H 1
+| #define HAVE_SYS_TIME_H 1
+| #define HAVE_SYS_STAT_H 1
+| #define HAVE_SYS_RESOURCE_H 1
+| #define TIME_WITH_SYS_TIME 1
+| #define HAVE_DIRENT_H 1
+| #define STRING_WITH_STRINGS 1
+| #define HAVE_FCNTL 1
+| #define HAVE_GETPAGESIZE 1
+| #define HAVE_SETITIMER 1
+| #define HAVE_SYSCONF 1
+| #define HAVE_FDOPEN 1
+| #define HAVE_GETUID 1
+| #define HAVE_GETGID 1
+| #define HAVE_FILENO 1
+| #define HAVE_STRTOULL 1
+| #define HAVE_GETRLIMIT 1
+| #define HAVE_DECL_BASENAME 1
+| #define HAVE_DECL_FTELLO 1
+| #define HAVE_DECL_FTELLO64 1
+| #define HAVE_DECL_FSEEKO 1
+| #define HAVE_DECL_FSEEKO64 1
+| #define HAVE_DECL_FFS 1
+| #define HAVE_DECL_FREE 1
+| #define HAVE_DECL_GETENV 1
+| #define HAVE_DECL_MALLOC 1
+| #define HAVE_DECL_REALLOC 1
+| #define HAVE_DECL_STPCPY 1
+| #define HAVE_DECL_STRSTR 1
+| #define HAVE_DECL_SNPRINTF 1
+| #define HAVE_DECL_VSNPRINTF 1
+| #define HAVE_DECL_STRNLEN 1
+| #define HAVE_ZLIB_H 1
+| #define HAVE_SYS_PROCFS_H 1
+| #define HAVE_PRSTATUS_T 1
+| /* end confdefs.h.  */
+| 
+| #define _SYSCALL32
+| /* Needed for new procfs interface on sparc-solaris.  */
+| #define _STRUCTURED_PROC 1
+| #include <sys/procfs.h>
+| int
+| main ()
+| {
+| pxstatus_t avar
+|   ;
+|   return 0;
+| }
 configure:14431: result: no
 configure:14434: checking for pstatus32_t in sys/procfs.h
+configure:14454: gcc -c -g -O2  conftest.c >&5
+conftest.c: In function 'main':
+conftest.c:86:1: error: unknown type name 'pstatus32_t'
+ pstatus32_t avar
+ ^
+configure:14454: $? = 1
+configure: failed program was:
+| /* confdefs.h */
+| #define PACKAGE_NAME "bfd"
+| #define PACKAGE_TARNAME "bfd"
+| #define PACKAGE_VERSION "2.25.51"
+| #define PACKAGE_STRING "bfd 2.25.51"
+| #define PACKAGE_BUGREPORT ""
+| #define PACKAGE_URL ""
+| #define PACKAGE "bfd"
+| #define VERSION "2.25.51"
+| #define STDC_HEADERS 1
+| #define HAVE_SYS_TYPES_H 1
+| #define HAVE_SYS_STAT_H 1
+| #define HAVE_STDLIB_H 1
+| #define HAVE_STRING_H 1
+| #define HAVE_MEMORY_H 1
+| #define HAVE_STRINGS_H 1
+| #define HAVE_INTTYPES_H 1
+| #define HAVE_STDINT_H 1
+| #define HAVE_UNISTD_H 1
+| #define __EXTENSIONS__ 1
+| #define _ALL_SOURCE 1
+| #define _GNU_SOURCE 1
+| #define _POSIX_PTHREAD_SEMANTICS 1
+| #define _TANDEM_SOURCE 1
+| #define HAVE_DLFCN_H 1
+| #define LT_OBJDIR ".libs/"
+| #define HAVE_DLFCN_H 1
+| #define USE_SECUREPLT 1
+| #define ENABLE_NLS 1
+| #define SIZEOF_LONG_LONG 8
+| #define SIZEOF_VOID_P 8
+| #define SIZEOF_LONG 8
+| #define HAVE_ALLOCA_H 1
+| #define HAVE_STDDEF_H 1
+| #define HAVE_STRING_H 1
+| #define HAVE_STRINGS_H 1
+| #define HAVE_STDLIB_H 1
+| #define HAVE_TIME_H 1
+| #define HAVE_UNISTD_H 1
+| #define HAVE_WCHAR_H 1
+| #define HAVE_FCNTL_H 1
+| #define HAVE_SYS_FILE_H 1
+| #define HAVE_SYS_TIME_H 1
+| #define HAVE_SYS_STAT_H 1
+| #define HAVE_SYS_RESOURCE_H 1
+| #define TIME_WITH_SYS_TIME 1
+| #define HAVE_DIRENT_H 1
+| #define STRING_WITH_STRINGS 1
+| #define HAVE_FCNTL 1
+| #define HAVE_GETPAGESIZE 1
+| #define HAVE_SETITIMER 1
+| #define HAVE_SYSCONF 1
+| #define HAVE_FDOPEN 1
+| #define HAVE_GETUID 1
+| #define HAVE_GETGID 1
+| #define HAVE_FILENO 1
+| #define HAVE_STRTOULL 1
+| #define HAVE_GETRLIMIT 1
+| #define HAVE_DECL_BASENAME 1
+| #define HAVE_DECL_FTELLO 1
+| #define HAVE_DECL_FTELLO64 1
+| #define HAVE_DECL_FSEEKO 1
+| #define HAVE_DECL_FSEEKO64 1
+| #define HAVE_DECL_FFS 1
+| #define HAVE_DECL_FREE 1
+| #define HAVE_DECL_GETENV 1
+| #define HAVE_DECL_MALLOC 1
+| #define HAVE_DECL_REALLOC 1
+| #define HAVE_DECL_STPCPY 1
+| #define HAVE_DECL_STRSTR 1
+| #define HAVE_DECL_SNPRINTF 1
+| #define HAVE_DECL_VSNPRINTF 1
+| #define HAVE_DECL_STRNLEN 1
+| #define HAVE_ZLIB_H 1
+| #define HAVE_SYS_PROCFS_H 1
+| #define HAVE_PRSTATUS_T 1
+| /* end confdefs.h.  */
+| 
+| #define _SYSCALL32
+| /* Needed for new procfs interface on sparc-solaris.  */
+| #define _STRUCTURED_PROC 1
+| #include <sys/procfs.h>
+| int
+| main ()
+| {
+| pstatus32_t avar
+|   ;
+|   return 0;
+| }
 configure:14468: result: no
 configure:14471: checking for prpsinfo_t in sys/procfs.h
+configure:14491: gcc -c -g -O2  conftest.c >&5
+configure:14491: $? = 0
 configure:14505: result: yes
 configure:14508: checking for prpsinfo_t.pr_pid in sys/procfs.h
+configure:14528: gcc -c -g -O2  conftest.c >&5
+configure:14528: $? = 0
 configure:14542: result: yes
 configure:14545: checking for prpsinfo32_t in sys/procfs.h
+configure:14565: gcc -c -g -O2  conftest.c >&5
+conftest.c: In function 'main':
+conftest.c:88:1: error: unknown type name 'prpsinfo32_t'
+ prpsinfo32_t avar
+ ^
+configure:14565: $? = 1
+configure: failed program was:
+| /* confdefs.h */
+| #define PACKAGE_NAME "bfd"
+| #define PACKAGE_TARNAME "bfd"
+| #define PACKAGE_VERSION "2.25.51"
+| #define PACKAGE_STRING "bfd 2.25.51"
+| #define PACKAGE_BUGREPORT ""
+| #define PACKAGE_URL ""
+| #define PACKAGE "bfd"
+| #define VERSION "2.25.51"
+| #define STDC_HEADERS 1
+| #define HAVE_SYS_TYPES_H 1
+| #define HAVE_SYS_STAT_H 1
+| #define HAVE_STDLIB_H 1
+| #define HAVE_STRING_H 1
+| #define HAVE_MEMORY_H 1
+| #define HAVE_STRINGS_H 1
+| #define HAVE_INTTYPES_H 1
+| #define HAVE_STDINT_H 1
+| #define HAVE_UNISTD_H 1
+| #define __EXTENSIONS__ 1
+| #define _ALL_SOURCE 1
+| #define _GNU_SOURCE 1
+| #define _POSIX_PTHREAD_SEMANTICS 1
+| #define _TANDEM_SOURCE 1
+| #define HAVE_DLFCN_H 1
+| #define LT_OBJDIR ".libs/"
+| #define HAVE_DLFCN_H 1
+| #define USE_SECUREPLT 1
+| #define ENABLE_NLS 1
+| #define SIZEOF_LONG_LONG 8
+| #define SIZEOF_VOID_P 8
+| #define SIZEOF_LONG 8
+| #define HAVE_ALLOCA_H 1
+| #define HAVE_STDDEF_H 1
+| #define HAVE_STRING_H 1
+| #define HAVE_STRINGS_H 1
+| #define HAVE_STDLIB_H 1
+| #define HAVE_TIME_H 1
+| #define HAVE_UNISTD_H 1
+| #define HAVE_WCHAR_H 1
+| #define HAVE_FCNTL_H 1
+| #define HAVE_SYS_FILE_H 1
+| #define HAVE_SYS_TIME_H 1
+| #define HAVE_SYS_STAT_H 1
+| #define HAVE_SYS_RESOURCE_H 1
+| #define TIME_WITH_SYS_TIME 1
+| #define HAVE_DIRENT_H 1
+| #define STRING_WITH_STRINGS 1
+| #define HAVE_FCNTL 1
+| #define HAVE_GETPAGESIZE 1
+| #define HAVE_SETITIMER 1
+| #define HAVE_SYSCONF 1
+| #define HAVE_FDOPEN 1
+| #define HAVE_GETUID 1
+| #define HAVE_GETGID 1
+| #define HAVE_FILENO 1
+| #define HAVE_STRTOULL 1
+| #define HAVE_GETRLIMIT 1
+| #define HAVE_DECL_BASENAME 1
+| #define HAVE_DECL_FTELLO 1
+| #define HAVE_DECL_FTELLO64 1
+| #define HAVE_DECL_FSEEKO 1
+| #define HAVE_DECL_FSEEKO64 1
+| #define HAVE_DECL_FFS 1
+| #define HAVE_DECL_FREE 1
+| #define HAVE_DECL_GETENV 1
+| #define HAVE_DECL_MALLOC 1
+| #define HAVE_DECL_REALLOC 1
+| #define HAVE_DECL_STPCPY 1
+| #define HAVE_DECL_STRSTR 1
+| #define HAVE_DECL_SNPRINTF 1
+| #define HAVE_DECL_VSNPRINTF 1
+| #define HAVE_DECL_STRNLEN 1
+| #define HAVE_ZLIB_H 1
+| #define HAVE_SYS_PROCFS_H 1
+| #define HAVE_PRSTATUS_T 1
+| #define HAVE_PRPSINFO_T 1
+| #define HAVE_PRPSINFO_T_PR_PID 1
+| /* end confdefs.h.  */
+| 
+| #define _SYSCALL32
+| /* Needed for new procfs interface on sparc-solaris.  */
+| #define _STRUCTURED_PROC 1
+| #include <sys/procfs.h>
+| int
+| main ()
+| {
+| prpsinfo32_t avar
+|   ;
+|   return 0;
+| }
 configure:14579: result: no
 configure:14582: checking for prpsinfo32_t.pr_pid in sys/procfs.h
+configure:14602: gcc -c -g -O2  conftest.c >&5
+conftest.c: In function 'main':
+conftest.c:88:1: error: unknown type name 'prpsinfo32_t'
+ prpsinfo32_t avar; void* aref = (void*) &avar.pr_pid
+ ^
+conftest.c:88:46: error: request for member 'pr_pid' in something not a structure or union
+ prpsinfo32_t avar; void* aref = (void*) &avar.pr_pid
+                                              ^
+configure:14602: $? = 1
+configure: failed program was:
+| /* confdefs.h */
+| #define PACKAGE_NAME "bfd"
+| #define PACKAGE_TARNAME "bfd"
+| #define PACKAGE_VERSION "2.25.51"
+| #define PACKAGE_STRING "bfd 2.25.51"
+| #define PACKAGE_BUGREPORT ""
+| #define PACKAGE_URL ""
+| #define PACKAGE "bfd"
+| #define VERSION "2.25.51"
+| #define STDC_HEADERS 1
+| #define HAVE_SYS_TYPES_H 1
+| #define HAVE_SYS_STAT_H 1
+| #define HAVE_STDLIB_H 1
+| #define HAVE_STRING_H 1
+| #define HAVE_MEMORY_H 1
+| #define HAVE_STRINGS_H 1
+| #define HAVE_INTTYPES_H 1
+| #define HAVE_STDINT_H 1
+| #define HAVE_UNISTD_H 1
+| #define __EXTENSIONS__ 1
+| #define _ALL_SOURCE 1
+| #define _GNU_SOURCE 1
+| #define _POSIX_PTHREAD_SEMANTICS 1
+| #define _TANDEM_SOURCE 1
+| #define HAVE_DLFCN_H 1
+| #define LT_OBJDIR ".libs/"
+| #define HAVE_DLFCN_H 1
+| #define USE_SECUREPLT 1
+| #define ENABLE_NLS 1
+| #define SIZEOF_LONG_LONG 8
+| #define SIZEOF_VOID_P 8
+| #define SIZEOF_LONG 8
+| #define HAVE_ALLOCA_H 1
+| #define HAVE_STDDEF_H 1
+| #define HAVE_STRING_H 1
+| #define HAVE_STRINGS_H 1
+| #define HAVE_STDLIB_H 1
+| #define HAVE_TIME_H 1
+| #define HAVE_UNISTD_H 1
+| #define HAVE_WCHAR_H 1
+| #define HAVE_FCNTL_H 1
+| #define HAVE_SYS_FILE_H 1
+| #define HAVE_SYS_TIME_H 1
+| #define HAVE_SYS_STAT_H 1
+| #define HAVE_SYS_RESOURCE_H 1
+| #define TIME_WITH_SYS_TIME 1
+| #define HAVE_DIRENT_H 1
+| #define STRING_WITH_STRINGS 1
+| #define HAVE_FCNTL 1
+| #define HAVE_GETPAGESIZE 1
+| #define HAVE_SETITIMER 1
+| #define HAVE_SYSCONF 1
+| #define HAVE_FDOPEN 1
+| #define HAVE_GETUID 1
+| #define HAVE_GETGID 1
+| #define HAVE_FILENO 1
+| #define HAVE_STRTOULL 1
+| #define HAVE_GETRLIMIT 1
+| #define HAVE_DECL_BASENAME 1
+| #define HAVE_DECL_FTELLO 1
+| #define HAVE_DECL_FTELLO64 1
+| #define HAVE_DECL_FSEEKO 1
+| #define HAVE_DECL_FSEEKO64 1
+| #define HAVE_DECL_FFS 1
+| #define HAVE_DECL_FREE 1
+| #define HAVE_DECL_GETENV 1
+| #define HAVE_DECL_MALLOC 1
+| #define HAVE_DECL_REALLOC 1
+| #define HAVE_DECL_STPCPY 1
+| #define HAVE_DECL_STRSTR 1
+| #define HAVE_DECL_SNPRINTF 1
+| #define HAVE_DECL_VSNPRINTF 1
+| #define HAVE_DECL_STRNLEN 1
+| #define HAVE_ZLIB_H 1
+| #define HAVE_SYS_PROCFS_H 1
+| #define HAVE_PRSTATUS_T 1
+| #define HAVE_PRPSINFO_T 1
+| #define HAVE_PRPSINFO_T_PR_PID 1
+| /* end confdefs.h.  */
+| 
+| #define _SYSCALL32
+| /* Needed for new procfs interface on sparc-solaris.  */
+| #define _STRUCTURED_PROC 1
+| #include <sys/procfs.h>
+| int
+| main ()
+| {
+| prpsinfo32_t avar; void* aref = (void*) &avar.pr_pid
+|   ;
+|   return 0;
+| }
 configure:14616: result: no
 configure:14619: checking for psinfo_t in sys/procfs.h
+configure:14639: gcc -c -g -O2  conftest.c >&5
+conftest.c: In function 'main':
+conftest.c:88:1: error: unknown type name 'psinfo_t'
+ psinfo_t avar
+ ^
+configure:14639: $? = 1
+configure: failed program was:
+| /* confdefs.h */
+| #define PACKAGE_NAME "bfd"
+| #define PACKAGE_TARNAME "bfd"
+| #define PACKAGE_VERSION "2.25.51"
+| #define PACKAGE_STRING "bfd 2.25.51"
+| #define PACKAGE_BUGREPORT ""
+| #define PACKAGE_URL ""
+| #define PACKAGE "bfd"
+| #define VERSION "2.25.51"
+| #define STDC_HEADERS 1
+| #define HAVE_SYS_TYPES_H 1
+| #define HAVE_SYS_STAT_H 1
+| #define HAVE_STDLIB_H 1
+| #define HAVE_STRING_H 1
+| #define HAVE_MEMORY_H 1
+| #define HAVE_STRINGS_H 1
+| #define HAVE_INTTYPES_H 1
+| #define HAVE_STDINT_H 1
+| #define HAVE_UNISTD_H 1
+| #define __EXTENSIONS__ 1
+| #define _ALL_SOURCE 1
+| #define _GNU_SOURCE 1
+| #define _POSIX_PTHREAD_SEMANTICS 1
+| #define _TANDEM_SOURCE 1
+| #define HAVE_DLFCN_H 1
+| #define LT_OBJDIR ".libs/"
+| #define HAVE_DLFCN_H 1
+| #define USE_SECUREPLT 1
+| #define ENABLE_NLS 1
+| #define SIZEOF_LONG_LONG 8
+| #define SIZEOF_VOID_P 8
+| #define SIZEOF_LONG 8
+| #define HAVE_ALLOCA_H 1
+| #define HAVE_STDDEF_H 1
+| #define HAVE_STRING_H 1
+| #define HAVE_STRINGS_H 1
+| #define HAVE_STDLIB_H 1
+| #define HAVE_TIME_H 1
+| #define HAVE_UNISTD_H 1
+| #define HAVE_WCHAR_H 1
+| #define HAVE_FCNTL_H 1
+| #define HAVE_SYS_FILE_H 1
+| #define HAVE_SYS_TIME_H 1
+| #define HAVE_SYS_STAT_H 1
+| #define HAVE_SYS_RESOURCE_H 1
+| #define TIME_WITH_SYS_TIME 1
+| #define HAVE_DIRENT_H 1
+| #define STRING_WITH_STRINGS 1
+| #define HAVE_FCNTL 1
+| #define HAVE_GETPAGESIZE 1
+| #define HAVE_SETITIMER 1
+| #define HAVE_SYSCONF 1
+| #define HAVE_FDOPEN 1
+| #define HAVE_GETUID 1
+| #define HAVE_GETGID 1
+| #define HAVE_FILENO 1
+| #define HAVE_STRTOULL 1
+| #define HAVE_GETRLIMIT 1
+| #define HAVE_DECL_BASENAME 1
+| #define HAVE_DECL_FTELLO 1
+| #define HAVE_DECL_FTELLO64 1
+| #define HAVE_DECL_FSEEKO 1
+| #define HAVE_DECL_FSEEKO64 1
+| #define HAVE_DECL_FFS 1
+| #define HAVE_DECL_FREE 1
+| #define HAVE_DECL_GETENV 1
+| #define HAVE_DECL_MALLOC 1
+| #define HAVE_DECL_REALLOC 1
+| #define HAVE_DECL_STPCPY 1
+| #define HAVE_DECL_STRSTR 1
+| #define HAVE_DECL_SNPRINTF 1
+| #define HAVE_DECL_VSNPRINTF 1
+| #define HAVE_DECL_STRNLEN 1
+| #define HAVE_ZLIB_H 1
+| #define HAVE_SYS_PROCFS_H 1
+| #define HAVE_PRSTATUS_T 1
+| #define HAVE_PRPSINFO_T 1
+| #define HAVE_PRPSINFO_T_PR_PID 1
+| /* end confdefs.h.  */
+| 
+| #define _SYSCALL32
+| /* Needed for new procfs interface on sparc-solaris.  */
+| #define _STRUCTURED_PROC 1
+| #include <sys/procfs.h>
+| int
+| main ()
+| {
+| psinfo_t avar
+|   ;
+|   return 0;
+| }
 configure:14653: result: no
 configure:14656: checking for psinfo_t.pr_pid in sys/procfs.h
+configure:14676: gcc -c -g -O2  conftest.c >&5
+conftest.c: In function 'main':
+conftest.c:88:1: error: unknown type name 'psinfo_t'
+ psinfo_t avar; void* aref = (void*) &avar.pr_pid
+ ^
+conftest.c:88:42: error: request for member 'pr_pid' in something not a structure or union
+ psinfo_t avar; void* aref = (void*) &avar.pr_pid
+                                          ^
+configure:14676: $? = 1
+configure: failed program was:
+| /* confdefs.h */
+| #define PACKAGE_NAME "bfd"
+| #define PACKAGE_TARNAME "bfd"
+| #define PACKAGE_VERSION "2.25.51"
+| #define PACKAGE_STRING "bfd 2.25.51"
+| #define PACKAGE_BUGREPORT ""
+| #define PACKAGE_URL ""
+| #define PACKAGE "bfd"
+| #define VERSION "2.25.51"
+| #define STDC_HEADERS 1
+| #define HAVE_SYS_TYPES_H 1
+| #define HAVE_SYS_STAT_H 1
+| #define HAVE_STDLIB_H 1
+| #define HAVE_STRING_H 1
+| #define HAVE_MEMORY_H 1
+| #define HAVE_STRINGS_H 1
+| #define HAVE_INTTYPES_H 1
+| #define HAVE_STDINT_H 1
+| #define HAVE_UNISTD_H 1
+| #define __EXTENSIONS__ 1
+| #define _ALL_SOURCE 1
+| #define _GNU_SOURCE 1
+| #define _POSIX_PTHREAD_SEMANTICS 1
+| #define _TANDEM_SOURCE 1
+| #define HAVE_DLFCN_H 1
+| #define LT_OBJDIR ".libs/"
+| #define HAVE_DLFCN_H 1
+| #define USE_SECUREPLT 1
+| #define ENABLE_NLS 1
+| #define SIZEOF_LONG_LONG 8
+| #define SIZEOF_VOID_P 8
+| #define SIZEOF_LONG 8
+| #define HAVE_ALLOCA_H 1
+| #define HAVE_STDDEF_H 1
+| #define HAVE_STRING_H 1
+| #define HAVE_STRINGS_H 1
+| #define HAVE_STDLIB_H 1
+| #define HAVE_TIME_H 1
+| #define HAVE_UNISTD_H 1
+| #define HAVE_WCHAR_H 1
+| #define HAVE_FCNTL_H 1
+| #define HAVE_SYS_FILE_H 1
+| #define HAVE_SYS_TIME_H 1
+| #define HAVE_SYS_STAT_H 1
+| #define HAVE_SYS_RESOURCE_H 1
+| #define TIME_WITH_SYS_TIME 1
+| #define HAVE_DIRENT_H 1
+| #define STRING_WITH_STRINGS 1
+| #define HAVE_FCNTL 1
+| #define HAVE_GETPAGESIZE 1
+| #define HAVE_SETITIMER 1
+| #define HAVE_SYSCONF 1
+| #define HAVE_FDOPEN 1
+| #define HAVE_GETUID 1
+| #define HAVE_GETGID 1
+| #define HAVE_FILENO 1
+| #define HAVE_STRTOULL 1
+| #define HAVE_GETRLIMIT 1
+| #define HAVE_DECL_BASENAME 1
+| #define HAVE_DECL_FTELLO 1
+| #define HAVE_DECL_FTELLO64 1
+| #define HAVE_DECL_FSEEKO 1
+| #define HAVE_DECL_FSEEKO64 1
+| #define HAVE_DECL_FFS 1
+| #define HAVE_DECL_FREE 1
+| #define HAVE_DECL_GETENV 1
+| #define HAVE_DECL_MALLOC 1
+| #define HAVE_DECL_REALLOC 1
+| #define HAVE_DECL_STPCPY 1
+| #define HAVE_DECL_STRSTR 1
+| #define HAVE_DECL_SNPRINTF 1
+| #define HAVE_DECL_VSNPRINTF 1
+| #define HAVE_DECL_STRNLEN 1
+| #define HAVE_ZLIB_H 1
+| #define HAVE_SYS_PROCFS_H 1
+| #define HAVE_PRSTATUS_T 1
+| #define HAVE_PRPSINFO_T 1
+| #define HAVE_PRPSINFO_T_PR_PID 1
+| /* end confdefs.h.  */
+| 
+| #define _SYSCALL32
+| /* Needed for new procfs interface on sparc-solaris.  */
+| #define _STRUCTURED_PROC 1
+| #include <sys/procfs.h>
+| int
+| main ()
+| {
+| psinfo_t avar; void* aref = (void*) &avar.pr_pid
+|   ;
+|   return 0;
+| }
 configure:14690: result: no
 configure:14693: checking for psinfo32_t in sys/procfs.h
+configure:14713: gcc -c -g -O2  conftest.c >&5
+conftest.c: In function 'main':
+conftest.c:88:1: error: unknown type name 'psinfo32_t'
+ psinfo32_t avar
+ ^
+configure:14713: $? = 1
+configure: failed program was:
+| /* confdefs.h */
+| #define PACKAGE_NAME "bfd"
+| #define PACKAGE_TARNAME "bfd"
+| #define PACKAGE_VERSION "2.25.51"
+| #define PACKAGE_STRING "bfd 2.25.51"
+| #define PACKAGE_BUGREPORT ""
+| #define PACKAGE_URL ""
+| #define PACKAGE "bfd"
+| #define VERSION "2.25.51"
+| #define STDC_HEADERS 1
+| #define HAVE_SYS_TYPES_H 1
+| #define HAVE_SYS_STAT_H 1
+| #define HAVE_STDLIB_H 1
+| #define HAVE_STRING_H 1
+| #define HAVE_MEMORY_H 1
+| #define HAVE_STRINGS_H 1
+| #define HAVE_INTTYPES_H 1
+| #define HAVE_STDINT_H 1
+| #define HAVE_UNISTD_H 1
+| #define __EXTENSIONS__ 1
+| #define _ALL_SOURCE 1
+| #define _GNU_SOURCE 1
+| #define _POSIX_PTHREAD_SEMANTICS 1
+| #define _TANDEM_SOURCE 1
+| #define HAVE_DLFCN_H 1
+| #define LT_OBJDIR ".libs/"
+| #define HAVE_DLFCN_H 1
+| #define USE_SECUREPLT 1
+| #define ENABLE_NLS 1
+| #define SIZEOF_LONG_LONG 8
+| #define SIZEOF_VOID_P 8
+| #define SIZEOF_LONG 8
+| #define HAVE_ALLOCA_H 1
+| #define HAVE_STDDEF_H 1
+| #define HAVE_STRING_H 1
+| #define HAVE_STRINGS_H 1
+| #define HAVE_STDLIB_H 1
+| #define HAVE_TIME_H 1
+| #define HAVE_UNISTD_H 1
+| #define HAVE_WCHAR_H 1
+| #define HAVE_FCNTL_H 1
+| #define HAVE_SYS_FILE_H 1
+| #define HAVE_SYS_TIME_H 1
+| #define HAVE_SYS_STAT_H 1
+| #define HAVE_SYS_RESOURCE_H 1
+| #define TIME_WITH_SYS_TIME 1
+| #define HAVE_DIRENT_H 1
+| #define STRING_WITH_STRINGS 1
+| #define HAVE_FCNTL 1
+| #define HAVE_GETPAGESIZE 1
+| #define HAVE_SETITIMER 1
+| #define HAVE_SYSCONF 1
+| #define HAVE_FDOPEN 1
+| #define HAVE_GETUID 1
+| #define HAVE_GETGID 1
+| #define HAVE_FILENO 1
+| #define HAVE_STRTOULL 1
+| #define HAVE_GETRLIMIT 1
+| #define HAVE_DECL_BASENAME 1
+| #define HAVE_DECL_FTELLO 1
+| #define HAVE_DECL_FTELLO64 1
+| #define HAVE_DECL_FSEEKO 1
+| #define HAVE_DECL_FSEEKO64 1
+| #define HAVE_DECL_FFS 1
+| #define HAVE_DECL_FREE 1
+| #define HAVE_DECL_GETENV 1
+| #define HAVE_DECL_MALLOC 1
+| #define HAVE_DECL_REALLOC 1
+| #define HAVE_DECL_STPCPY 1
+| #define HAVE_DECL_STRSTR 1
+| #define HAVE_DECL_SNPRINTF 1
+| #define HAVE_DECL_VSNPRINTF 1
+| #define HAVE_DECL_STRNLEN 1
+| #define HAVE_ZLIB_H 1
+| #define HAVE_SYS_PROCFS_H 1
+| #define HAVE_PRSTATUS_T 1
+| #define HAVE_PRPSINFO_T 1
+| #define HAVE_PRPSINFO_T_PR_PID 1
+| /* end confdefs.h.  */
+| 
+| #define _SYSCALL32
+| /* Needed for new procfs interface on sparc-solaris.  */
+| #define _STRUCTURED_PROC 1
+| #include <sys/procfs.h>
+| int
+| main ()
+| {
+| psinfo32_t avar
+|   ;
+|   return 0;
+| }
 configure:14727: result: no
 configure:14730: checking for psinfo32_t.pr_pid in sys/procfs.h
+configure:14750: gcc -c -g -O2  conftest.c >&5
+conftest.c: In function 'main':
+conftest.c:88:1: error: unknown type name 'psinfo32_t'
+ psinfo32_t avar; void* aref = (void*) &avar.pr_pid
+ ^
+conftest.c:88:44: error: request for member 'pr_pid' in something not a structure or union
+ psinfo32_t avar; void* aref = (void*) &avar.pr_pid
+                                            ^
+configure:14750: $? = 1
+configure: failed program was:
+| /* confdefs.h */
+| #define PACKAGE_NAME "bfd"
+| #define PACKAGE_TARNAME "bfd"
+| #define PACKAGE_VERSION "2.25.51"
+| #define PACKAGE_STRING "bfd 2.25.51"
+| #define PACKAGE_BUGREPORT ""
+| #define PACKAGE_URL ""
+| #define PACKAGE "bfd"
+| #define VERSION "2.25.51"
+| #define STDC_HEADERS 1
+| #define HAVE_SYS_TYPES_H 1
+| #define HAVE_SYS_STAT_H 1
+| #define HAVE_STDLIB_H 1
+| #define HAVE_STRING_H 1
+| #define HAVE_MEMORY_H 1
+| #define HAVE_STRINGS_H 1
+| #define HAVE_INTTYPES_H 1
+| #define HAVE_STDINT_H 1
+| #define HAVE_UNISTD_H 1
+| #define __EXTENSIONS__ 1
+| #define _ALL_SOURCE 1
+| #define _GNU_SOURCE 1
+| #define _POSIX_PTHREAD_SEMANTICS 1
+| #define _TANDEM_SOURCE 1
+| #define HAVE_DLFCN_H 1
+| #define LT_OBJDIR ".libs/"
+| #define HAVE_DLFCN_H 1
+| #define USE_SECUREPLT 1
+| #define ENABLE_NLS 1
+| #define SIZEOF_LONG_LONG 8
+| #define SIZEOF_VOID_P 8
+| #define SIZEOF_LONG 8
+| #define HAVE_ALLOCA_H 1
+| #define HAVE_STDDEF_H 1
+| #define HAVE_STRING_H 1
+| #define HAVE_STRINGS_H 1
+| #define HAVE_STDLIB_H 1
+| #define HAVE_TIME_H 1
+| #define HAVE_UNISTD_H 1
+| #define HAVE_WCHAR_H 1
+| #define HAVE_FCNTL_H 1
+| #define HAVE_SYS_FILE_H 1
+| #define HAVE_SYS_TIME_H 1
+| #define HAVE_SYS_STAT_H 1
+| #define HAVE_SYS_RESOURCE_H 1
+| #define TIME_WITH_SYS_TIME 1
+| #define HAVE_DIRENT_H 1
+| #define STRING_WITH_STRINGS 1
+| #define HAVE_FCNTL 1
+| #define HAVE_GETPAGESIZE 1
+| #define HAVE_SETITIMER 1
+| #define HAVE_SYSCONF 1
+| #define HAVE_FDOPEN 1
+| #define HAVE_GETUID 1
+| #define HAVE_GETGID 1
+| #define HAVE_FILENO 1
+| #define HAVE_STRTOULL 1
+| #define HAVE_GETRLIMIT 1
+| #define HAVE_DECL_BASENAME 1
+| #define HAVE_DECL_FTELLO 1
+| #define HAVE_DECL_FTELLO64 1
+| #define HAVE_DECL_FSEEKO 1
+| #define HAVE_DECL_FSEEKO64 1
+| #define HAVE_DECL_FFS 1
+| #define HAVE_DECL_FREE 1
+| #define HAVE_DECL_GETENV 1
+| #define HAVE_DECL_MALLOC 1
+| #define HAVE_DECL_REALLOC 1
+| #define HAVE_DECL_STPCPY 1
+| #define HAVE_DECL_STRSTR 1
+| #define HAVE_DECL_SNPRINTF 1
+| #define HAVE_DECL_VSNPRINTF 1
+| #define HAVE_DECL_STRNLEN 1
+| #define HAVE_ZLIB_H 1
+| #define HAVE_SYS_PROCFS_H 1
+| #define HAVE_PRSTATUS_T 1
+| #define HAVE_PRPSINFO_T 1
+| #define HAVE_PRPSINFO_T_PR_PID 1
+| /* end confdefs.h.  */
+| 
+| #define _SYSCALL32
+| /* Needed for new procfs interface on sparc-solaris.  */
+| #define _STRUCTURED_PROC 1
+| #include <sys/procfs.h>
+| int
+| main ()
+| {
+| psinfo32_t avar; void* aref = (void*) &avar.pr_pid
+|   ;
+|   return 0;
+| }
 configure:14764: result: no
 configure:14767: checking for lwpstatus_t in sys/procfs.h
+configure:14787: gcc -c -g -O2  conftest.c >&5
+conftest.c: In function 'main':
+conftest.c:88:1: error: unknown type name 'lwpstatus_t'
+ lwpstatus_t avar
+ ^
+configure:14787: $? = 1
+configure: failed program was:
+| /* confdefs.h */
+| #define PACKAGE_NAME "bfd"
+| #define PACKAGE_TARNAME "bfd"
+| #define PACKAGE_VERSION "2.25.51"
+| #define PACKAGE_STRING "bfd 2.25.51"
+| #define PACKAGE_BUGREPORT ""
+| #define PACKAGE_URL ""
+| #define PACKAGE "bfd"
+| #define VERSION "2.25.51"
+| #define STDC_HEADERS 1
+| #define HAVE_SYS_TYPES_H 1
+| #define HAVE_SYS_STAT_H 1
+| #define HAVE_STDLIB_H 1
+| #define HAVE_STRING_H 1
+| #define HAVE_MEMORY_H 1
+| #define HAVE_STRINGS_H 1
+| #define HAVE_INTTYPES_H 1
+| #define HAVE_STDINT_H 1
+| #define HAVE_UNISTD_H 1
+| #define __EXTENSIONS__ 1
+| #define _ALL_SOURCE 1
+| #define _GNU_SOURCE 1
+| #define _POSIX_PTHREAD_SEMANTICS 1
+| #define _TANDEM_SOURCE 1
+| #define HAVE_DLFCN_H 1
+| #define LT_OBJDIR ".libs/"
+| #define HAVE_DLFCN_H 1
+| #define USE_SECUREPLT 1
+| #define ENABLE_NLS 1
+| #define SIZEOF_LONG_LONG 8
+| #define SIZEOF_VOID_P 8
+| #define SIZEOF_LONG 8
+| #define HAVE_ALLOCA_H 1
+| #define HAVE_STDDEF_H 1
+| #define HAVE_STRING_H 1
+| #define HAVE_STRINGS_H 1
+| #define HAVE_STDLIB_H 1
+| #define HAVE_TIME_H 1
+| #define HAVE_UNISTD_H 1
+| #define HAVE_WCHAR_H 1
+| #define HAVE_FCNTL_H 1
+| #define HAVE_SYS_FILE_H 1
+| #define HAVE_SYS_TIME_H 1
+| #define HAVE_SYS_STAT_H 1
+| #define HAVE_SYS_RESOURCE_H 1
+| #define TIME_WITH_SYS_TIME 1
+| #define HAVE_DIRENT_H 1
+| #define STRING_WITH_STRINGS 1
+| #define HAVE_FCNTL 1
+| #define HAVE_GETPAGESIZE 1
+| #define HAVE_SETITIMER 1
+| #define HAVE_SYSCONF 1
+| #define HAVE_FDOPEN 1
+| #define HAVE_GETUID 1
+| #define HAVE_GETGID 1
+| #define HAVE_FILENO 1
+| #define HAVE_STRTOULL 1
+| #define HAVE_GETRLIMIT 1
+| #define HAVE_DECL_BASENAME 1
+| #define HAVE_DECL_FTELLO 1
+| #define HAVE_DECL_FTELLO64 1
+| #define HAVE_DECL_FSEEKO 1
+| #define HAVE_DECL_FSEEKO64 1
+| #define HAVE_DECL_FFS 1
+| #define HAVE_DECL_FREE 1
+| #define HAVE_DECL_GETENV 1
+| #define HAVE_DECL_MALLOC 1
+| #define HAVE_DECL_REALLOC 1
+| #define HAVE_DECL_STPCPY 1
+| #define HAVE_DECL_STRSTR 1
+| #define HAVE_DECL_SNPRINTF 1
+| #define HAVE_DECL_VSNPRINTF 1
+| #define HAVE_DECL_STRNLEN 1
+| #define HAVE_ZLIB_H 1
+| #define HAVE_SYS_PROCFS_H 1
+| #define HAVE_PRSTATUS_T 1
+| #define HAVE_PRPSINFO_T 1
+| #define HAVE_PRPSINFO_T_PR_PID 1
+| /* end confdefs.h.  */
+| 
+| #define _SYSCALL32
+| /* Needed for new procfs interface on sparc-solaris.  */
+| #define _STRUCTURED_PROC 1
+| #include <sys/procfs.h>
+| int
+| main ()
+| {
+| lwpstatus_t avar
+|   ;
+|   return 0;
+| }
 configure:14801: result: no
 configure:14804: checking for lwpxstatus_t in sys/procfs.h
+configure:14824: gcc -c -g -O2  conftest.c >&5
+conftest.c: In function 'main':
+conftest.c:88:1: error: unknown type name 'lwpxstatus_t'
+ lwpxstatus_t avar
+ ^
+configure:14824: $? = 1
+configure: failed program was:
+| /* confdefs.h */
+| #define PACKAGE_NAME "bfd"
+| #define PACKAGE_TARNAME "bfd"
+| #define PACKAGE_VERSION "2.25.51"
+| #define PACKAGE_STRING "bfd 2.25.51"
+| #define PACKAGE_BUGREPORT ""
+| #define PACKAGE_URL ""
+| #define PACKAGE "bfd"
+| #define VERSION "2.25.51"
+| #define STDC_HEADERS 1
+| #define HAVE_SYS_TYPES_H 1
+| #define HAVE_SYS_STAT_H 1
+| #define HAVE_STDLIB_H 1
+| #define HAVE_STRING_H 1
+| #define HAVE_MEMORY_H 1
+| #define HAVE_STRINGS_H 1
+| #define HAVE_INTTYPES_H 1
+| #define HAVE_STDINT_H 1
+| #define HAVE_UNISTD_H 1
+| #define __EXTENSIONS__ 1
+| #define _ALL_SOURCE 1
+| #define _GNU_SOURCE 1
+| #define _POSIX_PTHREAD_SEMANTICS 1
+| #define _TANDEM_SOURCE 1
+| #define HAVE_DLFCN_H 1
+| #define LT_OBJDIR ".libs/"
+| #define HAVE_DLFCN_H 1
+| #define USE_SECUREPLT 1
+| #define ENABLE_NLS 1
+| #define SIZEOF_LONG_LONG 8
+| #define SIZEOF_VOID_P 8
+| #define SIZEOF_LONG 8
+| #define HAVE_ALLOCA_H 1
+| #define HAVE_STDDEF_H 1
+| #define HAVE_STRING_H 1
+| #define HAVE_STRINGS_H 1
+| #define HAVE_STDLIB_H 1
+| #define HAVE_TIME_H 1
+| #define HAVE_UNISTD_H 1
+| #define HAVE_WCHAR_H 1
+| #define HAVE_FCNTL_H 1
+| #define HAVE_SYS_FILE_H 1
+| #define HAVE_SYS_TIME_H 1
+| #define HAVE_SYS_STAT_H 1
+| #define HAVE_SYS_RESOURCE_H 1
+| #define TIME_WITH_SYS_TIME 1
+| #define HAVE_DIRENT_H 1
+| #define STRING_WITH_STRINGS 1
+| #define HAVE_FCNTL 1
+| #define HAVE_GETPAGESIZE 1
+| #define HAVE_SETITIMER 1
+| #define HAVE_SYSCONF 1
+| #define HAVE_FDOPEN 1
+| #define HAVE_GETUID 1
+| #define HAVE_GETGID 1
+| #define HAVE_FILENO 1
+| #define HAVE_STRTOULL 1
+| #define HAVE_GETRLIMIT 1
+| #define HAVE_DECL_BASENAME 1
+| #define HAVE_DECL_FTELLO 1
+| #define HAVE_DECL_FTELLO64 1
+| #define HAVE_DECL_FSEEKO 1
+| #define HAVE_DECL_FSEEKO64 1
+| #define HAVE_DECL_FFS 1
+| #define HAVE_DECL_FREE 1
+| #define HAVE_DECL_GETENV 1
+| #define HAVE_DECL_MALLOC 1
+| #define HAVE_DECL_REALLOC 1
+| #define HAVE_DECL_STPCPY 1
+| #define HAVE_DECL_STRSTR 1
+| #define HAVE_DECL_SNPRINTF 1
+| #define HAVE_DECL_VSNPRINTF 1
+| #define HAVE_DECL_STRNLEN 1
+| #define HAVE_ZLIB_H 1
+| #define HAVE_SYS_PROCFS_H 1
+| #define HAVE_PRSTATUS_T 1
+| #define HAVE_PRPSINFO_T 1
+| #define HAVE_PRPSINFO_T_PR_PID 1
+| /* end confdefs.h.  */
+| 
+| #define _SYSCALL32
+| /* Needed for new procfs interface on sparc-solaris.  */
+| #define _STRUCTURED_PROC 1
+| #include <sys/procfs.h>
+| int
+| main ()
+| {
+| lwpxstatus_t avar
+|   ;
+|   return 0;
+| }
 configure:14838: result: no
 configure:14841: checking for lwpstatus_t.pr_context in sys/procfs.h
+configure:14861: gcc -c -g -O2  conftest.c >&5
+conftest.c: In function 'main':
+conftest.c:88:1: error: unknown type name 'lwpstatus_t'
+ lwpstatus_t avar; void* aref = (void*) &avar.pr_context
+ ^
+conftest.c:88:45: error: request for member 'pr_context' in something not a structure or union
+ lwpstatus_t avar; void* aref = (void*) &avar.pr_context
+                                             ^
+configure:14861: $? = 1
+configure: failed program was:
+| /* confdefs.h */
+| #define PACKAGE_NAME "bfd"
+| #define PACKAGE_TARNAME "bfd"
+| #define PACKAGE_VERSION "2.25.51"
+| #define PACKAGE_STRING "bfd 2.25.51"
+| #define PACKAGE_BUGREPORT ""
+| #define PACKAGE_URL ""
+| #define PACKAGE "bfd"
+| #define VERSION "2.25.51"
+| #define STDC_HEADERS 1
+| #define HAVE_SYS_TYPES_H 1
+| #define HAVE_SYS_STAT_H 1
+| #define HAVE_STDLIB_H 1
+| #define HAVE_STRING_H 1
+| #define HAVE_MEMORY_H 1
+| #define HAVE_STRINGS_H 1
+| #define HAVE_INTTYPES_H 1
+| #define HAVE_STDINT_H 1
+| #define HAVE_UNISTD_H 1
+| #define __EXTENSIONS__ 1
+| #define _ALL_SOURCE 1
+| #define _GNU_SOURCE 1
+| #define _POSIX_PTHREAD_SEMANTICS 1
+| #define _TANDEM_SOURCE 1
+| #define HAVE_DLFCN_H 1
+| #define LT_OBJDIR ".libs/"
+| #define HAVE_DLFCN_H 1
+| #define USE_SECUREPLT 1
+| #define ENABLE_NLS 1
+| #define SIZEOF_LONG_LONG 8
+| #define SIZEOF_VOID_P 8
+| #define SIZEOF_LONG 8
+| #define HAVE_ALLOCA_H 1
+| #define HAVE_STDDEF_H 1
+| #define HAVE_STRING_H 1
+| #define HAVE_STRINGS_H 1
+| #define HAVE_STDLIB_H 1
+| #define HAVE_TIME_H 1
+| #define HAVE_UNISTD_H 1
+| #define HAVE_WCHAR_H 1
+| #define HAVE_FCNTL_H 1
+| #define HAVE_SYS_FILE_H 1
+| #define HAVE_SYS_TIME_H 1
+| #define HAVE_SYS_STAT_H 1
+| #define HAVE_SYS_RESOURCE_H 1
+| #define TIME_WITH_SYS_TIME 1
+| #define HAVE_DIRENT_H 1
+| #define STRING_WITH_STRINGS 1
+| #define HAVE_FCNTL 1
+| #define HAVE_GETPAGESIZE 1
+| #define HAVE_SETITIMER 1
+| #define HAVE_SYSCONF 1
+| #define HAVE_FDOPEN 1
+| #define HAVE_GETUID 1
+| #define HAVE_GETGID 1
+| #define HAVE_FILENO 1
+| #define HAVE_STRTOULL 1
+| #define HAVE_GETRLIMIT 1
+| #define HAVE_DECL_BASENAME 1
+| #define HAVE_DECL_FTELLO 1
+| #define HAVE_DECL_FTELLO64 1
+| #define HAVE_DECL_FSEEKO 1
+| #define HAVE_DECL_FSEEKO64 1
+| #define HAVE_DECL_FFS 1
+| #define HAVE_DECL_FREE 1
+| #define HAVE_DECL_GETENV 1
+| #define HAVE_DECL_MALLOC 1
+| #define HAVE_DECL_REALLOC 1
+| #define HAVE_DECL_STPCPY 1
+| #define HAVE_DECL_STRSTR 1
+| #define HAVE_DECL_SNPRINTF 1
+| #define HAVE_DECL_VSNPRINTF 1
+| #define HAVE_DECL_STRNLEN 1
+| #define HAVE_ZLIB_H 1
+| #define HAVE_SYS_PROCFS_H 1
+| #define HAVE_PRSTATUS_T 1
+| #define HAVE_PRPSINFO_T 1
+| #define HAVE_PRPSINFO_T_PR_PID 1
+| /* end confdefs.h.  */
+| 
+| #define _SYSCALL32
+| /* Needed for new procfs interface on sparc-solaris.  */
+| #define _STRUCTURED_PROC 1
+| #include <sys/procfs.h>
+| int
+| main ()
+| {
+| lwpstatus_t avar; void* aref = (void*) &avar.pr_context
+|   ;
+|   return 0;
+| }
 configure:14875: result: no
 configure:14878: checking for lwpstatus_t.pr_reg in sys/procfs.h
+configure:14898: gcc -c -g -O2  conftest.c >&5
+conftest.c: In function 'main':
+conftest.c:88:1: error: unknown type name 'lwpstatus_t'
+ lwpstatus_t avar; void* aref = (void*) &avar.pr_reg
+ ^
+conftest.c:88:45: error: request for member 'pr_reg' in something not a structure or union
+ lwpstatus_t avar; void* aref = (void*) &avar.pr_reg
+                                             ^
+configure:14898: $? = 1
+configure: failed program was:
+| /* confdefs.h */
+| #define PACKAGE_NAME "bfd"
+| #define PACKAGE_TARNAME "bfd"
+| #define PACKAGE_VERSION "2.25.51"
+| #define PACKAGE_STRING "bfd 2.25.51"
+| #define PACKAGE_BUGREPORT ""
+| #define PACKAGE_URL ""
+| #define PACKAGE "bfd"
+| #define VERSION "2.25.51"
+| #define STDC_HEADERS 1
+| #define HAVE_SYS_TYPES_H 1
+| #define HAVE_SYS_STAT_H 1
+| #define HAVE_STDLIB_H 1
+| #define HAVE_STRING_H 1
+| #define HAVE_MEMORY_H 1
+| #define HAVE_STRINGS_H 1
+| #define HAVE_INTTYPES_H 1
+| #define HAVE_STDINT_H 1
+| #define HAVE_UNISTD_H 1
+| #define __EXTENSIONS__ 1
+| #define _ALL_SOURCE 1
+| #define _GNU_SOURCE 1
+| #define _POSIX_PTHREAD_SEMANTICS 1
+| #define _TANDEM_SOURCE 1
+| #define HAVE_DLFCN_H 1
+| #define LT_OBJDIR ".libs/"
+| #define HAVE_DLFCN_H 1
+| #define USE_SECUREPLT 1
+| #define ENABLE_NLS 1
+| #define SIZEOF_LONG_LONG 8
+| #define SIZEOF_VOID_P 8
+| #define SIZEOF_LONG 8
+| #define HAVE_ALLOCA_H 1
+| #define HAVE_STDDEF_H 1
+| #define HAVE_STRING_H 1
+| #define HAVE_STRINGS_H 1
+| #define HAVE_STDLIB_H 1
+| #define HAVE_TIME_H 1
+| #define HAVE_UNISTD_H 1
+| #define HAVE_WCHAR_H 1
+| #define HAVE_FCNTL_H 1
+| #define HAVE_SYS_FILE_H 1
+| #define HAVE_SYS_TIME_H 1
+| #define HAVE_SYS_STAT_H 1
+| #define HAVE_SYS_RESOURCE_H 1
+| #define TIME_WITH_SYS_TIME 1
+| #define HAVE_DIRENT_H 1
+| #define STRING_WITH_STRINGS 1
+| #define HAVE_FCNTL 1
+| #define HAVE_GETPAGESIZE 1
+| #define HAVE_SETITIMER 1
+| #define HAVE_SYSCONF 1
+| #define HAVE_FDOPEN 1
+| #define HAVE_GETUID 1
+| #define HAVE_GETGID 1
+| #define HAVE_FILENO 1
+| #define HAVE_STRTOULL 1
+| #define HAVE_GETRLIMIT 1
+| #define HAVE_DECL_BASENAME 1
+| #define HAVE_DECL_FTELLO 1
+| #define HAVE_DECL_FTELLO64 1
+| #define HAVE_DECL_FSEEKO 1
+| #define HAVE_DECL_FSEEKO64 1
+| #define HAVE_DECL_FFS 1
+| #define HAVE_DECL_FREE 1
+| #define HAVE_DECL_GETENV 1
+| #define HAVE_DECL_MALLOC 1
+| #define HAVE_DECL_REALLOC 1
+| #define HAVE_DECL_STPCPY 1
+| #define HAVE_DECL_STRSTR 1
+| #define HAVE_DECL_SNPRINTF 1
+| #define HAVE_DECL_VSNPRINTF 1
+| #define HAVE_DECL_STRNLEN 1
+| #define HAVE_ZLIB_H 1
+| #define HAVE_SYS_PROCFS_H 1
+| #define HAVE_PRSTATUS_T 1
+| #define HAVE_PRPSINFO_T 1
+| #define HAVE_PRPSINFO_T_PR_PID 1
+| /* end confdefs.h.  */
+| 
+| #define _SYSCALL32
+| /* Needed for new procfs interface on sparc-solaris.  */
+| #define _STRUCTURED_PROC 1
+| #include <sys/procfs.h>
+| int
+| main ()
+| {
+| lwpstatus_t avar; void* aref = (void*) &avar.pr_reg
+|   ;
+|   return 0;
+| }
 configure:14912: result: no
 configure:14915: checking for lwpstatus_t.pr_fpreg in sys/procfs.h
+configure:14935: gcc -c -g -O2  conftest.c >&5
+conftest.c: In function 'main':
+conftest.c:88:1: error: unknown type name 'lwpstatus_t'
+ lwpstatus_t avar; void* aref = (void*) &avar.pr_fpreg
+ ^
+conftest.c:88:45: error: request for member 'pr_fpreg' in something not a structure or union
+ lwpstatus_t avar; void* aref = (void*) &avar.pr_fpreg
+                                             ^
+configure:14935: $? = 1
+configure: failed program was:
+| /* confdefs.h */
+| #define PACKAGE_NAME "bfd"
+| #define PACKAGE_TARNAME "bfd"
+| #define PACKAGE_VERSION "2.25.51"
+| #define PACKAGE_STRING "bfd 2.25.51"
+| #define PACKAGE_BUGREPORT ""
+| #define PACKAGE_URL ""
+| #define PACKAGE "bfd"
+| #define VERSION "2.25.51"
+| #define STDC_HEADERS 1
+| #define HAVE_SYS_TYPES_H 1
+| #define HAVE_SYS_STAT_H 1
+| #define HAVE_STDLIB_H 1
+| #define HAVE_STRING_H 1
+| #define HAVE_MEMORY_H 1
+| #define HAVE_STRINGS_H 1
+| #define HAVE_INTTYPES_H 1
+| #define HAVE_STDINT_H 1
+| #define HAVE_UNISTD_H 1
+| #define __EXTENSIONS__ 1
+| #define _ALL_SOURCE 1
+| #define _GNU_SOURCE 1
+| #define _POSIX_PTHREAD_SEMANTICS 1
+| #define _TANDEM_SOURCE 1
+| #define HAVE_DLFCN_H 1
+| #define LT_OBJDIR ".libs/"
+| #define HAVE_DLFCN_H 1
+| #define USE_SECUREPLT 1
+| #define ENABLE_NLS 1
+| #define SIZEOF_LONG_LONG 8
+| #define SIZEOF_VOID_P 8
+| #define SIZEOF_LONG 8
+| #define HAVE_ALLOCA_H 1
+| #define HAVE_STDDEF_H 1
+| #define HAVE_STRING_H 1
+| #define HAVE_STRINGS_H 1
+| #define HAVE_STDLIB_H 1
+| #define HAVE_TIME_H 1
+| #define HAVE_UNISTD_H 1
+| #define HAVE_WCHAR_H 1
+| #define HAVE_FCNTL_H 1
+| #define HAVE_SYS_FILE_H 1
+| #define HAVE_SYS_TIME_H 1
+| #define HAVE_SYS_STAT_H 1
+| #define HAVE_SYS_RESOURCE_H 1
+| #define TIME_WITH_SYS_TIME 1
+| #define HAVE_DIRENT_H 1
+| #define STRING_WITH_STRINGS 1
+| #define HAVE_FCNTL 1
+| #define HAVE_GETPAGESIZE 1
+| #define HAVE_SETITIMER 1
+| #define HAVE_SYSCONF 1
+| #define HAVE_FDOPEN 1
+| #define HAVE_GETUID 1
+| #define HAVE_GETGID 1
+| #define HAVE_FILENO 1
+| #define HAVE_STRTOULL 1
+| #define HAVE_GETRLIMIT 1
+| #define HAVE_DECL_BASENAME 1
+| #define HAVE_DECL_FTELLO 1
+| #define HAVE_DECL_FTELLO64 1
+| #define HAVE_DECL_FSEEKO 1
+| #define HAVE_DECL_FSEEKO64 1
+| #define HAVE_DECL_FFS 1
+| #define HAVE_DECL_FREE 1
+| #define HAVE_DECL_GETENV 1
+| #define HAVE_DECL_MALLOC 1
+| #define HAVE_DECL_REALLOC 1
+| #define HAVE_DECL_STPCPY 1
+| #define HAVE_DECL_STRSTR 1
+| #define HAVE_DECL_SNPRINTF 1
+| #define HAVE_DECL_VSNPRINTF 1
+| #define HAVE_DECL_STRNLEN 1
+| #define HAVE_ZLIB_H 1
+| #define HAVE_SYS_PROCFS_H 1
+| #define HAVE_PRSTATUS_T 1
+| #define HAVE_PRPSINFO_T 1
+| #define HAVE_PRPSINFO_T_PR_PID 1
+| /* end confdefs.h.  */
+| 
+| #define _SYSCALL32
+| /* Needed for new procfs interface on sparc-solaris.  */
+| #define _STRUCTURED_PROC 1
+| #include <sys/procfs.h>
+| int
+| main ()
+| {
+| lwpstatus_t avar; void* aref = (void*) &avar.pr_fpreg
+|   ;
+|   return 0;
+| }
 configure:14949: result: no
 configure:14952: checking for win32_pstatus_t in sys/procfs.h
+configure:14972: gcc -c -g -O2  conftest.c >&5
+conftest.c: In function 'main':
+conftest.c:88:1: error: unknown type name 'win32_pstatus_t'
+ win32_pstatus_t avar
+ ^
+configure:14972: $? = 1
+configure: failed program was:
+| /* confdefs.h */
+| #define PACKAGE_NAME "bfd"
+| #define PACKAGE_TARNAME "bfd"
+| #define PACKAGE_VERSION "2.25.51"
+| #define PACKAGE_STRING "bfd 2.25.51"
+| #define PACKAGE_BUGREPORT ""
+| #define PACKAGE_URL ""
+| #define PACKAGE "bfd"
+| #define VERSION "2.25.51"
+| #define STDC_HEADERS 1
+| #define HAVE_SYS_TYPES_H 1
+| #define HAVE_SYS_STAT_H 1
+| #define HAVE_STDLIB_H 1
+| #define HAVE_STRING_H 1
+| #define HAVE_MEMORY_H 1
+| #define HAVE_STRINGS_H 1
+| #define HAVE_INTTYPES_H 1
+| #define HAVE_STDINT_H 1
+| #define HAVE_UNISTD_H 1
+| #define __EXTENSIONS__ 1
+| #define _ALL_SOURCE 1
+| #define _GNU_SOURCE 1
+| #define _POSIX_PTHREAD_SEMANTICS 1
+| #define _TANDEM_SOURCE 1
+| #define HAVE_DLFCN_H 1
+| #define LT_OBJDIR ".libs/"
+| #define HAVE_DLFCN_H 1
+| #define USE_SECUREPLT 1
+| #define ENABLE_NLS 1
+| #define SIZEOF_LONG_LONG 8
+| #define SIZEOF_VOID_P 8
+| #define SIZEOF_LONG 8
+| #define HAVE_ALLOCA_H 1
+| #define HAVE_STDDEF_H 1
+| #define HAVE_STRING_H 1
+| #define HAVE_STRINGS_H 1
+| #define HAVE_STDLIB_H 1
+| #define HAVE_TIME_H 1
+| #define HAVE_UNISTD_H 1
+| #define HAVE_WCHAR_H 1
+| #define HAVE_FCNTL_H 1
+| #define HAVE_SYS_FILE_H 1
+| #define HAVE_SYS_TIME_H 1
+| #define HAVE_SYS_STAT_H 1
+| #define HAVE_SYS_RESOURCE_H 1
+| #define TIME_WITH_SYS_TIME 1
+| #define HAVE_DIRENT_H 1
+| #define STRING_WITH_STRINGS 1
+| #define HAVE_FCNTL 1
+| #define HAVE_GETPAGESIZE 1
+| #define HAVE_SETITIMER 1
+| #define HAVE_SYSCONF 1
+| #define HAVE_FDOPEN 1
+| #define HAVE_GETUID 1
+| #define HAVE_GETGID 1
+| #define HAVE_FILENO 1
+| #define HAVE_STRTOULL 1
+| #define HAVE_GETRLIMIT 1
+| #define HAVE_DECL_BASENAME 1
+| #define HAVE_DECL_FTELLO 1
+| #define HAVE_DECL_FTELLO64 1
+| #define HAVE_DECL_FSEEKO 1
+| #define HAVE_DECL_FSEEKO64 1
+| #define HAVE_DECL_FFS 1
+| #define HAVE_DECL_FREE 1
+| #define HAVE_DECL_GETENV 1
+| #define HAVE_DECL_MALLOC 1
+| #define HAVE_DECL_REALLOC 1
+| #define HAVE_DECL_STPCPY 1
+| #define HAVE_DECL_STRSTR 1
+| #define HAVE_DECL_SNPRINTF 1
+| #define HAVE_DECL_VSNPRINTF 1
+| #define HAVE_DECL_STRNLEN 1
+| #define HAVE_ZLIB_H 1
+| #define HAVE_SYS_PROCFS_H 1
+| #define HAVE_PRSTATUS_T 1
+| #define HAVE_PRPSINFO_T 1
+| #define HAVE_PRPSINFO_T_PR_PID 1
+| /* end confdefs.h.  */
+| 
+| #define _SYSCALL32
+| /* Needed for new procfs interface on sparc-solaris.  */
+| #define _STRUCTURED_PROC 1
+| #include <sys/procfs.h>
+| int
+| main ()
+| {
+| win32_pstatus_t avar
+|   ;
+|   return 0;
+| }
 configure:14986: result: no
 configure:15009: checking linker --as-needed support
 configure:15020: result: yes
 configure:15111: checking for cos in -lm
+configure:15136: gcc -o conftest -g -O2    conftest.c -lm  -lz -ldl  >&5
+conftest.c:88:6: warning: conflicting types for built-in function 'cos'
+ char cos ();
+      ^
+configure:15136: $? = 0
 configure:15145: result: yes
 configure:15702: checking for gcc version with buggy 64-bit support
 configure:15715: result: no
 configure:15754: checking for ftello
+configure:15754: gcc -o conftest -g -O2    conftest.c -lz -ldl  >&5
+configure:15754: $? = 0
 configure:15754: result: yes
 configure:15754: checking for ftello64
+configure:15754: gcc -o conftest -g -O2    conftest.c -lz -ldl  >&5
+configure:15754: $? = 0
 configure:15754: result: yes
 configure:15754: checking for fseeko
+configure:15754: gcc -o conftest -g -O2    conftest.c -lz -ldl  >&5
+configure:15754: $? = 0
 configure:15754: result: yes
 configure:15754: checking for fseeko64
+configure:15754: gcc -o conftest -g -O2    conftest.c -lz -ldl  >&5
+configure:15754: $? = 0
 configure:15754: result: yes
 configure:15754: checking for fopen64
+configure:15754: gcc -o conftest -g -O2    conftest.c -lz -ldl  >&5
+configure:15754: $? = 0
 configure:15754: result: yes
 configure:15769: checking size of off_t
+configure:15774: gcc -o conftest -g -O2    conftest.c -lz -ldl  >&5
+configure:15774: $? = 0
+configure:15774: ./conftest
+configure:15774: $? = 0
 configure:15789: result: 8
 configure:15800: checking file_ptr type
 configure:15809: result: BFD_HOST_64_BIT
@@ -821,11 +3357,20 @@ configure:15826: result: yes
 configure:15839: checking for getpagesize
 configure:15839: result: yes
 configure:15848: checking for working mmap
+configure:15985: gcc -o conftest -g -O2    conftest.c -lz -ldl  >&5
+configure:15985: $? = 0
+configure:15985: ./conftest
+configure:15985: $? = 0
 configure:15995: result: yes
 configure:16007: checking for madvise
+configure:16007: gcc -o conftest -g -O2    conftest.c -lz -ldl  >&5
+configure:16007: $? = 0
 configure:16007: result: yes
 configure:16007: checking for mprotect
+configure:16007: gcc -o conftest -g -O2    conftest.c -lz -ldl  >&5
+configure:16007: $? = 0
 configure:16007: result: yes
+configure:16100: updating cache ./config.cache
 configure:16169: creating ./config.status
 
 ## ---------------------- ##
@@ -843,17 +3388,16 @@ generated by GNU Autoconf 2.64.  Invocation command line was
 
 on frosting.ittc.ku.edu
 
-config.status:1233: creating Makefile
-config.status:1233: creating doc/Makefile
-config.status:1233: creating bfd-in3.h
-config.status:1233: creating po/Makefile.in
-config.status:1233: creating config.h
-config.status:1405: config.h is unchanged
-config.status:1453: executing depfiles commands
-config.status:1453: executing libtool commands
-config.status:1453: executing default-1 commands
-config.status:1453: executing bfd_stdint.h commands
-config.status:1453: executing default commands
+config.status:1234: creating Makefile
+config.status:1234: creating doc/Makefile
+config.status:1234: creating bfd-in3.h
+config.status:1234: creating po/Makefile.in
+config.status:1234: creating config.h
+config.status:1454: executing depfiles commands
+config.status:1454: executing libtool commands
+config.status:1454: executing default-1 commands
+config.status:1454: executing bfd_stdint.h commands
+config.status:1454: executing default commands
 
 ## ---------------- ##
 ## Cache variables. ##
@@ -938,6 +3482,7 @@ ac_cv_header_time_h=yes
 ac_cv_header_unistd_h=yes
 ac_cv_header_wchar_h=yes
 ac_cv_header_windows_h=no
+ac_cv_header_zlib_h=yes
 ac_cv_host=x86_64-unknown-linux-gnu
 ac_cv_lib_dl_dlopen=yes
 ac_cv_lib_dld_shl_load=no
@@ -966,7 +3511,7 @@ ac_cv_safe_to_define___extensions__=yes
 ac_cv_search_dlopen=-ldl
 ac_cv_search_opendir='none required'
 ac_cv_search_strerror='none required'
-ac_cv_search_zlibVersion=no
+ac_cv_search_zlibVersion=-lz
 ac_cv_sizeof_long=8
 ac_cv_sizeof_long_long=8
 ac_cv_sizeof_off_t=8
@@ -1094,7 +3639,7 @@ LIBINTL=''
 LIBINTL_DEP=''
 LIBM='-lm'
 LIBOBJS=''
-LIBS='-ldl '
+LIBS='-lz -ldl '
 LIBTOOL='$(SHELL) $(top_builddir)/libtool'
 LIPO=''
 LN_S='ln -s'
@@ -1285,6 +3830,7 @@ wordsize='64'
 #define HAVE_DECL_SNPRINTF 1
 #define HAVE_DECL_VSNPRINTF 1
 #define HAVE_DECL_STRNLEN 1
+#define HAVE_ZLIB_H 1
 #define HAVE_SYS_PROCFS_H 1
 #define HAVE_PRSTATUS_T 1
 #define HAVE_PRPSINFO_T 1

@@ -897,7 +897,7 @@ LOCALE_JA = ja_JP
 LOCALE_ZH_CN = zh_CN.GB18030
 LTLIBOBJS = 
 MAINT = #
-MAKEINFO = /nfs/projects/zephyr/deadzone/ArmoredSoftware/llvm/gdb/mod1/gdb-7.9/missing makeinfo --split-size=5000000
+MAKEINFO = makeinfo --split-size=5000000
 MKDIR_P = /bin/mkdir -p
 NEXT_AS_FIRST_DIRECTIVE_DIRENT_H = <dirent.h>
 NEXT_AS_FIRST_DIRECTIVE_ERRNO_H = 
@@ -1200,7 +1200,7 @@ mandir = ${datarootdir}/man
 mkdir_p = /bin/mkdir -p
 oldincludedir = /usr/include
 pdfdir = ${docdir}
-prefix = /usr
+prefix = /usr/local
 program_transform_name = s,y,y,
 psdir = ${docdir}
 sbindir = ${exec_prefix}/sbin

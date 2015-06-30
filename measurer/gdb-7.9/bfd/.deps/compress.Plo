@@ -32,6 +32,12 @@ compress.lo: compress.c /usr/include/stdc-predef.h sysdep.h config.h \
  ../include/filenames.h ../include/hashtab.h ../include/ansidecl.h \
  /usr/include/libintl.h /usr/include/locale.h /usr/include/bits/locale.h \
  bfd.h ../include/symcat.h libbfd.h ../include/hashtab.h \
+ /usr/include/zlib.h /usr/include/zconf.h \
+ /usr/lib/gcc/x86_64-redhat-linux/4.9.2/include/limits.h \
+ /usr/lib/gcc/x86_64-redhat-linux/4.9.2/include/syslimits.h \
+ /usr/include/limits.h /usr/include/bits/posix1_lim.h \
+ /usr/include/bits/local_lim.h /usr/include/linux/limits.h \
+ /usr/include/bits/posix2_lim.h /usr/include/bits/xopen_lim.h \
  ../include/safe-ctype.h /usr/include/ctype.h
 
 /usr/include/stdc-predef.h:
@@ -183,6 +189,26 @@ bfd.h:
 libbfd.h:
 
 ../include/hashtab.h:
+
+/usr/include/zlib.h:
+
+/usr/include/zconf.h:
+
+/usr/lib/gcc/x86_64-redhat-linux/4.9.2/include/limits.h:
+
+/usr/lib/gcc/x86_64-redhat-linux/4.9.2/include/syslimits.h:
+
+/usr/include/limits.h:
+
+/usr/include/bits/posix1_lim.h:
+
+/usr/include/bits/local_lim.h:
+
+/usr/include/linux/limits.h:
+
+/usr/include/bits/posix2_lim.h:
+
+/usr/include/bits/xopen_lim.h:
 
 ../include/safe-ctype.h:
 

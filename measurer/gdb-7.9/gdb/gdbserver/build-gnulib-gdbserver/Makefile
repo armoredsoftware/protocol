@@ -15,7 +15,7 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-prefix = /usr
+prefix = /usr/local
 exec_prefix = ${prefix}
 
 host_alias = x86_64-unknown-linux-gnu

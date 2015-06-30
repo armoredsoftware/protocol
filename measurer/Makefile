@@ -6,6 +6,9 @@ configure-measurer:
 	cd gdb-7.9; make clean; ./configure
 	cp gdb-7.9/patch/Makefile gdb-7.9/gdb/
 
+syscall-measurer:
+	sudo ln -s `pwd`/gdb-7.9/gdb /usr/local/share/gdb
+
 build-measurer:
 	cd gdb-7.9; make
 

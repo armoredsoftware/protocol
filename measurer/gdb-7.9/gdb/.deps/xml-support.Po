@@ -13,7 +13,7 @@ xml-support.o: xml-support.c defs.h common/common-defs.h config.h \
  gdbarch.h frame.h unwind_stop_reasons.def utils.h exceptions.h ui-out.h \
  gdbcmd.h command.h common/gdb_vecs.h common/vec.h xml-support.h \
  gdb_obstack.h ../include/obstack.h common/vec.h common/xml-utils.h \
- common/filestuff.h ../include/safe-ctype.h
+ common/filestuff.h ../include/safe-ctype.h gdb_expat.h
 
 defs.h:
 
@@ -118,3 +118,5 @@ common/xml-utils.h:
 common/filestuff.h:
 
 ../include/safe-ctype.h:
+
+gdb_expat.h:

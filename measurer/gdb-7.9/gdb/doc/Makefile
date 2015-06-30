@@ -19,7 +19,7 @@
 srcdir = .
 
 
-prefix = /usr
+prefix = /usr/local
 
 infodir = ${datarootdir}/info
 datarootdir = ${prefix}/share
@@ -51,9 +51,9 @@ gdbdir = $(srcdir)/..
 TEXIDIR=${gdbdir}/../texinfo
 
 # where to find makeinfo, preferably one designed for texinfo-2
-MAKEINFO = /nfs/projects/zephyr/deadzone/ArmoredSoftware/llvm/gdb/mod1/gdb-7.9/missing makeinfo --split-size=5000000
+MAKEINFO = makeinfo --split-size=5000000
 MAKEINFOFLAGS = 
-MAKEINFO_EXTRA_FLAGS = 
+MAKEINFO_EXTRA_FLAGS =  -DHAVE_MAKEINFO_CLICK
 MAKEINFO_CMD = $(MAKEINFO) $(MAKEINFOFLAGS) $(MAKEINFO_EXTRA_FLAGS)
 
 MAKEHTML = $(MAKEINFO_CMD) --html
@@ -75,7 +75,7 @@ BUGURL_TEXI = @uref{http://www.gnu.org/software/gdb/bugs/}
 # Where is the source dir for the READLINE library doc?  
 # Traditionally readline is in .. or .
 READLINE_DIR = ${gdbdir}/../readline/doc
-READLINE_TEXI_INCFLAG = 
+READLINE_TEXI_INCFLAG = -I $(READLINE_DIR)
 
 # The GDB/MI docs come from a sibling directory ../mi
 GDBMI_DIR = ${gdbdir}/mi

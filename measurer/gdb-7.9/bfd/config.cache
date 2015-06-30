@@ -90,6 +90,7 @@ ac_cv_header_time_h=${ac_cv_header_time_h=yes}
 ac_cv_header_unistd_h=${ac_cv_header_unistd_h=yes}
 ac_cv_header_wchar_h=${ac_cv_header_wchar_h=yes}
 ac_cv_header_windows_h=${ac_cv_header_windows_h=no}
+ac_cv_header_zlib_h=${ac_cv_header_zlib_h=yes}
 ac_cv_host=${ac_cv_host=x86_64-unknown-linux-gnu}
 ac_cv_lib_dl_dlopen=${ac_cv_lib_dl_dlopen=yes}
 ac_cv_lib_dld_shl_load=${ac_cv_lib_dld_shl_load=no}
@@ -118,7 +119,7 @@ ac_cv_safe_to_define___extensions__=${ac_cv_safe_to_define___extensions__=yes}
 ac_cv_search_dlopen=${ac_cv_search_dlopen=-ldl}
 ac_cv_search_opendir=${ac_cv_search_opendir='none required'}
 ac_cv_search_strerror=${ac_cv_search_strerror='none required'}
-ac_cv_search_zlibVersion=${ac_cv_search_zlibVersion=no}
+ac_cv_search_zlibVersion=${ac_cv_search_zlibVersion=-lz}
 ac_cv_sizeof_long=${ac_cv_sizeof_long=8}
 ac_cv_sizeof_long_long=${ac_cv_sizeof_long_long=8}
 ac_cv_sizeof_off_t=${ac_cv_sizeof_off_t=8}

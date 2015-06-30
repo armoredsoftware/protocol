@@ -16,7 +16,7 @@ solib-target.o: solib-target.c defs.h common/common-defs.h config.h \
  progspace.h target.h target/target.h target/waitstatus.h \
  common/gdb_signals.h target/resume.h target/wait.h target/waitstatus.h \
  memattr.h btrace.h common/btrace-common.h command.h registry.h gdb_bfd.h \
- solist.h solib-target.h
+ solist.h solib-target.h xml-support.h common/xml-utils.h
 
 defs.h:
 
@@ -153,3 +153,7 @@ gdb_bfd.h:
 solist.h:
 
 solib-target.h:
+
+xml-support.h:
+
+common/xml-utils.h:

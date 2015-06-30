@@ -596,6 +596,26 @@ BE_event * ME_API_reach_func(char * func_name, int repeat) {
   return event;
 }
 
+BE_event * ME_API_reach_syscall(char * syscall, int repeat) {
+  BE_event * event = BE_event_b_create(get_breakpoint_count()+1,repeat);
+
+  //interrupt and insert breakpoint
+  execute_command("interrupt",0);
+  wait_for_inferior(); 
+  normal_stop();
+  char command[64];
+  sprintf(command, "catch syscall %s", syscall);
+  printf("Executing command:%s\n", command);
+  execute_command(command,0);
+  //catch_command(syscall,0);
+  //break_command(func_name,0);
+
+  //continue
+  continue_command_JG();
+      
+  return event;
+}
+
 int ME_API_hook(struct BE_event * event, struct ME_RLI_IR_expr * action) {
   if (!the_context.attached) {
     return -1;
