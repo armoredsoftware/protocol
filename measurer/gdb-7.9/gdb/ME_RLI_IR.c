@@ -98,7 +98,6 @@ ME_RLI_token * ME_RLI_tokenize(char * in) {
   //TODO ensure token length....
   
   while (1) {
-     
     //consume token
     if (in[curr] == '(' || in[curr] == ')') {
       token[token_curr++] = in[curr++];
@@ -432,6 +431,11 @@ struct ME_RLI_IR_func * ME_RLI_IR_func_parse(struct ME_RLI_token ** curr) {
   (*curr) = (*curr)->next;
 
   //consume function name
+  if (!(*curr) || strcmp((*curr)->value,")")==0) {
+    printf("Parse error: Invalid function call at \"(\"\n");
+    return NULL;
+  } 
+
   ME_RLI_IR_sym * func_name = ME_RLI_IR_sym_parse(curr);
 
   ME_RLI_IR_func * func = ME_RLI_IR_func_create(func_name);
