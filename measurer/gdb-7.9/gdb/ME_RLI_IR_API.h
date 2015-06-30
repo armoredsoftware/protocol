@@ -13,7 +13,6 @@ extern struct ME_RLI_IR_value ME_RLI_IR_API_quit(struct ME_RLI_IR_value *, int);
 extern struct ME_RLI_IR_value ME_RLI_IR_API_print_context(struct ME_RLI_IR_value *, int);
 extern struct ME_RLI_IR_value ME_RLI_IR_API_measure_callstack(struct ME_RLI_IR_value *, int);
 extern struct ME_RLI_IR_value ME_RLI_IR_API_measure(struct ME_RLI_IR_value *, int);
-extern struct ME_RLI_IR_value ME_RLI_IR_API_sendme(struct ME_RLI_IR_value *, int);
 extern struct ME_RLI_IR_value ME_RLI_IR_API_store(struct ME_RLI_IR_value *, int);
 extern struct ME_RLI_IR_value ME_RLI_IR_API_load(struct ME_RLI_IR_value *, int);
 extern struct ME_RLI_IR_value ME_RLI_IR_API_delay(struct ME_RLI_IR_value *, int);

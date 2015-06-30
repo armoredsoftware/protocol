@@ -58,7 +58,6 @@ extern void ME_API_quit();
 extern void ME_API_print_context();
 extern struct ME_measurement * ME_API_measure_callstack();
 extern struct ME_measurement * ME_API_measure(struct ME_feature *);
-extern void ME_API_sendme(struct ME_measurement *);
 extern void ME_API_store(int, struct ME_measurement *);
 extern struct ME_measurement * ME_API_load(int);
 extern struct BE_event * ME_API_delay(int, int);

@@ -537,13 +537,6 @@ ME_measurement * ME_API_measure(ME_feature * feature)
   return ms;
 }
 
-void ME_API_sendme(ME_measurement * ms)
-{  
-  ME_measurement_print(ms);
-  ME_measurement_send_temp(the_context.driverfd, ms);
-  printf("Sent measurements!\n");
-}
-
 void ME_API_store(int i, ME_measurement * ms) {
   if (i >= ME_STORE_SIZE) {
     printf("Could not store beyond bounds of measurement store!\n");

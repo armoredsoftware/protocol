@@ -109,16 +109,6 @@ struct ME_RLI_IR_value ME_RLI_IR_API_measure(struct ME_RLI_IR_value * args_vals,
   return ME_RLI_IR_value_create_measurement(ms);
 }
 
-struct ME_RLI_IR_value ME_RLI_IR_API_sendme(struct ME_RLI_IR_value * args_vals, int arg_count) {
-  ME_RLI_IR_value_type expected_types[] = {ME_RLI_IR_VALUE_MEASUREMENT};
-  ME_RLI_IR_value result = ME_RLI_IR_API_check_args(expected_types,sizeof(expected_types)/sizeof(ME_RLI_IR_value_type),args_vals,arg_count);
-  if (result.type == ME_RLI_IR_VALUE_ERROR) return result;
-
-  ME_measurement * ms = args_vals[0].vdata.ms;
-  ME_API_sendme(ms);
-  return ME_RLI_IR_value_create_void();
-}
-
 struct ME_RLI_IR_value ME_RLI_IR_API_store(struct ME_RLI_IR_value * args_vals, int arg_count) {
   ME_RLI_IR_value_type expected_types[] = {ME_RLI_IR_VALUE_INT, ME_RLI_IR_VALUE_MEASUREMENT};
   ME_RLI_IR_value result = ME_RLI_IR_API_check_args(expected_types,sizeof(expected_types)/sizeof(ME_RLI_IR_value_type),args_vals,arg_count);
@@ -295,7 +285,6 @@ ME_RLI_API_func ME_RLI_API_func_look_up(char * func_name) {
   else if (strcmp(func_name,"print_context")==0) return &ME_RLI_IR_API_print_context;
   else if (strcmp(func_name,"measure_callstack")==0) return &ME_RLI_IR_API_measure_callstack;
   else if (strcmp(func_name,"measure")==0) return &ME_RLI_IR_API_measure;
-  else if (strcmp(func_name,"sendme")==0) return &ME_RLI_IR_API_sendme;
   else if (strcmp(func_name,"store")==0) return &ME_RLI_IR_API_store;
   else if (strcmp(func_name,"load")==0) return &ME_RLI_IR_API_load;
   else if (strcmp(func_name,"delay")==0) return &ME_RLI_IR_API_delay;
