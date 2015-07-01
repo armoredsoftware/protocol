@@ -1,4 +1,4 @@
-module Main where --AppMain where 
+module AppMain where --AppMain where 
 
 import CAProtoMain (caEntity_App)
 import ProtoMonad
@@ -37,10 +37,10 @@ appCommInit domid = do
   return $ ProtoEnv 0 myPri ents pubs 0 0 0 1 
 
 
-main = appmain 1
+appmain = appmain' 1
 
-appmain :: Int -> IO ()
-appmain pId = do 
+appmain' :: Int -> IO ()
+appmain' pId = do 
   putStrLn "Main of entity Appraiser"
   env <- appCommInit 3 -- [appId, caId] --TODO: Need Channel form Paul
   let pcrSelect = mkTPMRequest [0..23]

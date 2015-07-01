@@ -36,16 +36,16 @@ attCommInit domidS = do
   return $ ProtoEnv 0 myPri ents pubs 0 0 0 1
 
 
-attmain = attmain' [1, 4]
+main = attmain [1, 4]
 
-attmain' :: [Int] -> IO String
-attmain' chans = do 
+attmain :: [Int] -> IO String
+attmain chans = do 
   putStrLn "Main of entity Attestation"
   env <- attCommInit chans --[1, 4]--[appId, caId]
   eitherResult <- runProto caEntity_Att env
   let str = case eitherResult of
-             Left s -> "Error occured: " ++ s
-             Right _ ->"End of Attestation"
+                 Left s -> "Error occured: " ++ s
+                 Right _ ->"End of Attestation"
   putStrLn str 
   return str
   
