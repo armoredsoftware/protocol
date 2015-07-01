@@ -1,8 +1,8 @@
 {-# LANGUAGE NoMonomorphismRestriction #-}
 {-# LANGUAGE ScopedTypeVariables #-}
-module Main (main,module Plugins.API) where
-import Shell
-import Plugins.API
+module Main (main{-,module Plugins.API-}) where
+--import Shell
+--import Plugins.API
 {-
 import Paths_tpm
 import Control.Monad
@@ -11,12 +11,12 @@ import System.Environment
 import System.Directory
 import System.FilePath
 -}
-import qualified Shell.Commands.PCR as PCR
+{-import qualified Shell.Commands.PCR as PCR
 import qualified Shell.Commands.Admin as ADM
 import qualified Shell.Commands.Session as SHL
 import qualified Shell.Commands.Capability as CAP
 import qualified Shell.Commands.Key as KEY
-import qualified Shell.Commands.Storage as STO
+import qualified Shell.Commands.Storage as STO -}
 {-
 import Prelude hiding (writeFile,readFile)
 import Data.ByteString (readFile,writeFile)
@@ -56,7 +56,7 @@ import qualified TestChannel as WOIEJF
 import qualified TestHttpChannelA as WEOIJFWAPOJF
 import qualified TestHttpChannelB as EIJFWSAOERFJ
 --import qualified TestHttpChannelAMain as FEIJFEIJF
---import qualified TestHttpChannelBMain as EIFJEIF 
+--import qualified TestHttpChannelBMain as EIFJEIF
 
 {-
 cmd_log :: (TPM t) => ShellCmd (State t)
@@ -104,7 +104,7 @@ loadstate = do
     createDirectoryIfMissing True (home </> ".tpm")
     let file = home </> ".tpm" </> "state"
     res <- tryJust (\(e :: IOException) -> return $ Just ()) (readFile file)
-    case res of 
+    case res of
         Left _ -> return ([],[])
         Right r -> return $ decode (LBS.fromChunks [r])
 
@@ -121,7 +121,7 @@ close = do
     sta <- shellGetState
     case session sta of
         Nothing  -> return ()
-        Just sh  -> do shellPutStr "Closing active session..." 
+        Just sh  -> do shellPutStr "Closing active session..."
                        liftIO $ tpm_session_close tpm sh
                        shellPutStrLn "done"
     mapM_ (flushkey tpm) (loaded sta)
@@ -131,7 +131,7 @@ close = do
             liftIO $ tpm_flushspecific tpm key tpm_rt_key
             shellPutStrLn $ "Evicted loaded key " ++ name ++ " from TPM."
 
-shell tpm = do 
+shell tpm = do
     plugpaths <- plugins
     srcpaths  <- paths
     hist      <- history
@@ -159,10 +159,9 @@ shell tpm = do
 
 -}
 
-main = do {-withOpenSSL $ do 
+main = do {-withOpenSSL $ do
     let tpm = tpm_socket "/var/run/tpm/tpmd_socket:0"
     shell' <- shell tpm
     runShell shell' -}
     putStrLn "project main"
-    return () 
-
+    return ()
