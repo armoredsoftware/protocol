@@ -1,9 +1,10 @@
+{-# LANGUAGE ScopedTypeVariables #-}
 module ProtoActions where
 
 import ProtoTypes
 import ProtoMonad
 import VChanUtil
-import CommTools (sendG', receiveG') 
+import CommTools (sendG', receiveG')
 --import ProtoTypes(Channel)
 
 import Data.ByteString.Lazy hiding (pack, map, putStrLn)
@@ -11,6 +12,7 @@ import qualified Control.Monad.Trans.Reader as T
 import Data.Monoid
 import Data.Binary
 import qualified Codec.Crypto.RSA as C
+import Crypto.Random
 import Crypto.Cipher.AES
 import System.Random
 import Control.Monad.IO.Class
@@ -26,14 +28,15 @@ checkNonce :: Nonce -> Nonce -> Proto ()
 checkNonce expected actual = do
   case (expected == actual) of
     True -> return ()
-    False -> throwError "Nonce check failed" 
-    
+    False -> throwError "Nonce check failed"
+
 --Encrypt with the PublicKey associated with targetId
 --TODO:  Is there only 1 public key associated with each target(maybe abstractly?)
 encrypt :: EntityId -> [ArmoredData]-> Proto CipherText
 encrypt targetId inData = do
   pubKey <- getEntityPubKey targetId
-  return $ genEncrypt pubKey inData
+  result <- liftIO $ genEncrypt pubKey inData
+  return result
 
 --Decrypt using MY PrivateKey
 decrypt :: CipherText -> Proto [ArmoredData]
@@ -43,7 +46,7 @@ decrypt cipherText = do
 
 --Symmetric Key decryption
 decrypt' :: (Binary a) => SymmKey -> CipherText -> a
-decrypt' sessKey blob = let 
+decrypt' sessKey blob = let
   keyBytes = tpmSymmetricData sessKey
   strictKey = toStrict keyBytes
   aes = initAES strictKey
@@ -51,8 +54,8 @@ decrypt' sessKey blob = let
   decryptedBytes = decryptCTR aes ctr (toStrict blob)
   lazy = fromStrict decryptedBytes in
   (decode lazy)
-  
-  
+
+
 --Sign with MY PrivateKey
 sign :: [ArmoredData] -> Proto (SignedData [ArmoredData])
 sign inData = do
@@ -69,7 +72,7 @@ send toId ds = do
   liftIO $ sendG' chan ds
   liftIO $ putStrLn $ "Sent message! " ++ (show ds)
   return ()
-  
+
 send' :: LibXenVChan -> Message -> Proto ()
 send' chan ds = do
   --chan <- getEntityChannel toId
@@ -79,7 +82,7 @@ send' chan ds = do
  -- liftIO $ sendG' chan ds
   liftIO $ putStrLn $ "Sent message! " ++ (show ds)
   return ()
-  
+
 receive :: EntityId -> Proto Message
 receive fromId = do
   liftIO $ putStrLn $ "In receive"
@@ -108,9 +111,9 @@ receive' chan = do
   liftIO $ putStrLn $ "Received message!"   -- ++ (show result)
  -- liftIO $ putStrLn $ "Received: " ++ (show result)
   return $ result
-  
+
 --TODO:  Should this be in the Proto monad?(i.e. to choose packImpl).
-genEncrypt :: Binary a => PublicKey -> [a] -> CipherText
+genEncrypt :: Binary a => PublicKey -> [a] -> IO CipherText
 genEncrypt pubKey inData = realEncrypt pubKey clearText
  where
    clearText = packImpl inData --extract packImpl from ProtoEnv here(via Proto monad)?
@@ -130,21 +133,22 @@ genSign priKey inData =
 
 
 --Concrete implementations-------------------------------------------------
-realEncrypt :: PublicKey -> ByteString -> CipherText
-realEncrypt pubKey clearText = --Concrete implementation plugs in here
-  let gen = mkStdGen 3
-      (cipher, _) = C.encrypt gen pubKey clearText in
-  cipher
+realEncrypt :: PublicKey -> ByteString -> IO CipherText
+realEncrypt pubKey clearText = do --Concrete implementation plugs in here
+  {-let gen = mkStdGen 3 -}
+  gen::SystemRandom <- newGenIO
+  let (cipher, _) = C.encrypt gen pubKey clearText
+  return cipher
 
 realDecrypt :: PrivateKey -> CipherText -> ByteString
 realDecrypt priKey cipherText = --Concrete implementation here
   C.decrypt priKey cipherText
 
 realSign :: PrivateKey -> ByteString -> Signature --paramaterize over hash?
-realSign priKey bytes = C.rsassa_pkcs1_v1_5_sign C.ha_SHA1 priKey bytes --Concrete implementation plugs in here
+realSign priKey bytes = C.rsassa_pkcs1_v1_5_sign C.hashSHA1 priKey bytes --Concrete implementation plugs in here
 
 realVerify :: PublicKey -> ByteString -> Signature -> Bool
-realVerify pubKey m s = C.rsassa_pkcs1_v1_5_verify C.ha_SHA1 pubKey m s
+realVerify pubKey m s = C.rsassa_pkcs1_v1_5_verify C.hashSHA1 pubKey m s
 
 --Concrete packing(well-defined strategy for combining elements in preparation for encryption/signing) implementation
 packImpl :: (Binary a) => [a] -> ByteString
