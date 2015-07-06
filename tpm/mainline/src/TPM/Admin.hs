@@ -121,23 +121,28 @@ tpm_setoperatorauth tpm pass = tpm_transmit tpm 0 tag cod dat >> return ()
 tpm_takeownership :: TPM tpm => tpm -> Session -> TPM_PUBKEY ->
                                 TPM_DIGEST -> TPM_DIGEST ->  IO TPM_KEY
 tpm_takeownership tpm (OIAP ah en) pubkey pass srkpass = do
+    ownenc' <- tpm_rsa_pubencrypt pubkey pass
     on <- nonce_create
-    (rtag,size,resl,dat) <- tpm_transmit' tpm tag cod (dat on)
-    return (decode dat)
-    where tag = tpm_tag_rqu_auth1_command
+    let   ownenc = encode $ ownenc'
+          ownlen = encode ((fromIntegral $ length ownenc) :: UINT32)
+    srkenc' <- tpm_rsa_pubencrypt pubkey srkpass
+    let   srkenc = encode $ srkenc'
+          srklen = encode ((fromIntegral $ length srkenc) :: UINT32)
+          tag = tpm_tag_rqu_auth1_command
           cod = tpm_ord_takeownership
+          pro = tpm_pid_owner
+          key = tpm_key_createowner tpm_auth_priv_use_only
+          ath on = tpm_auth_hmac pass en on 0 $ concat [
+                      encode cod, encode pro, ownlen, ownenc
+                    , srklen, srkenc, encode key ]
           dat on = concat [ encode pro, ownlen, ownenc, srklen, srkenc
                           , encode key, ah, encode on, singleton 0x0
                           , encode (ath on) ]
-          pro = tpm_pid_owner
-          key = tpm_key_createowner tpm_auth_priv_use_only
-          ownenc = encode $ tpm_rsa_pubencrypt pubkey pass
-          ownlen = encode ((fromIntegral $ length ownenc) :: UINT32)
-          srkenc = encode $ tpm_rsa_pubencrypt pubkey srkpass
-          srklen = encode ((fromIntegral $ length srkenc) :: UINT32)
-          ath on = tpm_auth_hmac pass en on 0 $ concat [ 
-                      encode cod, encode pro, ownlen, ownenc
-                    , srklen, srkenc, encode key ]
+    (rtag,size,resl,dat) <- tpm_transmit' tpm tag cod (dat on)
+    return (decode dat)
+
+
+
 
 -------------------------------------------------------------------------------
 -------------------------------------------------------------------------------

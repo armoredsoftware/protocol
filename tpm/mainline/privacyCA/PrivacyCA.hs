@@ -25,7 +25,7 @@ caProcess chan = do
   req <- receiveCARequest chan
   resp <- mkCAResponse req
   sendCAResponse chan resp
-  return () 
+  return ()
 
 
 
@@ -34,7 +34,7 @@ receiveCARequest chan = do
 			  eitherShared <- receiveShared chan
 			  case (eitherShared) of
 			   (Left err) -> return (Left err)
-			   (Right (WCARequest caReq)) -> do 
+			   (Right (WCARequest caReq)) -> do
                              putStrLn $ "Received: " ++ (show caReq)
                              return (Right caReq)
 			   (Right x) -> return (Left ("I wasn't supposed to get this!. I expected a 'CARequest' but I received this: " ++ (show x)))
@@ -54,29 +54,29 @@ mkCAResponse (Right (CARequest id (Signed idContents idSig))) = do
       iDigest = tpm_digest $ encode iPubKey
       asymContents = contents iDigest
       blob = encode asymContents
-      encBlob =  tpm_rsa_pubencrypt ekPubKey blob
-      
-      caPriKey = snd generateCAKeyPair
+  encBlob <-  tpm_rsa_pubencrypt ekPubKey blob
+
+  let caPriKey = snd generateCAKeyPair
       caCert = signPack caPriKey iPubKey
       certBytes = encode caCert
-      
+
       strictCert = toStrict certBytes
       encryptedCert = encryptCTR aes ctr strictCert
       enc = fromStrict encryptedCert
-      --encryptedSignedAIK = crypt' CTR symKey symKey Encrypt signedAIK  
+      --encryptedSignedAIK = crypt' CTR symKey symKey Encrypt signedAIK
 
       --enc = encrypt key certBytes
   return (CAResponse enc encBlob)
- where 
-   symKey = 
-     TPM_SYMMETRIC_KEY 
-     (tpm_alg_aes128) 
-     (tpm_es_sym_ctr) 
+ where
+   symKey =
+     TPM_SYMMETRIC_KEY
+     (tpm_alg_aes128)
+     (tpm_es_sym_ctr)
      key
-   
-   v:: Word8 
+
+   v:: Word8
    v = 1
-   key = ({-B.-}Data.ByteString.Lazy.pack $ replicate 16 v) 
+   key = ({-B.-}Data.ByteString.Lazy.pack $ replicate 16 v)
    --strictKey = toStrict key
    aes = initAES $ toStrict key
    ctr = toStrict key
@@ -91,7 +91,7 @@ readPubEK = do
       pubKey = read pubKeyString
   hClose handle
   return pubKey
-  
+
 
 {-
 --"One-time use" export function
@@ -101,7 +101,3 @@ exportCAPub fileName pubKey = do
   hPutStrLn handle $ show pubKey
   hClose handle
 -}
-
-                        
-
-

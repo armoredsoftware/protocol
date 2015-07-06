@@ -12,9 +12,8 @@ Build-type:             Simple
 
 
 executable              Project
-  hs-source-dirs:       api, shell, src, shared, project, appraisal, attestation, measurer, privacyCA, provisioning, interpreter, protoMonad, shared/protocolprotocol, shared/protocolprotocol/AppraiserProtocol, shared/protocolprotocol/AttesterProtocol
+  hs-source-dirs:       src, shared, project, appraisal, attestation, measurer, privacyCA, provisioning, interpreter, protoMonad, shared/protocolprotocol, shared/protocolprotocol/AppraiserProtocol, shared/protocolprotocol/AttesterProtocol
   build-depends:        base >= 4,
-                        shell >= 1.0,
                         mtl,
                         directory,
                         containers,
@@ -35,14 +34,14 @@ executable              Project
                         aeson,
                         unordered-containers,
                         transformers,
-                        scotty
+                        scotty,
+                        crypto-api
   Main-is:              Main.hs
   ghc-options:          -O -threaded
 
 executable              Attestation
-  hs-source-dirs:       api, shell, src, shared, attestation, shared/protocolprotocol
+  hs-source-dirs:       src, shared, attestation, shared/protocolprotocol
   build-depends:        base >= 4,
-                        shell >= 1.0,
                         mtl,
                         directory,
                         containers,
@@ -63,9 +62,8 @@ executable              Attestation
   ghc-options:          -O
 
 executable              Appraiser
-  hs-source-dirs:       api, shell, src, shared, appraisal, provisioning, shared/protocolprotocol
+  hs-source-dirs:       src, shared, appraisal, provisioning, shared/protocolprotocol
   build-depends:        base >= 4,
-                        shell >= 1.0,
                         mtl,
                         directory,
                         containers,
@@ -84,9 +82,8 @@ executable              Appraiser
   ghc-options:          -O
 
 executable              Measurer
-  hs-source-dirs:       api, shell, src, shared, measurer, shared/protocolprotocol
+  hs-source-dirs:       src, shared, measurer, shared/protocolprotocol
   build-depends:        base >= 4,
-                        shell >= 1.0,
                         mtl,
                         directory,
                         containers,
@@ -106,9 +103,8 @@ executable              Measurer
   ghc-options:          -O
 
 executable              PrivacyCA
-  hs-source-dirs:       api, shell, src, shared, privacyCA, shared/protocolprotocol
+  hs-source-dirs:       src, shared, privacyCA, shared/protocolprotocol
   build-depends:        base >= 4,
-                        shell >= 1.0,
                         mtl,
                         directory,
                         containers,
@@ -134,9 +130,8 @@ executable              PrivacyCA
   ghc-options:          -O
 
 executable              Provisioning
-  hs-source-dirs:       api, shell, src, shared, provisioning
+  hs-source-dirs:       src, shared, provisioning
   build-depends:        base >= 4,
-                        shell >= 1.0,
                         mtl,
                         directory,
                         containers,
@@ -155,9 +150,8 @@ executable              Provisioning
   ghc-options: -O
 
 executable              AttesterMain
-  hs-source-dirs:       api, shell, src, shared, protoMonad, shared/protocolprotocol
+  hs-source-dirs:       src, shared, protoMonad, shared/protocolprotocol
   build-depends:        base >= 4,
-                        shell >= 1.0,
                         mtl,
                         directory,
                         containers,
@@ -176,9 +170,8 @@ executable              AttesterMain
   ghc-options: -O
 
 executable              AppMain
-  hs-source-dirs:       api, shell, src, provisioning, shared, protoMonad, shared/protocolprotocol
+  hs-source-dirs:       src, provisioning, shared, protoMonad, shared/protocolprotocol
   build-depends:        base >= 4,
-                        shell >= 1.0,
                         mtl,
                         directory,
                         containers,
@@ -197,9 +190,8 @@ executable              AppMain
   ghc-options: -O
 
 executable              CAMain
-  hs-source-dirs:       api, shell, src, shared, protoMonad, shared/protocolprotocol
+  hs-source-dirs:       src, shared, protoMonad, shared/protocolprotocol
   build-depends:        base >= 4,
-                        shell >= 1.0,
                         mtl,
                         directory,
                         containers,
@@ -217,39 +209,36 @@ executable              CAMain
   Main-is: CAMain.hs
   ghc-options: -O -threaded
 executable              Protocol
-  hs-source-dirs:       api, shell, src, shared, provisioning, attestation, shared/protocolprotocol, protoMonad
+  hs-source-dirs:       src, shared, provisioning, attestation, shared/protocolprotocol, protoMonad
   build-depends:        base >= 4,
-                        shell >= 1.0,
-                        network < 2.6, 
+                        network < 2.6,
                         network-uri < 2.6,
                         stm,
                         time
 
-                       
+
   Main-is: ProtocolMain.hs
   ghc-options: -O -threaded
 
 executable              AttesterProtocol
-  hs-source-dirs:       api, shell, src, shared, provisioning, shared/protocolprotocol/AttesterProtocol, shared/protocolprotocol, protoMonad
+  hs-source-dirs:       src, shared, provisioning, shared/protocolprotocol/AttesterProtocol, shared/protocolprotocol, protoMonad
   build-depends:        base >= 4,
-                        shell >= 1.0,
-                        network < 2.6, 
+                        network < 2.6,
                         network-uri < 2.6,
                         network-info
 
-                       
+
   Main-is: AttesterProtocolMain.hs
   ghc-options: -O -threaded
 
 executable              AppraiserProtocol
-  hs-source-dirs:       api, shell, src, shared, provisioning, shared/protocolprotocol/AppraiserProtocol, shared/protocolprotocol, protoMonad
+  hs-source-dirs:       src, shared, provisioning, shared/protocolprotocol/AppraiserProtocol, shared/protocolprotocol, protoMonad
   build-depends:        base >= 4,
-                        shell >= 1.0,
-                        network < 2.6, 
+                        network < 2.6,
                         network-uri < 2.6,
                         network-info
 
-                       
+
   Main-is: AppraiserProtocolMain.hs
   ghc-options: -O -threaded
 
@@ -257,35 +246,32 @@ executable              AppraiserProtocol
 executable              AbstractCommunication
   hs-source-dirs:       shared/protocolprotocol
   build-depends:        base >= 4,
-                        shell >= 1.0,
-                        network < 2.6, 
+                        network < 2.6,
                         network-uri < 2.6,
                         network-info
 
-                       
+
   Main-is: AbstractCommunicationMain.hs
   ghc-options: -O -threaded
 
 executable              TestHttpChanA
   hs-source-dirs:       shared/protocolprotocol, shared, src
   build-depends:        base >= 4,
-                        shell >= 1.0,
-                        network < 2.6, 
+                        network < 2.6,
                         network-uri < 2.6,
                         network-info
 
-                       
+
   Main-is: TestHttpChannelAMain.hs
   ghc-options: -O -threaded
 
 executable              TestHttpChanB
   hs-source-dirs:       shared/protocolprotocol, shared, src
   build-depends:        base >= 4,
-                        shell >= 1.0,
-                        network < 2.6, 
+                        network < 2.6,
                         network-uri < 2.6,
                         network-info
 
-                       
+
   Main-is: TestHttpChannelBMain.hs
   ghc-options: -O -threaded

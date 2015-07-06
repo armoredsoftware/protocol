@@ -30,12 +30,12 @@ makeQuoteInfo tpm = do max <- tpm_getcap_pcrs tpm
  where list = [0..23] :: [Word8]
 
 
-getKeyPair :: (PublicKey, PrivateKey)
+{-getKeyPair :: (PublicKey, PrivateKey)
 getKeyPair = let stdGen = mkStdGen 3
                  (pub, pri, _) = generateKeyPair stdGen 2048 in (pub, pri)
 
 getPubKey = fst getKeyPair
-getPriKey = snd getKeyPair
+getPriKey = snd getKeyPair -}
 
 {-
 quoteInfoSig :: TPM_QUOTE_INFO -> ByteString
@@ -44,9 +44,3 @@ quoteInfoSig q = let blob = encode q in
 
 sigVerify ::
 -}
-
-
-
-
-                   
-                
